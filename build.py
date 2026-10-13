@@ -25,6 +25,10 @@ def read_card(slug):
                 if k.strip() in KEYS: d[KEYS[k.strip()]] = v.strip()
     return d
 def n(x): return "" if x is None else x
+def ze_txt(it): return f'{it["ze"]} з.е.' if it["ze"] else "вне з.е."
+def cut(t, k=38):
+    t = re.sub(r"^ДВ:\s*", "", t)
+    return t if len(t) <= k else t[:k].rsplit(" ", 1)[0] + "…"
 def start_sem(s):
     m = re.search(r"\d", str(s)); return int(m.group()) if m else 0
 def chips(it):
@@ -76,7 +80,7 @@ def card_html(it, c):
     hay = E((it["name"]+" "+c["what"]+" "+c["brief"]).lower())
     return (f'<a class="card" href="d/{it["slug"]}.html" data-sem="{start_sem(it["sem"])}" data-group="{group_of(it["type"])}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" data-text="{hay}">'
             f'<span class="sem">{E(str(it["sem"]))} сем.</span><h3>{E(label)}</h3><p>{E(blurb)}</p>'
-            f'<div class="meta"><b>{n(it["ze"])} з.е.</b> · {n(it["hours"])} ч</div><div class="chips">{ch}</div><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></a>')
+            f'<div class="meta"><b>{ze_txt(it)}</b> · {n(it["hours"])} ч</div><div class="chips">{ch}</div><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></a>')
 RANK = {g: k for k, g in enumerate(GROUPS)}
 def sort_key(x): return (start_sem(x["sem"]) or 99, RANK.get(group_of(x["type"]), 9), x["idx"])
 def build():
@@ -106,11 +110,11 @@ def build():
         what = sec("Что это", c["what"]) or (sec("Кратко", c["brief"]) or '<p class="muted">Описание этой дисциплины готовится.</p>')
         body = f'''<nav class="crumbs"><a href="../index.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <article class="disc"><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1>
-<p class="muted">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"])} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p>
+<p class="muted">{E(it["idx"])} · {E(it["type"])} · {ze_txt(it)} · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p>
 {what}{sec("Зачем нужно в профессии", c["why"])}{sec("Пример задания", c["example"])}{sec("Совет студента", c["tip"])}
 <section><h2>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> (Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа).</p></section>
 <section><h2>Оценки студентов</h2>{rating_block(it["slug"])}</section></article>
-<nav class="pager">{"<a href=%s.html>← %s</a>" % (order[k-1]["slug"], E(order[k-1]["name"][:40])) if k else "<span></span>"}{"<a href=%s.html>%s →</a>" % (order[k+1]["slug"], E(order[k+1]["name"][:40])) if k+1 < len(order) else ""}</nav>'''
+<nav class="pager">{"<a href=%s.html>← %s</a>" % (order[k-1]["slug"], E(cut(order[k-1]["name"]))) if k else "<span></span>"}{"<a href=%s.html>%s →</a>" % (order[k+1]["slug"], E(cut(order[k+1]["name"]))) if k+1 < len(order) else ""}</nav>'''
         (OUT/"d"/f'{it["slug"]}.html').write_text(page(f"{name}: что изучают и какая нагрузка",c["what"] or c["brief"] or name,body,1),encoding="utf-8")
     about = f'''<article class="disc"><h1>О проекте</h1><p>«Учебный план простым языком» объясняет абитуриентам, что их ждёт на специальности: официальный учебный план написан для проверяющих, а школьнику нужно понять, чем он будет заниматься и насколько будет трудно.</p>
 <h2>Откуда данные</h2><p>Часы, зачётные единицы и формы контроля взяты из документа: {E(meta["plan"])}, {E(meta["approved"])}. Тексты описаний пишут студенты и проверяют преподаватели. Статус каждой карточки показан на её странице.</p>
