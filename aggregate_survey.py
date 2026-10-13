@@ -30,14 +30,23 @@ def match(label):
     if best[0] >= 0.8: return {best[1]}, False
     if "проектная деятельность" in v: return {s for n, s in cands if n.startswith("основы проектной") or n == "проектная деятельность"}, False
     return set(), True
-rows = list(csv.DictReader(open(a.csv, encoding="utf-8-sig")))
+raw = list(csv.reader(open(a.csv, encoding="utf-8-sig")))
+head, rows = raw[0], raw[1:]
+def col_idx(part): return next((i for i, h in enumerate(head) if part.lower() in h.lower()), None)
+# 1) исключаем тех, кто не разрешил использовать ответы
+ci = col_idx("можно ли использовать твои ответы")
+if ci is not None:
+    before = len(rows); rows = [r for r in rows if not (len(r) > ci and r[ci].strip().lower().startswith("нет"))]
+    print("Исключено по отказу от использования ответов:", before - len(rows))
+# 2) необязательный фильтр по колонке, например --filter "направлении=27.03.01"
 if a.filter:
-    key, val = a.filter.split("=", 1)
-    rows = [r for r in rows if any(key.lower() in c.lower() and val.lower() in (r[c] or "").lower() for c in r)]
+    key, val = a.filter.split("=", 1); fi = col_idx(key)
+    if fi is None: sys.exit("Колонка для фильтра не найдена: " + key)
+    rows = [r for r in rows if len(r) > fi and val.lower() in r[fi].lower()]
 print("Строк в обработке:", len(rows))
 hard, use, interest, unmatched = {}, {}, {}, set()
 topnames = sorted({(norm(d["name"]), d["slug"]) for d in plan}, key=lambda x: -len(x[0]))
-for col in rows[0].keys() if rows else []:
+for i, col in enumerate(head):   # по индексам: в таблице бывают колонки с одинаковым названием
     m = re.match(r"^(.*?)\s*\[(.*)\]\s*$", col, re.S)
     if m:
         q, label = m.group(1).lower(), m.group(2)
@@ -46,14 +55,14 @@ for col in rows[0].keys() if rows else []:
         slugs, bad = match(label)
         if bad: unmatched.add(label); continue
         for r in rows:
-            v = (r[col] or "").strip()
-            if v[:1] in "12345" and v[:1]: 
-                for s in slugs: target.setdefault(s, []).append(int(v[0]))
+            v = (r[i] if len(r) > i else "").strip()
+            if v[:1] in ("1","2","3","4","5"):
+                for s_ in slugs: target.setdefault(s_, []).append(int(v[0]))
     elif "самыми" in col.lower() and "интересн" in col.lower():
         for r in rows:
-            text = norm(r[col] or "")
-            for n, s in topnames:
-                if n and n in text: interest[s] = interest.get(s, 0) + 1; text = text.replace(n, "", 1)
+            text = norm(r[i] if len(r) > i else "")
+            for n, s_ in topnames:
+                if n and n in text: interest[s_] = interest.get(s_, 0) + 1; text = text.replace(n, "", 1)
 res = {}
 for s in set(hard) | set(use) | set(interest):
     h, u = hard.get(s, []), use.get(s, [])
