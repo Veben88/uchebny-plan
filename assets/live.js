@@ -12,8 +12,7 @@
       clearTimeout(t);
       var r = d && d.ratings && d.ratings[slug];
       if (!r || r.n < (d.min_n || 5)) return;
-      box.textContent = '';
-      box.appendChild(el('h2', '', 'Оценки студентов'));
+      while (box.children.length > 1) box.removeChild(box.lastChild);
       var ms = el('div', 'meters');
       if (r.hard != null) ms.appendChild(meter(r.hard, 'Сложность, 1–5'));
       if (r.useful != null) ms.appendChild(meter(r.useful, 'Польза для профессии, 1–5'));
