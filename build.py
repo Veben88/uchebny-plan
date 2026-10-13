@@ -94,7 +94,7 @@ def rating_block(slug):
     def cell(t, v): return f'<div class="meter"><b>{v if v is not None else "—"}</b><span>{t}</span></div>' if v is not None else ""
     scope = E(r.get("scope","")) or "студенты, прошедшие предмет"
     return ('<div class="meters">'+cell("Сложность, 1–5",r.get("hard"))+cell("Польза для профессии, 1–5",r.get("useful"))+
-            (f'<div class="meter"><b>{r["interest"]}</b><span>раз отмечен среди самых интересных</span></div>' if r.get("interest") is not None else "")+
+            (f'<div class="meter"><b>{r["interest"]}</b><span>раз отмечен среди самых интересных</span></div>' if r.get("interest") else "")+
             f'</div><p class="muted">Ответили: {nn}. Оценили: {scope}. Медианные значения.</p>')
 BASE = lambda p: "../" if p else ""
 def page(title, desc, body, depth=0, active="", live=False):
