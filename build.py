@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Сборка сайта: data/plan.json + content/*.md + data/ratings.json -> папка site/"""
-import json, re, shutil, html
+import json, re, shutil, html, hashlib
 from pathlib import Path
 ROOT = Path(__file__).parent; OUT = ROOT / "site"; E = html.escape
 plan = json.loads((ROOT/"data/plan.json").read_text(encoding="utf-8")); meta, items = plan["meta"], plan["disciplines"]
@@ -9,6 +9,8 @@ ratings = jload(ROOT/"data/ratings.json", {}); CONFIG = jload(ROOT/"data/config.
 RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip()
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
+# отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -73,13 +75,13 @@ def footer_html():
 def page(title, desc, body, depth=0, live=False, path=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
-    lj = f'<script src="{b}assets/live.js" defer></script>' if (live and RATINGS_URL) else ""
-    if path: lj += f'<script src="{b}assets/path.js" defer></script>'
+    lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
+    if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
-<link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css"></head><body>
-<a class="skip" href="#main">К содержимому</a>{body}{footer_html()}<script src="{b}assets/app.js" defer></script>{lj}</body></html>'''
+<link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
+<a class="skip" href="#main">К содержимому</a>{body}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
