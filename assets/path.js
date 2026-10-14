@@ -229,71 +229,19 @@
     var io = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('vis'); io.unobserve(en.target); } }); }, { rootMargin: '0px 0px -10% 0px' });
     stations.forEach(function (s) { io.observe(s); });
   } else stations.forEach(function (s) { s.classList.add('vis'); });
-  // ---------- извилистая дорога-линейка: узлы лежат на синусоиде, дорога рисуется по ним ----------
-  var SVGNS = 'http://www.w3.org/2000/svg', road = null, rcr = null, nodes = [].slice.call(track.querySelectorAll('.node'));
-  function cssNum(name, def) { var v = parseFloat(getComputedStyle(track).getPropertyValue(name)); return isNaN(v) ? def : v; }
-  function mk(tag, attrs) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
-  function layoutRoad() {
-    var W = cssNum('--gut', 120), amp = cssNum('--amp', 34), seg = cssNum('--seg', 420), tr = track.getBoundingClientRect(), H = track.offsetHeight, cx = W / 2;
-    var cy = nodes.map(function (n) { var r = n.getBoundingClientRect(); return r.top - tr.top + r.height / 2; });
-    // узлы стоят ровно в одной колонке; дорога плавно изгибается между ними, проходя через центр каждого
-    var y0 = Math.max(0, cy[0] - 80), pts = [y0].concat(cy), d = 'M' + cx + ' ' + y0.toFixed(1), side = 1;
-    for (var i = 1; i < pts.length; i++) {
-      var dy = pts[i] - pts[i - 1], k = Math.max(1, Math.round(dy / seg));
-      for (var q = 0; q < k; q++) {
-        var ya = pts[i - 1] + dy * q / k, yb = pts[i - 1] + dy * (q + 1) / k, h = yb - ya, bl = amp * side * Math.min(1, h / 240);
-        d += ' C' + (cx + bl).toFixed(1) + ' ' + (ya + h * 0.3).toFixed(1) + ' ' + (cx + bl).toFixed(1) + ' ' + (yb - h * 0.3).toFixed(1) + ' ' + cx + ' ' + yb.toFixed(1);
-        side = -side;
-      }
-    }
-    if (road) road.remove();
-    road = mk('svg', { 'class': 'road', 'aria-hidden': 'true', width: W, height: H, viewBox: '0 0 ' + W + ' ' + H });
-    track.insertBefore(road, track.firstChild);
-    // деления линейки: короткие каждые 8 px, средние через 5, длинные через 10 — с левой стороны линии
-    var probe = mk('path', { d: d }); road.appendChild(probe);
-    var L = probe.getTotalLength(), t = '', step = 8;
-    for (var s = 0, n = 0; s <= L; s += step, n++) {
-      var p = probe.getPointAtLength(s), p2 = probe.getPointAtLength(Math.min(L, s + 1)), tx = p2.x - p.x, ty = p2.y - p.y, len = Math.hypot(tx, ty) || 1;
-      var nx = -ty / len, ny = tx / len, tl = n % 10 === 0 ? 13 : n % 5 === 0 ? 9 : 5;
-      t += 'M' + (p.x + nx * 5).toFixed(1) + ' ' + (p.y + ny * 5).toFixed(1) + 'L' + (p.x + nx * (5 + tl)).toFixed(1) + ' ' + (p.y + ny * (5 + tl)).toFixed(1);
-    }
-    probe.remove();
-    var defs = mk('defs', {}), g = mk('linearGradient', { id: 'rg', gradientUnits: 'userSpaceOnUse', x1: 0, y1: y0, x2: 0, y2: cy[cy.length - 1] });
-    g.appendChild(mk('stop', { offset: '0', 'stop-color': '#3b4f86' })); g.appendChild(mk('stop', { offset: '1', 'stop-color': '#9cc23a' }));
-    var cp = mk('clipPath', { id: 'rc' }); rcr = mk('rect', { x: -40, y: 0, width: W + 80, height: 0 }); cp.appendChild(rcr);
-    defs.appendChild(g); defs.appendChild(cp); road.appendChild(defs);
-    var base = mk('g', {}); base.appendChild(mk('path', { 'class': 'ln', d: d })); base.appendChild(mk('path', { 'class': 'tk', d: t })); road.appendChild(base);
-    var fill = mk('g', { 'class': 'fill', 'clip-path': 'url(#rc)' });
-    fill.appendChild(mk('path', { 'class': 'glow', d: d })); fill.appendChild(mk('path', { 'class': 'ln', d: d })); fill.appendChild(mk('path', { 'class': 'tk', d: t }));
-    road.appendChild(fill); prog();
-  }
-  var lt = 0; function relayout() { clearTimeout(lt); lt = setTimeout(layoutRoad, 80); }
-
-  // ---------- прогресс по пути и появление карточек ----------
-  var firstRun = true;
   function prog() {
     var tr = track.getBoundingClientRect(), mid = window.innerHeight * 0.45;
-    var py = Math.min(tr.height, Math.max(0, mid - tr.top)), p = tr.height ? py / tr.height : 0;
-    if (rcr) rcr.setAttribute('height', py.toFixed(1));
-    jfill.style.width = (p * 100) + '%'; jpct.textContent = Math.round(p * 100) + '%';
+    var p = Math.min(1, Math.max(0, (mid - tr.top) / tr.height));
+    track.style.setProperty('--fill', (p * tr.height) + 'px'); jfill.style.width = (p * 100) + '%'; jpct.textContent = Math.round(p * 100) + '%';
     var curSt = null;
-    var fresh = [];
-    stations.forEach(function (s) {
-      var passed = s.getBoundingClientRect().top < mid; s.classList.toggle('passed', passed); if (passed) curSt = s;
-      if (passed && !s.dataset.sp) { s.dataset.sp = '1'; fresh.push(s); }
-    });
+    stations.forEach(function (s) { var passed = s.getBoundingClientRect().top < mid; s.classList.toggle('passed', passed); if (passed) curSt = s; });
     stations.forEach(function (s) { s.classList.toggle('current', s === curSt); });
-    // «капля падает» только в тот семестр, до которого дошли; при быстрой прокрутке не брызгает везде сразу
-    if (!firstRun && !RM && curSt && fresh.indexOf(curSt) >= 0) { curSt.classList.add('splash'); setTimeout(function () { curSt.classList.remove('splash'); }, 1700); }
     var txt = !curSt ? 'Старт: 1 курс' : curSt.classList.contains('finale') ? 'Финиш: диплом и работа' : curSt.dataset.course + ' курс · ' + curSt.dataset.sem + ' семестр';
     if (txt !== lastTxt) { jpos.textContent = txt; lastTxt = txt; }
-    firstRun = false;
   }
   var tick = false;
   window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; prog(); }); } }, { passive: true });
-  window.addEventListener('resize', function () { prog(); relayout(); }); layoutRoad(); prog();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutRoad);
-  if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(track);
+  window.addEventListener('resize', prog); prog();
 
   // ---------- ссылка на раскрытую карточку: index.html#d=код ----------
   window.addEventListener('hashchange', function () {

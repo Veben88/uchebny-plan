@@ -190,7 +190,6 @@ def path_data(cards):
 def job_chip(sl):
     nm = next(i["name"] for i in items if i["slug"] == sl)
     return f'<a class="kchip" href="d/{sl}.html" data-slug="{sl}" aria-haspopup="dialog">{E(cut(clean(nm),34))}</a>'
-WATER = '<i class="rp r1"></i><i class="rp r2"></i><i class="rp r3"></i>' + "".join(f'<s class="dr" style="--a:{18+i*51}deg;--d:{(i%3)*40}ms"></s>' for i in range(7))
 def path_page(cards):
     by = {}
     for it in sorted(items, key=SORT):
@@ -206,7 +205,7 @@ def path_page(cards):
                    f'<span class="dci" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span><b>{E(label)}</b>'
                    f'<small>{ze_num(it)} з.е. · {n(it["hours"])} ч{" · продолжение" if cont else ""}</small></a>')
         new = sum(1 for _, c in lst if not c)
-        sts.append(f'<li class="station" data-sem="{s}" data-course="{(s+1)//2}"><div class="node"><b>{s}</b><span>семестр</span>{WATER}</div><div class="stbody">'
+        sts.append(f'<li class="station" data-sem="{s}" data-course="{(s+1)//2}"><div class="node"><b>{s}</b><span>семестр</span></div><div class="stbody">'
                    f'<div class="sthead"><span class="kicker">{(s+1)//2} курс · {"осень" if s % 2 else "весна"}</span><h2>Семестр {s}</h2>'
                    f'<p>{SEM_NOTE[s]} <span class="muted">Новых предметов: {new}, всего в семестре: {len(lst)}.</span></p></div><div class="dcs">{cs}</div></div></li>')
     jobs = ""
@@ -223,7 +222,7 @@ def path_page(cards):
             '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
             f'<p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
             f'<div class="facts"><span><b>4</b> года</span><span><b>8</b> семестров</span><span><b>240</b> з.е.</span><span><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
-    finale = (f'<li class="station finale" data-sem="9"><div class="node">{ic("FaUserGraduate")}{WATER}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
+    finale = (f'<li class="station finale" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
               '<p>Типичные должности выпускников направления. Нажми «Показать путь к профессии», чтобы подсветить на карте предметы, которые к ней ведут. '
               '<span class="muted">Список составлен по профессиональным задачам из учебного плана; требования и зарплаты смотри в вакансиях.</span></p></div>'
               f'<div class="jobs">{jobs}</div></div></li>')
