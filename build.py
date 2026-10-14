@@ -63,17 +63,18 @@ def rating_block(slug):
     return f'<div class="meters">{m("Сложность, 1–5",r.get("hard"))}{m("Польза для профессии, 1–5",r.get("useful"))}{inter}</div><p class="muted" style="margin-top:10px">Ответили: {nn}. Оценили: {scope}. Медианные значения.</p>'
 def head_nav(depth, active, band=False):
     b = "../"*depth
-    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Дисциплины"),("road","roadmap.html","Дорожная карта"),("about","about.html","О проекте")))
+    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Путь студента"),("cat","catalog.html","Все дисциплины"),("road","roadmap.html","Развитие сайта"),("about","about.html","О проекте")))
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html"><i>{ic("FaCompass")}</i><div>Учебный план<br><span>простым языком</span></div></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст">{ic("FaEye")} Крупно</button></nav></header>')
 def footer_html():
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
     return (f'<footer><div class="wrap"><p><b>Проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
-def page(title, desc, body, depth=0, live=False):
+def page(title, desc, body, depth=0, live=False, path=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js" defer></script>' if (live and RATINGS_URL) else ""
+    if path: lj += f'<script src="{b}assets/path.js" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
@@ -97,7 +98,7 @@ def home_page(cards):
     sems = sorted({start_sem(i["sem"]) for i in items if start_sem(i["sem"])})
     pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{s}" aria-pressed="false">{s} семестр<small>{sum(1 for i in items if start_sem(i["sem"])==s)}</small></button>' for s in sems)
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
-    body = head_nav(0, "home") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Что тебя ждёт на «Стандартизации и метрологии»</h1>
+    body = head_nav(0, "cat") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Что тебя ждёт на «Стандартизации и метрологии»</h1>
 <p class="lead">Учебный план ДВФУ простым языком: что изучают, зачем это нужно в профессии, насколько большая нагрузка и что говорят студенты.</p>{survey}
 <p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
@@ -114,7 +115,7 @@ def disc_page(it, c, order, k):
     row = f'<div class="two">{what}{why}</div>' if why else what
     prev = f'<a href="{order[k-1]["slug"]}.html">← {E(cut(order[k-1]["name"]))}</a>' if k else "<span></span>"
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
-    body = f'''<div class="band">{head_nav(1,"home")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../index.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
+    body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
 <main id="main" class="wrap">{row}{panel("FaChalkboardTeacher","Пример задания", c["example"])}{panel("FaUsers","Совет студента", c["tip"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
@@ -134,12 +135,12 @@ def road_page():
     who = "".join(f'<div class="pr"><span class="ci">{ic(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i,t,d in (
         ("FaUserGraduate","Абитуриенты","Бесплатно видят, что их ждёт на специальности, ещё до подачи документов."),("FaUsers","Студенты","Анонимно оценивают предметы и дают советы тем, кто придёт после."),("FaUniversity","Вузы и школы","Публикуют проверенные описания, получают обратную связь и материалы для профориентации.")))
     st = "".join(f'<div class="stage {s[3]}"><div class="num">{s[0]}</div><div class="box"><div class="when">{s[1]}{" · сейчас" if s[3] else ""}</div><h3>{s[2]}</h3><ul>'+"".join(f'<li class="{k}">{ic(ICON_OF[k])}<span>{E(t)}</span></li>' for k,t in s[4])+'</ul></div></div>' for s in STAGES)
-    body = head_nav(0, "road") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Дорожная карта сайта</h1>
+    body = head_nav(0, "road") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Как будет развиваться сайт</h1>
 <p class="lead">Как сайт будет расти: от справочника по одной специальности до платформы, которая объясняет программы вузов региона.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></section></div></div><div class="wrap">
 <h2 style="color:var(--pri)">Концепция</h2><p class="muted" style="max-width:70ch">Сайт переводит официальный учебный план на язык абитуриента и добавляет то, чего нет в документе: оценки студентов и примеры заданий. Четыре принципа:</p><div class="principles">{pr}</div>
 <h2 style="color:var(--pri)">Для кого</h2><div class="principles">{who}</div>
-<h2 style="color:var(--pri)">Этапы</h2><div class="legend"><span>{ic("FaCheck")}сделано</span><span>{ic("FaSyncAlt")}в работе</span><span>{ic("FaRegClock")}планируется</span></div><div class="road">{st}</div></div></main>'''
-    return page("Дорожная карта сайта: Учебный план простым языком","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
+<h2 style="color:var(--pri)">Этапы развития</h2><div class="legend"><span>{ic("FaCheck")}сделано</span><span>{ic("FaSyncAlt")}в работе</span><span>{ic("FaRegClock")}планируется</span></div><div class="road">{st}</div></div></main>'''
+    return page("Развитие сайта: Учебный план простым языком","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
 def about_page():
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
     contact = f'<h2>Контакты</h2><p>{E(CONTACT)}</p>' if CONTACT else ""
@@ -154,14 +155,92 @@ def about_page():
 <div class="doc"><h2>Что важно знать</h2><p>Сайт показывает данные плана 27.03.01 «Стандартизация и метрология» ДВФУ и оценки студентов. Мы не собираем имена и почту, цитаты публикуем только с согласия студента.</p>{survey}{contact}</div>
 <h2 style="color:var(--pri)">Частые вопросы</h2>{fq}</div></main>'''
     return page("О проекте: Учебный план простым языком","Что это за сайт, откуда данные и как считаются оценки студентов", body)
+
+def sem_list(s):
+    out = []
+    for part in str(s).split(","):
+        part = part.strip()
+        m = re.match(r"(\d+)\s*[–-]\s*(\d+)", part)
+        if m: out += list(range(int(m.group(1)), int(m.group(2)) + 1))
+        elif part.isdigit(): out.append(int(part))
+    return out
+SEM_NOTE = {1:"Фундамент: математика, химия, графика и знакомство с профессией.",2:"Первые профильные предметы: техническое регулирование и документы. Летом учебные практики.",
+ 3:"Метрология и статистика: больше расчётов и лабораторных.",4:"Управление качеством и измерения. Летом технологическая практика.",
+ 5:"Ядро профессии: стандарты, сертификация, статистические методы.",6:"Квалиметрия, эталоны и испытания. Вторая технологическая практика.",
+ 7:"Точность, проекты, экономика качества. Больше предметов по выбору.",8:"Финиш: практики, госэкзамен и выпускная работа."}
+JOBS = [
+ ("FaRulerCombined","Инженер-метролог","Отвечает за точность измерений: выбирает приборы, организует поверку и калибровку, проверяет методики.",["b1-o-19-01-04","b1-o-19-05","b1-o-19-06","b1-v-14","b1-v-17","b1-o-18-02"],"инженер-метролог"),
+ ("FaBookOpen","Инженер по стандартизации","Разрабатывает и проверяет стандарты предприятия и техническую документацию, следит за их соответствием требованиям.",["b1-o-19-01-06","b1-o-19-08","b1-o-19-01-02","b1-o-18-10","b1-o-19-01-01"],"инженер по стандартизации"),
+ ("FaShieldAlt","Специалист по сертификации","Подтверждает, что продукция и услуги соответствуют требованиям: готовит документы, работает с органами по сертификации и лабораториями.",["b1-o-19-01-07","b1-v-16","b1-v-10","b1-o-19-01-01"],"специалист по сертификации"),
+ ("FaChartBar","Инженер по качеству","Строит и поддерживает систему качества, анализирует данные и ищет причины брака на производстве.",["b1-o-19-01-05","b1-v-06","b1-o-19-03","b1-v-11","b1-v-03","b1-o-19-01-08"],"инженер по качеству"),
+ ("FaClipboardCheck","Аудитор систем качества","Проверяет, как работает система менеджмента качества в организации, и предлагает улучшения.",["b1-v-15","b1-o-19-01-05","b1-v-05","b1-v-04"],"аудитор систем менеджмента качества"),
+ ("FaTools","Инженер-испытатель","Проводит испытания продукции по методикам, обрабатывает результаты и оформляет протоколы.",["b1-v-10","b1-o-19-07","b1-o-19-05","b1-o-19-01-09","b1-o-18-06"],"инженер-испытатель")]
+def path_data(cards):
+    known = {i["slug"] for i in items}
+    for j in JOBS:
+        for sl in j[3]: assert sl in known, sl
+    out = {}
+    for it in items:
+        c = cards[it["slug"]]; r = ratings.get(it["slug"]) or {}
+        out[it["slug"]] = {"n": clean(it["name"]), "pick": it["type"] == "По выбору", "code": it["idx"], "type": it["type"], "g": gi(it), "gn": GKEYS[gi(it)],
+            "sem": it["sem"], "ze": it["ze"], "h": it["hours"], "c": it["contact"], "lec": it["lec"] or 0, "lab": it["lab"] or 0, "pr": it["pr"] or 0, "ctl": it["controls"] or "",
+            "st": c["status"] if c["status"] in STATUS else "готовится", "what": c["what"], "why": c["why"], "brief": c["brief"], "ex": c["example"], "tip": c["tip"],
+            "r": ({"n": r.get("n",0), "hard": r.get("hard"), "useful": r.get("useful"), "int": r.get("interest"), "scope": r.get("scope","")} if r.get("n",0) >= MIN_N else None)}
+    return {"items": out, "jobs": [{"i": j[0], "t": j[1], "d": j[2], "s": j[3]} for j in JOBS], "status": STATUS, "min_n": MIN_N}
+def job_chip(sl):
+    nm = next(i["name"] for i in items if i["slug"] == sl)
+    return f'<a class="kchip" href="d/{sl}.html" data-slug="{sl}" aria-haspopup="dialog">{E(cut(clean(nm),34))}</a>'
+def path_page(cards):
+    by = {}
+    for it in sorted(items, key=SORT):
+        for k, s in enumerate(sem_list(it["sem"])): by.setdefault(s, []).append((it, k > 0))
+    sts = []
+    for s in range(1, 9):
+        lst = sorted(by.get(s, []), key=lambda t: (t[1], gi(t[0]), t[0]["idx"]))
+        cs = ""
+        for it, cont in lst:
+            g = gi(it); prac = " prac" if GKEYS[g] == "Практики и ГИА" else ""
+            label = ("По выбору: " if it["type"] == "По выбору" else "") + cut(clean(it["name"]), 70)
+            cs += (f'<a class="dc c-{g}{prac}" href="d/{it["slug"]}.html" data-slug="{it["slug"]}" aria-haspopup="dialog">'
+                   f'<span class="dci" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span><b>{E(label)}</b>'
+                   f'<small>{ze_num(it)} з.е. · {n(it["hours"])} ч{" · продолжение" if cont else ""}</small></a>')
+        new = sum(1 for _, c in lst if not c)
+        sts.append(f'<li class="station" data-sem="{s}" data-course="{(s+1)//2}"><div class="node"><b>{s}</b><span>семестр</span></div><div class="stbody">'
+                   f'<div class="sthead"><span class="kicker">{(s+1)//2} курс · {"осень" if s % 2 else "весна"}</span><h2>Семестр {s}</h2>'
+                   f'<p>{SEM_NOTE[s]} <span class="muted">Новых предметов: {new}, всего в семестре: {len(lst)}.</span></p></div><div class="dcs">{cs}</div></div></li>')
+    jobs = ""
+    for k, j in enumerate(JOBS):
+        chips_ = "".join(job_chip(sl) for sl in j[3])
+        q = j[4].replace(" ", "+")
+        jobs += (f'<article class="job" id="job-{k}"><span class="ci">{ic(j[0])}</span><h3>{E(j[1])}</h3><p>{E(j[2])}</p>'
+                 f'<div class="ks" aria-label="Ключевые предметы">{chips_}</div><div class="acts">'
+                 f'<button type="button" class="btn-s" data-job="{k}">{ic("FaMapMarkedAlt")} Показать путь к профессии</button>'
+                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></article>')
+    legend = "".join(f'<button type="button" class="gf c-{k}" data-g="{k}" aria-pressed="false"><i></i>{g}</button>' for k, g in enumerate(GKEYS))
+    data = json.dumps(path_data(cards), ensure_ascii=False).replace("</", "<\\/")
+    hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Путь студента: от первого семестра до профессии</h1>'
+            '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
+            f'<p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
+            f'<div class="facts"><span><b>4</b> года</span><span><b>8</b> семестров</span><span><b>240</b> з.е.</span><span><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
+    finale = (f'<li class="station finale" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
+              '<p>Типичные должности выпускников направления. Нажми «Показать путь к профессии», чтобы подсветить на карте предметы, которые к ней ведут. '
+              '<span class="muted">Список составлен по профессиональным задачам из учебного плана; требования и зарплаты смотри в вакансиях.</span></p></div>'
+              f'<div class="jobs">{jobs}</div></div></li>')
+    journey = (f'<div class="wrap"><div class="journey" id="journey"><div class="jbar"><span class="jpos" id="jpos" aria-live="polite">Старт: 1 курс</span>'
+               f'<div class="jprog" aria-hidden="true"><i id="jfill"></i></div><span id="jpct">0%</span></div>'
+               f'<div class="gfs" role="group" aria-label="Подсветить раздел плана">{legend}</div><ol class="track" id="track">{"".join(sts)}{finale}</ol></div></div>')
+    pill = f'<div class="hlpill" id="hlpill" hidden><span id="hltext"></span><button type="button" id="hlclear">Снять подсветку</button></div>'
+    body = head_nav(0, "home") + f'<main id="main">{hero}{journey}</main>{pill}<script type="application/json" id="pd">{data}</script>'
+    return page("Путь студента: 27.03.01 Стандартизация и метрология ДВФУ", "Интерактивный путь по специальности: семестры, предметы и профессии выпускников", body, path=True)
+
 def build():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json"))
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
-    (OUT/"index.html").write_text(home_page(cards), encoding="utf-8")
+    (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
     (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8")
-    (OUT/"404.html").write_text(page("Страница не найдена","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться к списку дисциплин</a></p></section></main>'), encoding="utf-8")
+    (OUT/"404.html").write_text(page("Страница не найдена","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")
 if __name__ == "__main__": build()
