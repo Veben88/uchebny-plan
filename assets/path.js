@@ -234,22 +234,38 @@
   function cssNum(name, def) { var v = parseFloat(getComputedStyle(track).getPropertyValue(name)); return isNaN(v) ? def : v; }
   function mk(tag, attrs) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
   function layoutRoad() {
-    var W = cssNum('--gut', 132), amp = cssNum('--amp', 26), per = cssNum('--per', 560), tr = track.getBoundingClientRect(), H = track.offsetHeight;
+    var W = cssNum('--gut', 120), amp = cssNum('--amp', 34), seg = cssNum('--seg', 420), tr = track.getBoundingClientRect(), H = track.offsetHeight, cx = W / 2;
     var cy = nodes.map(function (n) { var r = n.getBoundingClientRect(); return r.top - tr.top + r.height / 2; });
-    var f = function (y) { return W / 2 + amp * Math.sin(2 * Math.PI * (y - cy[0]) / per); };
-    nodes.forEach(function (n, i) { n.style.setProperty('--dx', (f(cy[i]) - W / 2).toFixed(1) + 'px'); });
-    var y0 = Math.max(0, cy[0] - 90), y1 = Math.min(H, cy[cy.length - 1] + 70), d = '';
-    for (var y = y0, first = true; y <= y1; y += 6, first = false) d += (first ? 'M' : 'L') + f(y).toFixed(1) + ' ' + y.toFixed(1) + ' ';
+    // узлы стоят ровно в одной колонке; дорога плавно изгибается между ними, проходя через центр каждого
+    var y0 = Math.max(0, cy[0] - 80), pts = [y0].concat(cy), d = 'M' + cx + ' ' + y0.toFixed(1), side = 1;
+    for (var i = 1; i < pts.length; i++) {
+      var dy = pts[i] - pts[i - 1], k = Math.max(1, Math.round(dy / seg));
+      for (var q = 0; q < k; q++) {
+        var ya = pts[i - 1] + dy * q / k, yb = pts[i - 1] + dy * (q + 1) / k, h = yb - ya, bl = amp * side * Math.min(1, h / 240);
+        d += ' C' + (cx + bl).toFixed(1) + ' ' + (ya + h * 0.3).toFixed(1) + ' ' + (cx + bl).toFixed(1) + ' ' + (yb - h * 0.3).toFixed(1) + ' ' + cx + ' ' + yb.toFixed(1);
+        side = -side;
+      }
+    }
     if (road) road.remove();
     road = mk('svg', { 'class': 'road', 'aria-hidden': 'true', width: W, height: H, viewBox: '0 0 ' + W + ' ' + H });
-    var defs = mk('defs', {}), g = mk('linearGradient', { id: 'rg', gradientUnits: 'userSpaceOnUse', x1: 0, y1: y0, x2: 0, y2: y1 });
+    track.insertBefore(road, track.firstChild);
+    // деления линейки: короткие каждые 8 px, средние через 5, длинные через 10 — с левой стороны линии
+    var probe = mk('path', { d: d }); road.appendChild(probe);
+    var L = probe.getTotalLength(), t = '', step = 8;
+    for (var s = 0, n = 0; s <= L; s += step, n++) {
+      var p = probe.getPointAtLength(s), p2 = probe.getPointAtLength(Math.min(L, s + 1)), tx = p2.x - p.x, ty = p2.y - p.y, len = Math.hypot(tx, ty) || 1;
+      var nx = -ty / len, ny = tx / len, tl = n % 10 === 0 ? 13 : n % 5 === 0 ? 9 : 5;
+      t += 'M' + (p.x + nx * 5).toFixed(1) + ' ' + (p.y + ny * 5).toFixed(1) + 'L' + (p.x + nx * (5 + tl)).toFixed(1) + ' ' + (p.y + ny * (5 + tl)).toFixed(1);
+    }
+    probe.remove();
+    var defs = mk('defs', {}), g = mk('linearGradient', { id: 'rg', gradientUnits: 'userSpaceOnUse', x1: 0, y1: y0, x2: 0, y2: cy[cy.length - 1] });
     g.appendChild(mk('stop', { offset: '0', 'stop-color': '#3b4f86' })); g.appendChild(mk('stop', { offset: '1', 'stop-color': '#9cc23a' }));
-    var cp = mk('clipPath', { id: 'rc' }); rcr = mk('rect', { x: 0, y: 0, width: W, height: 0 }); cp.appendChild(rcr);
+    var cp = mk('clipPath', { id: 'rc' }); rcr = mk('rect', { x: -40, y: 0, width: W + 80, height: 0 }); cp.appendChild(rcr);
     defs.appendChild(g); defs.appendChild(cp); road.appendChild(defs);
-    function layer(parent) { ['edge', 'bed', 'tk t1', 'tk t2'].forEach(function (c) { parent.appendChild(mk('path', { 'class': c, d: d })); }); }
-    var base = mk('g', {}); layer(base); road.appendChild(base);
-    var fill = mk('g', { 'class': 'fill', 'clip-path': 'url(#rc)' }); layer(fill); road.appendChild(fill);
-    track.insertBefore(road, track.firstChild); prog();
+    var base = mk('g', {}); base.appendChild(mk('path', { 'class': 'ln', d: d })); base.appendChild(mk('path', { 'class': 'tk', d: t })); road.appendChild(base);
+    var fill = mk('g', { 'class': 'fill', 'clip-path': 'url(#rc)' });
+    fill.appendChild(mk('path', { 'class': 'glow', d: d })); fill.appendChild(mk('path', { 'class': 'ln', d: d })); fill.appendChild(mk('path', { 'class': 'tk', d: t }));
+    road.appendChild(fill); prog();
   }
   var lt = 0; function relayout() { clearTimeout(lt); lt = setTimeout(layoutRoad, 80); }
 
