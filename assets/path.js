@@ -229,19 +229,55 @@
     var io = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('vis'); io.unobserve(en.target); } }); }, { rootMargin: '0px 0px -10% 0px' });
     stations.forEach(function (s) { io.observe(s); });
   } else stations.forEach(function (s) { s.classList.add('vis'); });
+  // ---------- извилистая дорога-линейка: узлы лежат на синусоиде, дорога рисуется по ним ----------
+  var SVGNS = 'http://www.w3.org/2000/svg', road = null, rcr = null, nodes = [].slice.call(track.querySelectorAll('.node'));
+  function cssNum(name, def) { var v = parseFloat(getComputedStyle(track).getPropertyValue(name)); return isNaN(v) ? def : v; }
+  function mk(tag, attrs) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function layoutRoad() {
+    var W = cssNum('--gut', 132), amp = cssNum('--amp', 26), per = cssNum('--per', 560), tr = track.getBoundingClientRect(), H = track.offsetHeight;
+    var cy = nodes.map(function (n) { var r = n.getBoundingClientRect(); return r.top - tr.top + r.height / 2; });
+    var f = function (y) { return W / 2 + amp * Math.sin(2 * Math.PI * (y - cy[0]) / per); };
+    nodes.forEach(function (n, i) { n.style.setProperty('--dx', (f(cy[i]) - W / 2).toFixed(1) + 'px'); });
+    var y0 = Math.max(0, cy[0] - 90), y1 = Math.min(H, cy[cy.length - 1] + 70), d = '';
+    for (var y = y0, first = true; y <= y1; y += 6, first = false) d += (first ? 'M' : 'L') + f(y).toFixed(1) + ' ' + y.toFixed(1) + ' ';
+    if (road) road.remove();
+    road = mk('svg', { 'class': 'road', 'aria-hidden': 'true', width: W, height: H, viewBox: '0 0 ' + W + ' ' + H });
+    var defs = mk('defs', {}), g = mk('linearGradient', { id: 'rg', gradientUnits: 'userSpaceOnUse', x1: 0, y1: y0, x2: 0, y2: y1 });
+    g.appendChild(mk('stop', { offset: '0', 'stop-color': '#3b4f86' })); g.appendChild(mk('stop', { offset: '1', 'stop-color': '#9cc23a' }));
+    var cp = mk('clipPath', { id: 'rc' }); rcr = mk('rect', { x: 0, y: 0, width: W, height: 0 }); cp.appendChild(rcr);
+    defs.appendChild(g); defs.appendChild(cp); road.appendChild(defs);
+    function layer(parent) { ['edge', 'bed', 'tk t1', 'tk t2'].forEach(function (c) { parent.appendChild(mk('path', { 'class': c, d: d })); }); }
+    var base = mk('g', {}); layer(base); road.appendChild(base);
+    var fill = mk('g', { 'class': 'fill', 'clip-path': 'url(#rc)' }); layer(fill); road.appendChild(fill);
+    track.insertBefore(road, track.firstChild); prog();
+  }
+  var lt = 0; function relayout() { clearTimeout(lt); lt = setTimeout(layoutRoad, 80); }
+
+  // ---------- прогресс по пути и появление карточек ----------
+  var firstRun = true;
   function prog() {
     var tr = track.getBoundingClientRect(), mid = window.innerHeight * 0.45;
-    var p = Math.min(1, Math.max(0, (mid - tr.top) / tr.height));
-    track.style.setProperty('--fill', (p * tr.height) + 'px'); jfill.style.width = (p * 100) + '%'; jpct.textContent = Math.round(p * 100) + '%';
+    var py = Math.min(tr.height, Math.max(0, mid - tr.top)), p = tr.height ? py / tr.height : 0;
+    if (rcr) rcr.setAttribute('height', py.toFixed(1));
+    jfill.style.width = (p * 100) + '%'; jpct.textContent = Math.round(p * 100) + '%';
     var curSt = null;
-    stations.forEach(function (s) { var passed = s.getBoundingClientRect().top < mid; s.classList.toggle('passed', passed); if (passed) curSt = s; });
+    var fresh = [];
+    stations.forEach(function (s) {
+      var passed = s.getBoundingClientRect().top < mid; s.classList.toggle('passed', passed); if (passed) curSt = s;
+      if (passed && !s.dataset.sp) { s.dataset.sp = '1'; fresh.push(s); }
+    });
     stations.forEach(function (s) { s.classList.toggle('current', s === curSt); });
+    // «капля падает» только в тот семестр, до которого дошли; при быстрой прокрутке не брызгает везде сразу
+    if (!firstRun && !RM && curSt && fresh.indexOf(curSt) >= 0) { curSt.classList.add('splash'); setTimeout(function () { curSt.classList.remove('splash'); }, 1700); }
     var txt = !curSt ? 'Старт: 1 курс' : curSt.classList.contains('finale') ? 'Финиш: диплом и работа' : curSt.dataset.course + ' курс · ' + curSt.dataset.sem + ' семестр';
     if (txt !== lastTxt) { jpos.textContent = txt; lastTxt = txt; }
+    firstRun = false;
   }
   var tick = false;
   window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; prog(); }); } }, { passive: true });
-  window.addEventListener('resize', prog); prog();
+  window.addEventListener('resize', function () { prog(); relayout(); }); layoutRoad(); prog();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutRoad);
+  if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(track);
 
   // ---------- ссылка на раскрытую карточку: index.html#d=код ----------
   window.addEventListener('hashchange', function () {
