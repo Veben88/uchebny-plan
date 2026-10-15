@@ -6,11 +6,11 @@ ROOT = Path(__file__).parent; OUT = ROOT / "site"; E = html.escape
 plan = json.loads((ROOT/"data/plan.json").read_text(encoding="utf-8")); meta, items = plan["meta"], plan["disciplines"]
 def jload(p, d): return json.loads(p.read_text(encoding="utf-8")) if p.exists() else d
 ratings = jload(ROOT/"data/ratings.json", {}); CONFIG = jload(ROOT/"data/config.json", {})
-RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip()
+RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip(); FEEDBACK_URL = (CONFIG.get("feedback_url") or "").strip()
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -22,7 +22,7 @@ def group_of(t):
         if t in ts: return g
     return "Общие"
 def gi(it): return GKEYS.index(group_of(it["type"]))
-KEYS = {"Статус":"status","Кратко":"brief","Что это":"what","Зачем нужно":"why","Чему научишься":"learn","Темы":"themes","На занятиях":"acts","Инструменты":"tools","Как проверяют":"assess","Пример задания":"example","Совет студента":"tip"}
+KEYS = {"Статус":"status","Кратко":"brief","Что это":"what","Зачем нужно":"why","Чему научишься":"learn","Темы":"themes","На занятиях":"acts","Инструменты":"tools","Как проверяют":"assess","Пример задания":"example","Ответ к заданию":"answer","Совет студента":"tip"}
 def read_card(slug):
     d = {v: "" for v in KEYS.values()}; d["status"] = "готовится"; p = ROOT/"content"/f"{slug}.md"
     if p.exists():
@@ -81,9 +81,11 @@ def page(title, desc, body, depth=0, live=False, path=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
+    fm = f'<meta name="feedback-url" content="{E(FEEDBACK_URL)}">' if (FEEDBACK_URL and (live or path)) else ""
+    if FEEDBACK_URL and (live or path): lj += f'<script src="{b}assets/feedback.js?v={ASSET_V}" defer></script>'
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}
+<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
 <link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
 <a class="skip" href="#main">К содержимому</a>{body}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
@@ -114,6 +116,11 @@ def home_page(cards):
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
 <p id="empty" class="muted" hidden>Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p></section></main>'''
     return page("Учебный план простым языком: 27.03.01 Стандартизация и метрология ДВФУ","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
+def task_panel(c):
+    if not c["example"]: return ""
+    note = '' if c["status"] == "проверено" else '<p class="muted" style="margin-top:8px">Черновик задания: формулировку и ответ проверит преподаватель.</p>'
+    ans = f'<details class="ans"><summary>Показать ответ</summary><p>{E(c["answer"])}</p></details>' if c["answer"] else ""
+    return f'<section class="panel"><h2><span class="ci">{ic("FaChalkboardTeacher")}</span>Пример задания</h2><p>{E(c["example"])}</p>{ans}{note}</section>'
 def disc_page(it, c, order, k):
     st = c["status"] if c["status"] in STATUS else "готовится"; name = clean(it["name"]); g = gi(it)
     def panel(icon, t, v): return f'<section class="panel"><h2><span class="ci">{ic(icon)}</span>{t}</h2><p>{E(v)}</p></section>' if v else ""
@@ -127,9 +134,10 @@ def disc_page(it, c, order, k):
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
     body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
-<main id="main" class="wrap">{row}{extra_top}{panel("FaChalkboardTeacher","Пример задания", c["example"])}{panel("FaUsers","Совет студента", c["tip"])}
+<main id="main" class="wrap">{row}{extra_top}{task_panel(c)}{panel("FaUsers","Совет студента", c["tip"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
 {extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
+{f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
     return page(f"{name}: что изучают и какая нагрузка", c["what"] or c["brief"] or name, body, 1, live=True)
 STAGES = [
@@ -159,6 +167,7 @@ def about_page():
      ("Кто пишет описания и кто их проверяет?","Описания пишут студенты, проверяют преподаватели. Статус каждой карточки виден на её странице: «Описание готовится», «Черновик команды» или «Проверено преподавателем»."),
      ("Как считаются оценки студентов?",f"Студенты анонимно ставят оценки от 1 до 5. Оценка показывается, если ответили не меньше {MIN_N} человек, это медиана. Ответы тех, кто не разрешил их использовать, не учитываются. Если оценили студенты смежных программ, это указано на странице."),
      ("Почему у предмета нет оценок?",f"Либо ответов пока меньше {MIN_N}, либо предмета нет в опросе (например, практики)."),
+     *([("Что происходит с моим ответом «Стало ли понятнее»?","Ответ анонимный: мы не собираем имя и почту. Мы считаем долю ответов «да» и читаем комментарии, чтобы переписать то, что осталось непонятным. Не пишите в комментарии личные данные.")] if FEEDBACK_URL else []),
      ("Как предложить правку?","Напишите нам по контактам внизу страницы, и мы поправим карточку. Планы могут меняться, поэтому в подвале указана дата сверки.")]
     fq = "".join(f'<details><summary>{E(q)}</summary><p>{E(a)}</p></details>' for q,a in faq)
     body = head_nav(0, "about") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>О проекте</h1><p class="lead">Официальный учебный план написан для проверяющих. Мы объясняем его абитуриентам: чем придётся заниматься и насколько будет трудно.</p></section></div></div><div class="wrap">
@@ -194,7 +203,7 @@ def path_data(cards):
         c = cards[it["slug"]]; r = ratings.get(it["slug"]) or {}
         out[it["slug"]] = {"n": clean(it["name"]), "pick": it["type"] == "По выбору", "code": it["idx"], "type": it["type"], "g": gi(it), "gn": GKEYS[gi(it)],
             "sem": it["sem"], "ze": it["ze"], "h": it["hours"], "c": it["contact"], "lec": it["lec"] or 0, "lab": it["lab"] or 0, "pr": it["pr"] or 0, "ctl": it["controls"] or "",
-            "st": c["status"] if c["status"] in STATUS else "готовится", "what": c["what"], "why": c["why"], "brief": c["brief"], "ex": c["example"], "tip": c["tip"],
+            "st": c["status"] if c["status"] in STATUS else "готовится", "what": c["what"], "why": c["why"], "brief": c["brief"], "ex": c["example"], "ans": c["answer"], "tip": c["tip"],
             "learn": blist(c["learn"]), "themes": tlist(c["themes"]), "acts": c["acts"], "tools": blist(c["tools"]), "assess": c["assess"],
             "r": ({"n": r.get("n",0), "hard": r.get("hard"), "useful": r.get("useful"), "int": r.get("interest"), "scope": r.get("scope","")} if r.get("n",0) >= MIN_N else None)}
     return {"items": out, "jobs": [{"i": j[0], "t": j[1], "d": j[2], "s": j[3]} for j in JOBS], "status": STATUS, "min_n": MIN_N}
