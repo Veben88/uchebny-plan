@@ -22,7 +22,7 @@ def group_of(t):
         if t in ts: return g
     return "Общие"
 def gi(it): return GKEYS.index(group_of(it["type"]))
-KEYS = {"Статус":"status","Кратко":"brief","Что это":"what","Зачем нужно":"why","Пример задания":"example","Совет студента":"tip"}
+KEYS = {"Статус":"status","Кратко":"brief","Что это":"what","Зачем нужно":"why","Чему научишься":"learn","Темы":"themes","На занятиях":"acts","Инструменты":"tools","Как проверяют":"assess","Пример задания":"example","Совет студента":"tip"}
 def read_card(slug):
     d = {v: "" for v in KEYS.values()}; d["status"] = "готовится"; p = ROOT/"content"/f"{slug}.md"
     if p.exists():
@@ -32,6 +32,11 @@ def read_card(slug):
                 if k.strip() in KEYS: d[KEYS[k.strip()]] = v.strip()
     return d
 def n(x): return "" if x is None else x
+def blist(s): return [x.strip() for x in (s or "").split(" | ") if x.strip()]
+def tlist(s):
+    """темы: одна группа — список через «; », несколько групп (предметы по выбору) — по группе на строку"""
+    g = blist(s)
+    return [x.strip() for x in g[0].split("; ")] if len(g) == 1 else g
 def ze_num(it): return str(it["ze"]) if it["ze"] else "—"
 def start_sem(s):
     m = re.search(r"\d", str(s)); return int(m.group()) if m else 0
@@ -88,7 +93,7 @@ def card_html(it, c):
     blurb = c["what"] or c["brief"] or "Описание готовится."
     if len(blurb) > 120: blurb = blurb[:117].rsplit(" ",1)[0] + "…"
     label = ("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"])
-    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]).lower())
+    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]).lower())
     return (f'<a class="card" href="d/{it["slug"]}.html" data-sem="{start_sem(it["sem"])}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" data-text="{hay}">'
             f'<span class="gi g-{g}" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span>'
             f'<div class="row"><div class="ze"><b>{ze_num(it)}</b><span>з.е.</span></div><div><div class="sem">{E(str(it["sem"]))} сем. · {n(it["hours"])} ч</div><h3>{E(label)}</h3></div></div>'
@@ -115,13 +120,16 @@ def disc_page(it, c, order, k):
     what = panel("FaBookOpen","Что это", c["what"] or c["brief"]) or '<section class="panel"><h2><span class="ci">'+ic("FaBookOpen")+'</span>Что это</h2><p class="muted">Описание этой дисциплины готовится.</p></section>'
     why = panel("FaLightbulb","Зачем нужно в профессии", c["why"])
     row = f'<div class="two">{what}{why}</div>' if why else what
+    def panel_ul(icon, t, items): return f'<section class="panel"><h2><span class="ci">{ic(icon)}</span>{t}</h2><ul class="bl">' + "".join(f"<li>{E(x)}</li>" for x in items) + "</ul></section>" if items else ""
+    extra_top = panel_ul("FaStar", "Чему научишься", blist(c["learn"])) + panel_ul("FaBookOpen", "Темы курса", tlist(c["themes"])) + panel("FaChalkboardTeacher", "Что делаешь на занятиях", c["acts"])
+    extra_bot = panel_ul("FaTools", "Инструменты и оборудование", blist(c["tools"])) + panel("FaClipboardCheck", "Как проверяют", c["assess"])
     prev = f'<a href="{order[k-1]["slug"]}.html">← {E(cut(order[k-1]["name"]))}</a>' if k else "<span></span>"
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
     body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
-<main id="main" class="wrap">{row}{panel("FaChalkboardTeacher","Пример задания", c["example"])}{panel("FaUsers","Совет студента", c["tip"])}
+<main id="main" class="wrap">{row}{extra_top}{panel("FaChalkboardTeacher","Пример задания", c["example"])}{panel("FaUsers","Совет студента", c["tip"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
-<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
+{extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
     return page(f"{name}: что изучают и какая нагрузка", c["what"] or c["brief"] or name, body, 1, live=True)
 STAGES = [
@@ -187,6 +195,7 @@ def path_data(cards):
         out[it["slug"]] = {"n": clean(it["name"]), "pick": it["type"] == "По выбору", "code": it["idx"], "type": it["type"], "g": gi(it), "gn": GKEYS[gi(it)],
             "sem": it["sem"], "ze": it["ze"], "h": it["hours"], "c": it["contact"], "lec": it["lec"] or 0, "lab": it["lab"] or 0, "pr": it["pr"] or 0, "ctl": it["controls"] or "",
             "st": c["status"] if c["status"] in STATUS else "готовится", "what": c["what"], "why": c["why"], "brief": c["brief"], "ex": c["example"], "tip": c["tip"],
+            "learn": blist(c["learn"]), "themes": tlist(c["themes"]), "acts": c["acts"], "tools": blist(c["tools"]), "assess": c["assess"],
             "r": ({"n": r.get("n",0), "hard": r.get("hard"), "useful": r.get("useful"), "int": r.get("interest"), "scope": r.get("scope","")} if r.get("n",0) >= MIN_N else None)}
     return {"items": out, "jobs": [{"i": j[0], "t": j[1], "d": j[2], "s": j[3]} for j in JOBS], "status": STATUS, "min_n": MIN_N}
 def job_chip(sl):

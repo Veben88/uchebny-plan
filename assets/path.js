@@ -37,7 +37,10 @@
     var b = el('div', 'xb');
     function sec(title, text, muted) { if (!text) return; var s = el('section', 'xs'); s.appendChild(el('h3', '', title)); s.appendChild(el('p', muted ? 'muted' : '', text)); b.appendChild(s); }
     sec('Что это', it.what || it.brief || 'Описание этой дисциплины готовится.', !(it.what || it.brief));
-    sec('Зачем нужно в профессии', it.why); sec('Пример задания', it.ex); sec('Совет студента', it.tip);
+    sec('Зачем нужно в профессии', it.why);
+    function list(title, arr) { if (!arr || !arr.length) return; var s = el('section', 'xs'); s.appendChild(el('h3', '', title)); var ul = el('ul', 'bl'); arr.forEach(function (x) { ul.appendChild(el('li', '', x)); }); s.appendChild(ul); b.appendChild(s); }
+    list('Чему научишься', it.learn); list('Темы курса', it.themes); sec('Что делаешь на занятиях', it.acts);
+    sec('Пример задания', it.ex); sec('Совет студента', it.tip);
     var tot = it.h || 0;
     if (tot) {
       var s = el('section', 'xs'); s.appendChild(el('h3', '', 'Нагрузка по плану'));
@@ -54,6 +57,7 @@
       if (it.ctl) s.appendChild(el('p', 'muted', 'Формы контроля: ' + ctlText(it.ctl) + '.'));
       b.appendChild(s);
     }
+    list('Инструменты и оборудование', it.tools); sec('Как проверяют', it.assess);
     var rs = el('section', 'xs'); rs.appendChild(el('h3', '', 'Оценки студентов'));
     if (it.r) {
       var ms = el('div', 'meters');
