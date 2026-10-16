@@ -157,3 +157,23 @@ footer .wrap{display:grid;gap:8px}footer a{color:#fff}
 .fbtrap{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}.fbok{color:var(--limed);font-weight:600}
 details.ans{margin:12px 0 0;background:var(--tint);border-radius:14px;padding:12px 16px}details.ans summary{cursor:pointer;font-weight:700;color:var(--pri)}details.ans p{margin:8px 0 0}
 details.ans[open] summary{margin-bottom:2px}
+
+/* мини-задания «Попробуй сам» */
+.task{margin:14px 0 4px}.task:empty{display:none}
+.tkrow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tkb{font:inherit;font-size:14px;font-weight:600;color:var(--pri);background:var(--tint);border:2px solid transparent;border-radius:999px;padding:8px 16px;cursor:pointer;text-align:left}
+.tkb:hover:not(:disabled){border-color:var(--pri)}.tkb[aria-pressed=true]{background:var(--pri-bg);color:#fff}.tkb:disabled{opacity:.45;cursor:default}
+.tkb.tkbig{font-size:15px;padding:10px 20px}.tkb.tkdone{box-shadow:inset 0 0 0 2px #9cc23a}.tkghost{background:none;border:2px solid var(--line);color:var(--mut)}
+.tksvg{width:100%;height:auto;display:block;background:var(--tint);border-radius:14px;margin:6px 0}
+.tksvg text{fill:var(--ink);font-family:inherit}
+.tkread{margin:8px 0 4px;font-size:14px;color:var(--mut)}
+.tkmsg{margin:10px 0 0;padding:12px 16px;background:var(--tint);border-left:5px solid #9cc23a;border-radius:10px;font-size:14.5px;font-weight:600;color:var(--ink);min-height:2.6em}
+.tkbadge{margin:10px 0 0;padding:10px 14px;background:var(--pri-bg);color:#fff;border-radius:12px;font-weight:700;font-size:14.5px}.tkbadge:empty{display:none}
+.tkrange{width:100%;accent-color:#3b4f86;margin:6px 0 2px;height:28px}
+.tkprog{height:12px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0}.tkprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#9cc23a,#d9534f);transition:width .35s}
+.tkbars{display:grid;gap:8px;margin:8px 0}.tkbarbtn{display:grid;grid-template-columns:108px 1fr 34px;align-items:center;gap:10px;border-radius:14px;width:100%}
+.tkbarbtn .tkbar{height:14px;background:var(--line);border-radius:7px;overflow:hidden}.tkbarbtn .tkbar i{display:block;height:100%;background:var(--pri-bg);border-radius:7px;transition:opacity .3s}
+.tkbarbtn[aria-pressed=true]{background:var(--tint);color:var(--mut);text-decoration:line-through}.tkbarbtn[aria-pressed=true] .tkbar i{opacity:.2}.tkbarbtn .tkv{text-align:right}
+.tkflow{margin:8px 0;padding-left:22px;display:grid;gap:6px;font-size:14.5px}
+.tkfin{margin-top:12px;padding-top:6px;border-top:1px dashed var(--line)}
+@media(prefers-reduced-motion:reduce){.tkprog i,.tkbarbtn .tkbar i{transition:none}}

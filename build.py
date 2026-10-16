@@ -10,7 +10,7 @@ RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.ge
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -83,6 +83,7 @@ def page(title, desc, body, depth=0, live=False, path=False):
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
     fm = f'<meta name="feedback-url" content="{E(FEEDBACK_URL)}">' if (FEEDBACK_URL and (live or path)) else ""
     if FEEDBACK_URL and (live or path): lj += f'<script src="{b}assets/feedback.js?v={ASSET_V}" defer></script>'
+    if live or path: lj += f'<script src="{b}assets/tasks.js?v={ASSET_V}" defer></script>'
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
@@ -116,11 +117,12 @@ def home_page(cards):
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
 <p id="empty" class="muted" hidden>Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p></section></main>'''
     return page("Учебный план простым языком: 27.03.01 Стандартизация и метрология ДВФУ","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
-def task_panel(c):
+def task_panel(c, slug):
     if not c["example"]: return ""
-    note = '' if c["status"] == "проверено" else '<p class="muted" style="margin-top:8px">Черновик задания: формулировку и ответ проверит преподаватель.</p>'
-    ans = f'<details class="ans"><summary>Показать ответ</summary><p>{E(c["answer"])}</p></details>' if c["answer"] else ""
-    return f'<section class="panel"><h2><span class="ci">{ic("FaChalkboardTeacher")}</span>Пример задания</h2><p>{E(c["example"])}</p>{ans}{note}</section>'
+    note = '' if c["status"] == "проверено" else '<p class="muted" style="margin-top:8px">Черновик задания: формулировку проверит преподаватель.</p>'
+    ans = f'<details class="ans"><summary>Что это показывает</summary><p>{E(c["answer"])}</p></details>' if c["answer"] else ""
+    return (f'<section class="panel"><h2><span class="ci">{ic("FaChalkboardTeacher")}</span>Попробуй сам</h2><p>{E(c["example"])}</p>'
+            f'<div class="task" data-task="{E(slug)}"></div>{ans}{note}</section>')
 def disc_page(it, c, order, k):
     st = c["status"] if c["status"] in STATUS else "готовится"; name = clean(it["name"]); g = gi(it)
     def panel(icon, t, v): return f'<section class="panel"><h2><span class="ci">{ic(icon)}</span>{t}</h2><p>{E(v)}</p></section>' if v else ""
@@ -134,7 +136,7 @@ def disc_page(it, c, order, k):
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
     body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
-<main id="main" class="wrap">{row}{extra_top}{task_panel(c)}{panel("FaUsers","Совет студента", c["tip"])}
+<main id="main" class="wrap">{row}{extra_top}{task_panel(c, it["slug"])}{panel("FaUsers","Совет студента", c["tip"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
 {extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 {f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}

@@ -41,10 +41,11 @@
     function list(title, arr) { if (!arr || !arr.length) return; var s = el('section', 'xs'); s.appendChild(el('h3', '', title)); var ul = el('ul', 'bl'); arr.forEach(function (x) { ul.appendChild(el('li', '', x)); }); s.appendChild(ul); b.appendChild(s); }
     list('Чему научишься', it.learn); list('Темы курса', it.themes); sec('Что делаешь на занятиях', it.acts);
     if (it.ex) {
-      var ts = el('section', 'xs'); ts.appendChild(el('h3', '', 'Пример задания')); ts.appendChild(el('p', '', it.ex));
-      if (it.ans) { var dt = el('details', 'ans'); dt.appendChild(el('summary', '', 'Показать ответ')); dt.appendChild(el('p', '', it.ans)); ts.appendChild(dt); }
-      if (it.st !== 'проверено') ts.appendChild(el('p', 'muted', 'Черновик задания: формулировку и ответ проверит преподаватель.'));
-      b.appendChild(ts);
+      var ts = el('section', 'xs'); ts.appendChild(el('h3', '', 'Попробуй сам')); ts.appendChild(el('p', '', it.ex));
+      var tk = el('div', 'task'); tk.setAttribute('data-task', slug); ts.appendChild(tk);
+      if (it.ans) { var dt = el('details', 'ans'); dt.appendChild(el('summary', '', 'Что это показывает')); dt.appendChild(el('p', '', it.ans)); ts.appendChild(dt); }
+      if (it.st !== 'проверено') ts.appendChild(el('p', 'muted', 'Черновик задания: формулировку проверит преподаватель.'));
+      b.appendChild(ts); if (window.taskMount) window.taskMount(tk, slug);
     }
     sec('Совет студента', it.tip);
     var tot = it.h || 0;
