@@ -68,14 +68,19 @@ def rating_block(slug):
     scope = E(r.get("scope","")) or "студенты, прошедшие предмет"
     inter = f'<div class="meter"><b>{r["interest"]}</b><span>раз отмечен среди самых интересных</span></div>' if r.get("interest") else ""
     return f'<div class="meters">{m("Сложность, 1–5",r.get("hard"))}{m("Польза для профессии, 1–5",r.get("useful"))}{inter}</div><p class="muted" style="margin-top:10px">Ответили: {nn}. Оценили: {scope}. Медианные значения.</p>'
+LOGO_SVG = ('<svg class="tmlogo" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect class="lb" width="64" height="64" rx="15"/>'
+            '<path class="lr" d="M13 50 C 22 50, 20 37, 30 37 S 38 28, 42 27" fill="none" stroke-width="5" stroke-linecap="round"/>'
+            '<circle class="lf" cx="13" cy="50" r="5"/><circle class="lf" cx="30" cy="37" r="4.2"/>'
+            '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle class="lb" cx="47" cy="18.6" r="4"/></svg>')
+SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
     links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Путь студента"),("cat","catalog.html","Все дисциплины"),("road","roadmap.html","Развитие сайта"),("about","about.html","О проекте")))
-    return (f'<header class="top wrap"><a class="brand" href="{b}index.html"><i>{ic("FaCompass")}</i><div>Учебный план<br><span>простым языком</span></div></a>'
+    return (f'<header class="top wrap"><a class="brand" href="{b}index.html" aria-label="TeachMap, на главную">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст">{ic("FaEye")} Крупно</button></nav></header>')
 def footer_html():
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
-    return (f'<footer><div class="wrap"><p><b>Проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
+    return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
 def page(title, desc, body, depth=0, live=False, path=False):
     b = "../"*depth
@@ -87,7 +92,7 @@ def page(title, desc, body, depth=0, live=False, path=False):
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📐%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
 <a class="skip" href="#main">К содержимому</a>{body}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
 def card_html(it, c):
@@ -116,7 +121,7 @@ def home_page(cards):
 <div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button></div>
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
 <p id="empty" class="muted" hidden>Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p></section></main>'''
-    return page("Учебный план простым языком: 27.03.01 Стандартизация и метрология ДВФУ","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
+    return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
 def task_panel(c, slug):
     if not c["example"]: return ""
     note = '' if c["status"] == "проверено" else '<p class="muted" style="margin-top:8px">Черновик задания: формулировку проверит преподаватель.</p>'
@@ -141,7 +146,7 @@ def disc_page(it, c, order, k):
 {extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 {f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
-    return page(f"{name}: что изучают и какая нагрузка", c["what"] or c["brief"] or name, body, 1, live=True)
+    return page(f"{name}: что изучают и какая нагрузка · TeachMap", c["what"] or c["brief"] or name, body, 1, live=True)
 STAGES = [
  ("1","Осень 2026","Запуск","now",[("done","Сайт со всеми 74 позициями учебного плана"),("done","Поиск и фильтры: семестр, раздел, курсовые, лабораторные"),("done","Оценки из опроса подгружаются сами, раз в час"),("doing","Опрос студентов: минимум 5 ответов на предмет"),("doing","Описания карточек: готово 18 из 74"),("plan","Проверка описаний преподавателями"),("plan","Тест сайта на абитуриентах")]),
  ("2","2027","Пилот в ДВФУ","",[("plan","Кабинет института: правка и подтверждение описаний"),("plan","Право ответа кафедры на оценки"),("plan","Админка: правка текстов прямо на сайте"),("plan","Оценки по направлению и году поступления"),("plan","ИИ-анализ отзывов с проверкой человеком")]),
@@ -160,7 +165,7 @@ def road_page():
 <h2 style="color:var(--pri)">Концепция</h2><p class="muted" style="max-width:70ch">Сайт переводит официальный учебный план на язык абитуриента и добавляет то, чего нет в документе: оценки студентов и примеры заданий. Четыре принципа:</p><div class="principles">{pr}</div>
 <h2 style="color:var(--pri)">Для кого</h2><div class="principles">{who}</div>
 <h2 style="color:var(--pri)">Этапы развития</h2><div class="legend"><span>{ic("FaCheck")}сделано</span><span>{ic("FaSyncAlt")}в работе</span><span>{ic("FaRegClock")}планируется</span></div><div class="road">{st}</div></div></main>'''
-    return page("Развитие сайта: Учебный план простым языком","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
+    return page("Развитие сайта · TeachMap","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
 def about_page():
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
     contact = f'<h2>Контакты</h2><p>{E(CONTACT)}</p>' if CONTACT else ""
@@ -172,10 +177,10 @@ def about_page():
      *([("Что происходит с моим ответом «Стало ли понятнее»?","Ответ анонимный: мы не собираем имя и почту. Мы считаем долю ответов «да» и читаем комментарии, чтобы переписать то, что осталось непонятным. Не пишите в комментарии личные данные.")] if FEEDBACK_URL else []),
      ("Как предложить правку?","Напишите нам по контактам внизу страницы, и мы поправим карточку. Планы могут меняться, поэтому в подвале указана дата сверки.")]
     fq = "".join(f'<details><summary>{E(q)}</summary><p>{E(a)}</p></details>' for q,a in faq)
-    body = head_nav(0, "about") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>О проекте</h1><p class="lead">Официальный учебный план написан для проверяющих. Мы объясняем его абитуриентам: чем придётся заниматься и насколько будет трудно.</p></section></div></div><div class="wrap">
+    body = head_nav(0, "about") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>О проекте TeachMap</h1><p class="lead">Официальный учебный план написан для проверяющих. TeachMap объясняет его абитуриентам простым языком: чем придётся заниматься и насколько будет трудно.</p></section></div></div><div class="wrap">
 <div class="doc"><h2>Что важно знать</h2><p>Сайт показывает данные плана 27.03.01 «Стандартизация и метрология» ДВФУ и оценки студентов. Мы не собираем имена и почту, цитаты публикуем только с согласия студента.</p>{survey}{contact}</div>
 <h2 style="color:var(--pri)">Частые вопросы</h2>{fq}</div></main>'''
-    return page("О проекте: Учебный план простым языком","Что это за сайт, откуда данные и как считаются оценки студентов", body)
+    return page("О проекте · TeachMap","Что это за сайт, откуда данные и как считаются оценки студентов", body)
 
 def sem_list(s):
     out = []
@@ -253,7 +258,7 @@ def path_page(cards):
                f'<div class="gfs" role="group" aria-label="Подсветить раздел плана">{legend}</div><ol class="track" id="track">{"".join(sts)}{finale}</ol></div></div>')
     pill = f'<div class="hlpill" id="hlpill" hidden><span id="hltext"></span><button type="button" id="hlclear">Снять подсветку</button></div>'
     body = head_nav(0, "home") + f'<main id="main">{hero}{journey}</main>{pill}<script type="application/json" id="pd">{data}</script>'
-    return page("Путь студента: 27.03.01 Стандартизация и метрология ДВФУ", "Интерактивный путь по специальности: семестры, предметы и профессии выпускников", body, path=True)
+    return page("TeachMap: путь студента по направлению 27.03.01 Стандартизация и метрология ДВФУ", "Интерактивный путь по специальности: семестры, предметы и профессии выпускников", body, path=True)
 
 def build():
     if OUT.exists(): shutil.rmtree(OUT)
@@ -262,7 +267,7 @@ def build():
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
     (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8")
-    (OUT/"404.html").write_text(page("Страница не найдена","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
+    (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")
 if __name__ == "__main__": build()

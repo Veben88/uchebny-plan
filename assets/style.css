@@ -212,3 +212,11 @@ details.ans[open] summary{margin-bottom:2px}
 .tkchain li::before{content:counter(st);width:28px;height:28px;border-radius:50%;background:var(--pri-bg);color:#fff;display:grid;place-items:center;font-weight:700}
 .tkchain li b{color:var(--pri);font-size:13px}
 @media(max-width:700px){.tkfish{grid-template-columns:1fr 1fr}.tkfish::before{display:none}.tkfish .tkbone{grid-row:auto!important}.tkhead{grid-column:1/3;grid-row:auto;border-radius:12px}.tklabel{grid-template-columns:1fr}.tk-name{grid-column:auto}.tkchain li{grid-template-columns:30px 1fr}.tkchain li b{grid-column:2}}
+
+/* фирменный знак TeachMap */
+.brand{gap:11px}.tmlogo{width:42px;height:42px;flex:none;--lg-bg:var(--pri-bg);--lg-fg:#fff}
+.tmlogo .lb{fill:var(--lg-bg)}.tmlogo .lr{stroke:var(--lg-fg)}.tmlogo .lf{fill:var(--lg-fg)}
+.bw{display:flex;flex-direction:column;line-height:1}.bw b{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--pri)}.bw b em{font-style:normal;color:var(--limed)}
+.bw small{font-size:11px;font-weight:600;color:var(--mut);margin-top:3px;letter-spacing:.01em}
+.band .tmlogo{--lg-bg:#fff;--lg-fg:var(--pri-bg)}.band .bw b{color:#fff}.band .bw b em{color:#9cc23a}.band .bw small{color:#d6ddff}
+@media(max-width:420px){.bw small{display:none}.bw b{font-size:20px}}
