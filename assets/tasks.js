@@ -1,208 +1,227 @@
-// Мини-задания «Попробуй сам»: без оценок и правильных ответов, только наглядный результат действий.
+// Обучающие задания «Попробуй сам»: посетитель делает то же, что специалист, и по ходу получает пояснения.
 (function () {
   'use strict';
   var NS = 'http://www.w3.org/2000/svg', T = {};
   function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  function s(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in (attrs || {})) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
-  function svg(w, hgt, label) { var e = s('svg', { viewBox: '0 0 ' + w + ' ' + hgt, role: 'img', 'aria-label': label || '', 'class': 'tksvg' }); return e; }
-  function btn(label, fn, cls) { var b = h('button', 'tkb' + (cls ? ' ' + cls : ''), label); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.addEventListener('click', fn); return b; }
-  function group(btns, label) { var g = h('div', 'tkrow'); g.setAttribute('role', 'group'); if (label) g.setAttribute('aria-label', label); btns.forEach(function (b) { g.appendChild(b); }); return g; }
-  function pressOnly(btns, on) { btns.forEach(function (b) { b.setAttribute('aria-pressed', b === on ? 'true' : 'false'); }); }
-  function msg(root) { var m = h('p', 'tkmsg'); m.setAttribute('aria-live', 'polite'); root.appendChild(m); return m; }
-  function f(v, d) { return v.toFixed(d == null ? 2 : d).replace('.', ','); }
-  var C = { green: '#9cc23a', blue: '#4c8ddb', navy: '#3b4f86', grey: '#c9cde0', red: '#d9534f', ink: '#2e3350' };
+  function s(tag, a, text) { var e = document.createElementNS(NS, tag); for (var k in (a || {})) e.setAttribute(k, a[k]); if (text != null) e.textContent = text; return e; }
+  function svg(w, ht, label) { return s('svg', { viewBox: '0 0 ' + w + ' ' + ht, role: 'img', 'aria-label': label || '', 'class': 'tksvg' }); }
+  function clear(e) { while (e.firstChild) e.removeChild(e.firstChild); }
+  function btn(label, fn, cls) { var b = h('button', 'tkb' + (cls ? ' ' + cls : ''), label); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); if (fn) b.addEventListener('click', fn); return b; }
+  function row(btns, label, cls) { var g = h('div', 'tkrow' + (cls ? ' ' + cls : '')); g.setAttribute('role', 'group'); if (label) g.setAttribute('aria-label', label); btns.forEach(function (b) { g.appendChild(b); }); return g; }
+  function only(btns, on) { btns.forEach(function (b) { b.setAttribute('aria-pressed', b === on ? 'true' : 'false'); }); }
+  function say(root) { var m = h('p', 'tkmsg'); m.setAttribute('aria-live', 'polite'); root.appendChild(m); return m; }
+  function info(title, lines) { var d = h('div', 'tkinfo'); if (title) d.appendChild(h('b', '', title)); var ul = h('ul'); lines.forEach(function (l) { ul.appendChild(h('li', '', l)); }); d.appendChild(ul); return d; }
+  function f(v, d) { return v.toFixed(d == null ? 1 : d).replace('.', ','); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var C = { green: '#9cc23a', blue: '#4c8ddb', navy: '#3b4f86', grey: '#c9cde0', red: '#d9534f', ink: '#2e3350', metal: '#aab3c5', light: '#e8ebf3' };
 
-  // 1. Метрология: годна ли деталь?
+  // ===== 1. Метрология: измерь деталь штангенциркулем и прочитай нониус =====
   T['b1-o-19-01-04'] = function (root) {
-    var lo = 49.90, hi = 50.12, tol = [49.95, 50.05], rd = 50.06, W = 560, H = 120;
-    var inst = [{ n: 'Линейка', u: 0.5, d: 'деления по 1 мм' }, { n: 'Штангенциркуль', u: 0.02, d: 'сотые доли мм' }, { n: 'Микрометр', u: 0.004, d: 'тысячные доли мм' }];
-    var el = svg(W, H, 'Шкала размера с зоной допуска и полосой возможной ошибки прибора'); root.appendChild(el);
-    function X(v) { return 24 + (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * (W - 48); }
-    var m = msg(root), btns = [];
-    function draw(sel) {
-      while (el.firstChild) el.removeChild(el.firstChild);
-      el.appendChild(s('line', { x1: 24, y1: 80, x2: W - 24, y2: 80, stroke: C.ink, 'stroke-width': 2 }));
-      el.appendChild(s('rect', { x: X(tol[0]), y: 50, width: X(tol[1]) - X(tol[0]), height: 30, fill: C.green, opacity: .55 }));
-      el.appendChild(s('text', { x: (X(tol[0]) + X(tol[1])) / 2, y: 44, 'text-anchor': 'middle', 'font-size': 12, fill: C.ink }, 'допуск 49,95 – 50,05'));
-      el.appendChild(s('line', { x1: X(rd), y1: 40, x2: X(rd), y2: 92, stroke: C.red, 'stroke-width': 3 }));
-      el.appendChild(s('text', { x: X(rd) + 6, y: 104, 'font-size': 12, fill: C.red, 'font-weight': 700 }, 'прибор показал 50,06'));
-      if (sel) {
-        var a = Math.max(lo, rd - sel.u), b = Math.min(hi, rd + sel.u);
-        el.appendChild(s('rect', { x: X(a), y: 58, width: Math.max(3, X(b) - X(a)), height: 14, rx: 7, fill: C.blue, opacity: .85 }));
-        el.appendChild(s('text', { x: 24, y: 20, 'font-size': 12, fill: C.blue, 'font-weight': 700 }, 'синяя полоса: где на самом деле может быть размер'));
-      }
-    }
-    draw(null); m.textContent = 'Деталь должна быть 50,00 мм, допустимо отклонение 0,05 мм в любую сторону. Прибор показал 50,06 мм. Выбери прибор, которым измеряли.';
-    inst.forEach(function (i) {
-      var b = btn(i.n + ' (' + i.d + ')', function () {
-        pressOnly(btns, b); draw(i); var min = rd - i.u, max = rd + i.u;
-        m.textContent = min > tol[1] ? 'Теперь всё ясно: даже с учётом ошибки прибора размер больше допуска. Деталь бракованная.'
-          : max < tol[0] ? 'Деталь годная.' : 'Решить нельзя: синяя полоса задевает зелёную зону. Деталь может оказаться и годной, и бракованной. Нужен прибор поточнее.';
-      }); btns.push(b);
-    });
-    root.insertBefore(group(btns, 'Выбор прибора'), m);
-  };
-
-  // 2. Взаимозаменяемость: вал и отверстие
-  T['b1-o-19-01-09'] = function (root) {
-    var Dmin = 20.000, Dmax = 21e-3 + 20.000, W = 560, H = 190, K = 450;
-    var el = svg(W, H, 'Вал в отверстии'); root.appendChild(el);
-    var inp = h('input'); inp.type = 'range'; inp.min = 19.940; inp.max = 20.040; inp.step = 0.001; inp.value = 20.030; inp.setAttribute('aria-label', 'Диаметр вала, мм'); inp.className = 'tkrange';
-    var lab = h('p', 'tkread'), m = msg(root);
-    root.insertBefore(inp, m); root.insertBefore(lab, inp);
+    var parts = [23.7, 12.4, 31.6, 18.3, 40.9], pi = 0, Wd = parts[0], pos = 52, S = 8, X0 = 46, hints = false, done = false;
+    root.appendChild(info('Как читать нониус', ['Целые миллиметры: найди на основной шкале последний штрих левее нуля нониуса.', 'Десятые доли: найди штрих нониуса, который точно совпадает со штрихом основной шкалы. Его номер и есть десятые.', 'Сложи: целые + десятые. Например, 23 мм и 7-й штрих нониуса дают 23,7 мм.']));
+    var main = svg(620, 170, 'Штангенциркуль: двигай подвижную губку к детали'); root.appendChild(main);
+    root.appendChild(h('p', 'tkread', 'Увеличенная шкала (основная сверху, нониус снизу):'));
+    var zoom = svg(620, 130, 'Увеличенная шкала с нониусом'); root.appendChild(zoom);
+    var hb = btn('Показать подсказки', function () { hints = !hints; hb.setAttribute('aria-pressed', hints ? 'true' : 'false'); hb.textContent = hints ? 'Скрыть подсказки' : 'Показать подсказки'; draw(); }, 'tkghost');
+    var nb = btn('Новая деталь', function () { pi = (pi + 1) % parts.length; Wd = parts[pi]; pos = Math.min(58, Wd + 8); done = false; inp.value = ''; draw(); m.textContent = 'Новая деталь. Подведи губку до касания и прочитай размер.'; }, 'tkghost');
+    root.appendChild(row([hb, nb], 'Управление'));
+    var form = h('div', 'tkform'), inp = h('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'например, 23,7'; inp.setAttribute('aria-label', 'Твой результат измерения, мм');
+    var cb = btn('Проверить', check, 'tkbig'); form.appendChild(h('span', 'tkread', 'Сколько показывает? ')); form.appendChild(inp); form.appendChild(h('span', 'tkread', ' мм ')); form.appendChild(cb); root.appendChild(form);
+    var m = say(root); m.textContent = 'Перетащи подвижную губку (синюю) влево, пока она не коснётся детали. Можно стрелками на клавиатуре.';
+    var jaw;
     function draw() {
-      var d = parseFloat(inp.value), r0 = 62, rh = r0, rs = r0 + (d - 20.010) * K; while (el.firstChild) el.removeChild(el.firstChild);
-      var cx = W / 2, cy = 95; el.appendChild(s('circle', { cx: cx, cy: cy, r: rh + 10, fill: C.grey })); el.appendChild(s('circle', { cx: cx, cy: cy, r: rh, fill: '#fff', stroke: C.navy, 'stroke-width': 2 }));
-      var over = rs > rh; el.appendChild(s('circle', { cx: cx, cy: cy, r: Math.max(8, rs), fill: over ? C.red : C.blue, opacity: .8 }));
-      el.appendChild(s('text', { x: 14, y: 22, 'font-size': 12, fill: C.ink }, 'разница в размерах на картинке увеличена'));
-      var gmin = Dmin - d, gmax = Dmax - d, st;
-      if (d >= Dmax) st = 'Не войдёт: вал больше отверстия.';
-      else if (d >= Dmin) st = 'Войдёт только с усилием: детали будут сидеть плотно.';
-      else if (d >= 19.980) st = 'Войдёт, но зазор очень мал: вращается туго.';
-      else if (d >= 19.959) st = 'Вращается плавно: так и задумано. Это зелёная зона посадки.';
-      else st = 'Болтается: люфт слишком большой.';
-      lab.textContent = 'Диаметр вала: ' + f(d, 3) + ' мм. Зазор между валом и отверстием: ' + (gmax > 0 ? 'от ' + f(Math.max(0, gmin), 3) + ' до ' + f(gmax, 3) + ' мм' : 'нет, вал больше');
-      m.textContent = st; inp.style.setProperty('--ok', ((19.959 - 19.940) / 0.1 * 100) + '%'); inp.setAttribute('aria-valuetext', f(d, 3) + ' мм. ' + st);
+      clear(main); var touch = Math.abs(pos - Wd) < 1e-6;
+      main.appendChild(s('rect', { x: X0 - 26, y: 28, width: 62 * S + 40, height: 26, rx: 4, fill: C.light, stroke: C.grey }));
+      for (var i = 0; i <= 60; i++) { var x = X0 + i * S, L = i % 10 === 0 ? 12 : i % 5 === 0 ? 9 : 6; main.appendChild(s('line', { x1: x, y1: 54, x2: x, y2: 54 - L, stroke: C.ink, 'stroke-width': 1 })); if (i % 10 === 0) main.appendChild(s('text', { x: x, y: 24, 'text-anchor': 'middle', 'font-size': 11 }, String(i))); }
+      main.appendChild(s('rect', { x: X0 - 18, y: 28, width: 18, height: 112, fill: C.navy }));
+      main.appendChild(s('rect', { x: X0, y: 84, width: Wd * S, height: 40, rx: 3, fill: C.metal, stroke: '#7b859c' }));
+      main.appendChild(s('text', { x: X0 + Wd * S / 2, y: 109, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700 }, 'деталь'));
+      jaw = s('g', { tabindex: 0, role: 'slider', 'aria-label': 'Подвижная губка штангенциркуля', 'aria-valuemin': Wd, 'aria-valuemax': 60, 'aria-valuenow': pos.toFixed(1), 'aria-valuetext': (touch ? 'касается детали' : 'не касается детали'), 'class': 'tkjaw' });
+      var jx = X0 + pos * S; jaw.appendChild(s('rect', { x: jx, y: 24, width: 10 * S, height: 34, rx: 3, fill: C.blue, opacity: .35 }));
+      jaw.appendChild(s('rect', { x: jx, y: 28, width: 18, height: 112, fill: touch ? C.green : C.blue }));
+      for (var k = 0; k <= 10; k++) jaw.appendChild(s('line', { x1: jx + k * 0.9 * S, y1: 58, x2: jx + k * 0.9 * S, y2: 64 + (k % 5 === 0 ? 4 : 0), stroke: C.ink }));
+      jaw.appendChild(s('text', { x: jx + 26, y: 154, 'font-size': 12, fill: touch ? '#4d6e10' : C.ink, 'font-weight': 700 }, touch ? 'губки касаются детали' : 'тяни губку к детали ←'));
+      main.appendChild(jaw); bindJaw(); drawZoom();
     }
-    inp.addEventListener('input', draw); draw();
-  };
-
-  // 3. Парето: что исправить первым
-  T['b1-o-19-03'] = function (root) {
-    var D = [['Царапины', 52], ['Вмятины', 28], ['Трещины', 11], ['Прочие', 9]], on = {}, btns = [], bars = h('div', 'tkbars'), m = msg(root);
-    D.forEach(function (d, i) {
-      var b = btn('', function () { on[i] = !on[i]; upd(); }), bar = h('span', 'tkbar'), fill = h('i'); fill.style.width = d[1] + '%'; bar.appendChild(fill);
-      b.appendChild(h('span', 'tkn', d[0])); b.appendChild(bar); b.appendChild(h('span', 'tkv', d[1])); b.className = 'tkb tkbarbtn'; btns.push(b); bars.appendChild(b);
-    });
-    var tot = h('div', 'tkprog'), pf = h('i'); tot.appendChild(pf); var cap = h('p', 'tkread');
-    root.insertBefore(bars, m); root.insertBefore(cap, m); root.insertBefore(tot, m);
-    var reset = btn('Сбросить', function () { on = {}; upd(); }, 'tkghost'); root.appendChild(reset);
-    function upd() {
-      var removed = 0, n = 0; D.forEach(function (d, i) { btns[i].setAttribute('aria-pressed', on[i] ? 'true' : 'false'); if (on[i]) { removed += d[1]; n++; } });
-      pf.style.width = removed + '%'; cap.textContent = 'Исправлено видов дефектов: ' + n + '. Убрано брака: ' + removed + ' из 100 (' + removed + '%).';
-      m.textContent = !n ? 'За неделю на участке нашли 100 дефектов. Нажимай на виды дефектов, которые ты исправишь, и смотри, сколько брака исчезнет.'
-        : removed >= 80 && n <= 2 ? 'Всего два вида дефектов дали ' + removed + '% брака. Так часто бывает: небольшая часть причин создаёт почти всю проблему.'
-        : removed >= 80 ? 'Брака стало намного меньше. Попробуй сбросить и убрать как можно меньше видов дефектов.' : 'Хороший шаг. Что ещё можно исправить?';
+    function drawZoom() {
+      clear(zoom); var a = Math.floor(pos) - 2, Z = 40, X = function (mm) { return 10 + (mm - a) * Z; }, fl = Math.floor(pos + 1e-9), kk = Math.round((pos - fl) * 10);
+      zoom.appendChild(s('line', { x1: 0, y1: 60, x2: 620, y2: 60, stroke: C.grey }));
+      for (var i = a; i <= a + 15; i++) { if (i < 0) continue; var x = X(i), hi = hints && (i === fl || (kk > 0 && i === fl + kk)); zoom.appendChild(s('line', { x1: x, y1: 60, x2: x, y2: i % 5 === 0 ? 30 : 40, stroke: hi ? (i === fl ? C.red : '#4d6e10') : C.ink, 'stroke-width': hi ? 3 : 1.4 })); if (i % 5 === 0 || hi) zoom.appendChild(s('text', { x: x, y: 24, 'text-anchor': 'middle', 'font-size': 12, fill: hi && i === fl ? C.red : C.ink, 'font-weight': hi ? 700 : 400 }, String(i))); }
+      for (var k = 0; k <= 10; k++) { var vx = X(pos + 0.9 * k), on = hints && k === kk; zoom.appendChild(s('line', { x1: vx, y1: 62, x2: vx, y2: k % 5 === 0 ? 92 : 82, stroke: on ? '#4d6e10' : C.blue, 'stroke-width': on ? 3 : 1.6 })); zoom.appendChild(s('text', { x: vx, y: 108, 'text-anchor': 'middle', 'font-size': 11, fill: on ? '#4d6e10' : C.blue, 'font-weight': on ? 700 : 400 }, String(k))); }
+      zoom.appendChild(s('text', { x: X(pos) + 4, y: 124, 'font-size': 11, fill: C.blue }, '← ноль нониуса'));
+      if (hints) zoom.appendChild(s('text', { x: 612, y: 124, 'text-anchor': 'end', 'font-size': 11, fill: C.ink }, 'красный: целые мм, зелёный: совпавший штрих'));
     }
-    upd();
-  };
-
-  // 4. Стандартизация: что значит M10x1,5 и какая гайка подойдёт
-  T['b1-o-19-01-06'] = function (root) {
-    var parts = [['M', 'M: метрическая резьба. Такой профиль витков одинаков во всех странах, где применяют метрическую систему.'], ['10', '10: наружный диаметр болта 10 мм.'], ['×1,5', '×1,5: шаг резьбы, то есть расстояние между витками 1,5 мм.']], pb = [], W = 560, H = 120;
-    var el = svg(W, H, 'Болт и гайка'); root.appendChild(el);
-    var m = msg(root), nutSel = null;
-    function draw(hi) {
-      while (el.firstChild) el.removeChild(el.firstChild);
-      el.appendChild(s('rect', { x: 20, y: 38, width: 40, height: 44, fill: C.navy })); el.appendChild(s('rect', { x: 60, y: 46, width: 300, height: 28, fill: C.grey }));
-      for (var x = 70; x < 360; x += 15) el.appendChild(s('line', { x1: x, y1: 46, x2: x + 8, y2: 74, stroke: C.navy, 'stroke-width': 2 }));
-      if (hi === 1) { el.appendChild(s('line', { x1: 380, y1: 46, x2: 380, y2: 74, stroke: C.red, 'stroke-width': 2 })); el.appendChild(s('text', { x: 388, y: 64, 'font-size': 13, fill: C.red, 'font-weight': 700 }, '10 мм')); }
-      if (hi === 2) { el.appendChild(s('line', { x1: 100, y1: 92, x2: 115, y2: 92, stroke: C.red, 'stroke-width': 3 })); el.appendChild(s('text', { x: 124, y: 97, 'font-size': 13, fill: C.red, 'font-weight': 700 }, 'шаг 1,5 мм')); }
-      if (hi === 0) el.appendChild(s('text', { x: 70, y: 28, 'font-size': 13, fill: C.red, 'font-weight': 700 }, 'метрическая резьба'));
-      if (nutSel) { var ok = nutSel === 'M10×1,5', sz = nutSel.indexOf('M8') === 0 ? 20 : nutSel.indexOf('M12') === 0 ? 40 : 32; el.appendChild(s('rect', { x: ok ? 280 : 410, y: 60 - sz / 2, width: 30, height: sz, rx: 3, fill: ok ? C.green : C.red, opacity: .85 })); el.appendChild(s('text', { x: ok ? 284 : 414, y: 64, 'font-size': 10, fill: '#fff', 'font-weight': 700 }, nutSel.slice(0, 3))); }
+    function setPos(v) { pos = Math.max(Wd, Math.min(60, Math.round(v * 10) / 10)); draw(); jaw.focus({ preventScroll: true }); }
+    function bindJaw() {
+      jaw.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        var move = function (ev) { var p = main.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY; var q = p.matrixTransform(main.getScreenCTM().inverse()); var np = Math.max(Wd, Math.min(60, Math.round((q.x - X0 - 4) / S * 10) / 10)); if (np !== pos) { pos = np; draw(); } };
+        var up = function () { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); if (jaw) jaw.focus({ preventScroll: true }); };
+        window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+      });
+      jaw.addEventListener('keydown', function (e) { var st = e.shiftKey ? 1 : 0.1; if (e.key === 'ArrowLeft') { e.preventDefault(); setPos(pos - st); } else if (e.key === 'ArrowRight') { e.preventDefault(); setPos(pos + st); } else if (e.key === 'Home') { e.preventDefault(); setPos(Wd); } });
     }
-    draw(-1); m.textContent = 'На болте написано M10×1,5. Нажимай на части обозначения, потом подбери гайку.';
-    parts.forEach(function (p, i) { var b = btn(p[0], function () { pressOnly(pb, b); draw(i); nutSel = null; m.textContent = p[1]; }, 'tkbig'); pb.push(b); });
-    root.insertBefore(group(pb, 'Части обозначения'), m);
-    var nb = [], nuts = ['M8×1,25', 'M10×1,5', 'M12×1,75'];
-    nuts.forEach(function (n) {
-      var b = btn('Гайка ' + n, function () { pressOnly(nb, b); nutSel = n; draw(-1);
-        m.textContent = n === 'M10×1,5' ? 'Накрутилась: диаметр и шаг совпали. Такую гайку можно купить в любой мастерской, и она подойдёт. Это и есть смысл стандарта.'
-          : n === 'M8×1,25' ? 'Не накручивается: гайка меньше болта (диаметр 8, а не 10).' : 'Болтается: гайка больше болта (диаметр 12, а не 10).'; }); nb.push(b); });
-    root.insertBefore(group(nb, 'Выбор гайки'), m);
-  };
-
-  // 5. Сертификация: кто решает
-  T['b1-o-19-01-07'] = function (root) {
-    var ways = { 'Декларация': { who: 'Решает сам изготовитель', st: ['Изготовитель собирает доказательства (например, результаты испытаний)', 'Сам принимает декларацию о соответствии', 'Ставит маркировку и отвечает за свои слова'] },
-                 'Сертификат': { who: 'Решает независимый орган по сертификации', st: ['Изготовитель подаёт заявку в орган по сертификации', 'Орган проверяет продукцию и документы, проводит испытания', 'Орган сам решает, выдавать сертификат или нет'] } }, bt = [], flow = h('ol', 'tkflow'), badge = h('p', 'tkbadge'), m = msg(root);
-    Object.keys(ways).forEach(function (k) { var b = btn(k, function () { pressOnly(bt, b); flow.textContent = ''; ways[k].st.forEach(function (x) { flow.appendChild(h('li', '', x)); }); badge.textContent = ways[k].who; }, 'tkbig'); bt.push(b); });
-    root.insertBefore(group(bt, 'Способ подтверждения'), m); root.insertBefore(badge, m); root.insertBefore(flow, m);
-    var rng = h('input'); rng.type = 'range'; rng.min = 1; rng.max = 3; rng.step = 1; rng.value = 1; rng.className = 'tkrange'; rng.setAttribute('aria-label', 'Насколько продукция опасна для людей');
-    var lab = h('p', 'tkread'); root.insertBefore(lab, m); root.insertBefore(rng, m);
-    var L = ['Карандаш: риск для людей низкий. Часто достаточно, чтобы изготовитель сам показал доказательства.', 'Детская игрушка: риск выше, поэтому требования и проверки строже.', 'Детское автокресло: от продукции зависит жизнь. Чем выше риск, тем чаще нужна независимая проверка.'];
-    function up() { var v = +rng.value; lab.textContent = 'Подвинь ползунок: что за продукция? ' + L[v - 1]; }
-    rng.addEventListener('input', up); up(); m.textContent = 'Это общий принцип. Что именно требуется для конкретной продукции, определяют законы и технические регламенты.';
-  };
-
-  // 6. Вольтметр: двигай стрелку
-  T['b1-o-19-05'] = function (root) {
-    var W = 560, H = 200, el = svg(W, H, 'Шкала вольтметра'), needle, rng = h('input'), lab = h('p', 'tkread'), bar = h('div', 'tkprog'), bf = h('i'); bar.appendChild(bf); root.appendChild(el);
-    var cx = 280, cy = 170, R = 130; el.appendChild(s('path', { d: 'M ' + (cx - R) + ' ' + cy + ' A ' + R + ' ' + R + ' 0 0 1 ' + (cx + R) + ' ' + cy, fill: 'none', stroke: C.grey, 'stroke-width': 10 }));
-    for (var v = 0; v <= 100; v += 10) { var a = Math.PI * (1 - v / 100), x1 = cx + (R - 6) * Math.cos(a), y1 = cy - (R - 6) * Math.sin(a), x2 = cx + (R + 12) * Math.cos(a), y2 = cy - (R + 12) * Math.sin(a); el.appendChild(s('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: C.ink, 'stroke-width': 2 })); el.appendChild(s('text', { x: cx + (R + 28) * Math.cos(a), y: cy - (R + 28) * Math.sin(a) + 4, 'text-anchor': 'middle', 'font-size': 11, fill: C.ink }, String(v))); }
-    needle = s('line', { x1: cx, y1: cy, x2: cx - R, y2: cy, stroke: C.red, 'stroke-width': 3, 'stroke-linecap': 'round' }); el.appendChild(needle); el.appendChild(s('circle', { cx: cx, cy: cy, r: 7, fill: C.ink }));
-    rng.type = 'range'; rng.min = 1; rng.max = 100; rng.step = 1; rng.value = 10; rng.className = 'tkrange'; rng.setAttribute('aria-label', 'Положение стрелки, вольт');
-    var m = msg(root); root.insertBefore(lab, m); root.insertBefore(rng, m); root.insertBefore(bar, m);
-    function up() { var x = +rng.value, a = Math.PI * (1 - x / 100); needle.setAttribute('x2', cx + R * Math.cos(a)); needle.setAttribute('y2', cy - R * Math.sin(a));
-      var rel = 1 / x * 100; bf.style.width = Math.min(100, rel * 4) + '%';
-      lab.textContent = 'Стрелка показывает ' + x + ' В. Прибор может ошибаться на 1 В, значит настоящее значение от ' + (x - 1) + ' до ' + (x + 1) + ' В. Ошибка составляет ' + f(rel, rel < 10 ? 1 : 0) + '% от показания.';
-      m.textContent = rel >= 10 ? 'Ошибка огромна: прибор тут почти не помогает.' : rel >= 3 ? 'Ошибка заметная.' : 'Ошибка маленькая: можно доверять.'; rng.setAttribute('aria-valuetext', x + ' вольт, ошибка ' + f(rel, 1) + ' процента'); }
-    rng.addEventListener('input', up); up();
-  };
-
-  // 7. Секундомер: поймай 5 секунд
-  T['b1-o-19-06'] = function (root) {
-    var t0 = null, res = [], b = btn('Старт', function () {
-      if (t0 === null) { t0 = performance.now(); b.textContent = 'Стоп: прошло 5 секунд?'; b.setAttribute('aria-pressed', 'true'); m.textContent = 'Считай про себя. Время на экране не показывается.'; }
-      else { var d = (performance.now() - t0) / 1000; t0 = null; res.push(d); b.textContent = 'Ещё попытка'; b.setAttribute('aria-pressed', 'false'); draw(); }
-    }, 'tkbig'), W = 560, H = 100, el = svg(W, H, 'Результаты попыток на шкале времени'), m = msg(root), reset = btn('Сбросить', function () { res = []; t0 = null; b.textContent = 'Старт'; b.setAttribute('aria-pressed', 'false'); draw(); }, 'tkghost');
-    root.insertBefore(b, m); root.insertBefore(el, m); root.appendChild(reset);
-    function X(v) { return 30 + (Math.min(8, Math.max(2, v)) - 2) / 6 * (W - 60); }
-    function draw() {
-      while (el.firstChild) el.removeChild(el.firstChild);
-      el.appendChild(s('line', { x1: 30, y1: 55, x2: W - 30, y2: 55, stroke: C.ink, 'stroke-width': 2 })); [2, 3, 4, 5, 6, 7, 8].forEach(function (v) { el.appendChild(s('text', { x: X(v), y: 85, 'text-anchor': 'middle', 'font-size': 12, fill: C.ink }, v + ' с')); });
-      el.appendChild(s('line', { x1: X(5), y1: 20, x2: X(5), y2: 62, stroke: C.green, 'stroke-width': 3 })); el.appendChild(s('text', { x: X(5), y: 14, 'text-anchor': 'middle', 'font-size': 12, fill: C.green, 'font-weight': 700 }, 'ровно 5'));
-      res.forEach(function (v, i) { el.appendChild(s('circle', { cx: X(v), cy: 48 - (i % 3) * 8, r: 7, fill: C.blue, opacity: .85 })); });
-      var n = res.length; if (!n) { m.textContent = 'Нажми «Старт» и остановись, когда, по ощущениям, пройдёт ровно 5 секунд. Попробуй несколько раз.'; return; }
-      var mean = res.reduce(function (a, c) { return a + c; }, 0) / n, last = res[n - 1];
-      el.appendChild(s('line', { x1: X(mean), y1: 30, x2: X(mean), y2: 62, stroke: C.navy, 'stroke-width': 3, 'stroke-dasharray': '4 3' }));
-      var txt = 'Попытка ' + n + ': ' + f(last) + ' с.';
-      if (n >= 3) { var mx = Math.max.apply(null, res), mn = Math.min.apply(null, res); txt += ' Среднее: ' + f(mean) + ' с, разброс от ' + f(mn) + ' до ' + f(mx) + ' с (тёмная пунктирная линия: среднее).'; }
-      m.textContent = txt + (n >= 3 ? ' Каждый раз немного по-разному: так бывает при любом измерении. Среднее из нескольких попыток надёжнее одной.' : '');
+    function check() {
+      var v = parseFloat(String(inp.value).replace(',', '.')), touch = Math.abs(pos - Wd) < 1e-6, fl = Math.floor(pos + 1e-9), kk = Math.round((pos - fl) * 10);
+      if (!touch) { m.textContent = 'Сначала сведи губку до касания с деталью: иначе прибор показывает расстояние между губками, а не размер детали.'; return; }
+      if (isNaN(v)) { m.textContent = 'Впиши число, например 23,7.'; return; }
+      if (Math.abs(v - pos) < 0.05) { done = true; m.textContent = 'Точно: ' + f(pos) + ' мм. Целые: ' + fl + ' мм (последний штрих левее нуля нониуса), десятые: ' + kk + ' (совпал ' + kk + '-й штрих нониуса). Попробуй «Новую деталь».'; }
+      else { hints = true; hb.setAttribute('aria-pressed', 'true'); hb.textContent = 'Скрыть подсказки'; draw(); m.textContent = 'Пока не так. Подсказки включены: красный штрих сверху даёт целые миллиметры, зелёный штрих нониуса снизу даёт десятые.'; }
     }
     draw();
   };
 
-  // 8. Подбери инструмент
+  // ===== 2. Стандартизация: собери папку документов на продукт =====
+  T['b1-o-19-01-06'] = function (root) {
+    var K = { tr: 'Технический регламент (ТР ТС или ТР ЕАЭС): обязательные требования безопасности. Действует во всех странах ЕАЭС, без него продукцию нельзя выпустить в продажу.', gost: 'Межгосударственный стандарт (ГОСТ) на продукцию: требования к качеству, сырью, упаковке и методам контроля. Применяется добровольно, но если изготовитель указал его на этикетке, он обязан его выполнять.', eskd: 'Стандарт ЕСКД: правила оформления чертежей и технических документов. Нужен конструкторам, но не устанавливает требований к самой продукции.' };
+    var D = [['ТР ЕАЭС 040/2016', 'О безопасности рыбы и рыбной продукции', 'tr', 1, 'Главный регламент для рыбы: требования к безопасности рыбной продукции, в том числе натуральных консервов.'],
+             ['ТР ТС 021/2011', 'О безопасности пищевой продукции', 'tr', 1, 'Общий регламент для всей еды: микробиология, вредные вещества, процессы производства.'],
+             ['ТР ТС 022/2011', 'Пищевая продукция в части её маркировки', 'tr', 1, 'Что обязательно написать на этикетке: состав, массу, сроки, изготовителя.'],
+             ['ТР ТС 005/2011', 'О безопасности упаковки', 'tr', 1, 'Требования к банке: из чего она сделана и что не попадёт из неё в продукт.'],
+             ['ГОСТ 7452-2014', 'Консервы из рыбы натуральные. Технические условия', 'gost', 1, 'Стандарт именно на натуральные рыбные консервы: сырьё, рецептура, показатели качества. Добровольный, но помогает выполнить требования регламента.'],
+             ['ТР ТС 008/2011', 'О безопасности игрушек', 'tr', 0, 'Регламент для игрушек. К консервам не относится.'],
+             ['ТР ТС 017/2011', 'О безопасности продукции лёгкой промышленности', 'tr', 0, 'Одежда, ткани, обувь. К консервам не относится.'],
+             ['ГОСТ 2.105-2019', 'ЕСКД. Общие требования к текстовым документам', 'eskd', 0, 'Правила оформления технических документов. Требований к самим консервам не содержит.']];
+    root.appendChild(h('div', 'tkprod', 'Продукт: консервы «Горбуша натуральная» в жестяной банке. Собери папку документов, по которым нужно её выпускать.'));
+    var bs = [], sel = {}, inf = h('div', 'tkinfo'), m;
+    D.forEach(function (d, i) { var b = btn('', function () { sel[i] = !sel[i]; b.setAttribute('aria-pressed', sel[i] ? 'true' : 'false'); show(i); }, 'tkdoc'); b.appendChild(h('b', '', d[0])); b.appendChild(h('span', '', d[1])); bs.push(b); });
+    root.appendChild(row(shuffle(bs), 'Стопки документов', 'tkdocs'));
+    root.appendChild(inf); inf.appendChild(h('b', '', 'Нажимай на стопки: документ попадает в папку, а здесь появится, что это за тип документа.'));
+    function show(i) { clear(inf); var d = D[i]; inf.appendChild(h('b', '', d[0] + ' ' + (sel[i] ? '(в папке)' : '(убран из папки)'))); inf.appendChild(h('p', '', K[d[2]])); }
+    var go = btn('Проверить папку', function () {
+      var miss = [], extra = []; D.forEach(function (d, i) { if (d[3] && !sel[i]) miss.push(d); if (!d[3] && sel[i]) extra.push(d); });
+      clear(inf); inf.appendChild(h('b', '', 'Разбор папки'));
+      var ul = h('ul'); D.forEach(function (d, i) { if (d[3] || sel[i]) { var li = h('li', d[3] ? (sel[i] ? 'tkok' : 'tkmiss') : 'tkextra', (d[3] ? (sel[i] ? 'Нужен: ' : 'Не хватает: ') : 'Лишний: ') + d[0] + '. ' + d[4]); ul.appendChild(li); } }); inf.appendChild(ul);
+      m.textContent = !miss.length && !extra.length ? 'Папка собрана полностью: четыре обязательных регламента и стандарт на сам продукт. Так и выглядит работа специалиста по стандартизации.' : 'Почти. Не хватает: ' + miss.length + ', лишних: ' + extra.length + '. Посмотри разбор и поправь папку.';
+    }, 'tkbig'); root.appendChild(go); m = say(root); m.textContent = 'Подсказка: обязательные требования задают технические регламенты, а стандарт подбирают на конкретный продукт.';
+  };
+
+  // ===== 3. Взаимозаменяемость: проверь валы калибром ПР и НЕ =====
+  T['b1-o-19-01-09'] = function (root) {
+    var PR = 19.980, NE = 19.959, V = [19.975, 19.985, 19.962, 19.950, 19.970, 19.991], st = V.map(function () { return { pr: null, ne: null, verdict: null }; }), cur = 0;
+    root.appendChild(info('Как работает калибр-скоба для вала Ø20 f7 (19,959–19,980 мм)', ['Сторона ПР (проходная) сделана по наибольшему допустимому размеру. Годный вал через неё проходит.', 'Сторона НЕ (непроходная) сделана по наименьшему размеру. Годный вал через неё не проходит.', 'Годен вал, который прошёл ПР и не прошёл НЕ. Размер мерить не нужно: калибр сразу говорит «годен» или «брак».']));
+    var vb = V.map(function (v, i) { return btn('Вал ' + (i + 1), function () { cur = i; only(vb, vb[i]); draw(); upd(); }); }); root.appendChild(row(vb, 'Валы'));
+    var pic = svg(620, 140, 'Калибр-скоба и вал'); root.appendChild(pic);
+    var pb = btn('Проверить стороной ПР', function () { st[cur].pr = V[cur] <= PR; draw('pr'); upd(); }, 'tkbig'), nb = btn('Проверить стороной НЕ', function () { st[cur].ne = V[cur] < NE; draw('ne'); upd(); }, 'tkbig');
+    root.appendChild(row([pb, nb], 'Проверка калибром'));
+    var gb = btn('Годен', function () { decide(true); }), bb = btn('Брак', function () { decide(false); }); root.appendChild(row([gb, bb], 'Решение'));
+    var m = say(root), sum = h('p', 'tkread'); root.appendChild(sum);
+    function draw(side) {
+      clear(pic); var s0 = st[cur];
+      [['ПР', 150, s0.pr], ['НЕ', 430, s0.ne]].forEach(function (c) { pic.appendChild(s('rect', { x: c[1] - 60, y: 20, width: 120, height: 26, rx: 4, fill: C.navy })); pic.appendChild(s('rect', { x: c[1] - 60, y: 46, width: 22, height: 70, fill: C.navy })); pic.appendChild(s('rect', { x: c[1] + 38, y: 46, width: 22, height: 70, fill: C.navy })); pic.appendChild(s('text', { x: c[1], y: 38, 'text-anchor': 'middle', 'font-size': 13, fill: '#fff', 'font-weight': 700 }, c[0]));
+        if (c[2] !== null) { var through = c[2]; pic.appendChild(s('circle', { cx: c[1], cy: through ? 104 : 60, r: 30, fill: through ? C.green : C.red, opacity: .85 })); pic.appendChild(s('text', { x: c[1], y: 134, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: through ? '#4d6e10' : C.red }, through ? 'проходит' : 'не проходит')); } });
+    }
+    function upd() { var s0 = st[cur], ready = s0.pr !== null && s0.ne !== null; gb.disabled = bb.disabled = !ready;
+      m.textContent = s0.verdict !== null ? m.textContent : !ready ? 'Вал ' + (cur + 1) + ': проверь его обеими сторонами калибра, потом реши, годен ли он.' : 'ПР: ' + (s0.pr ? 'проходит' : 'не проходит') + ', НЕ: ' + (s0.ne ? 'проходит' : 'не проходит') + '. Годен вал или брак?';
+      var n = st.filter(function (x) { return x.verdict !== null; }).length; sum.textContent = 'Рассортировано валов: ' + n + ' из ' + V.length + '.'; }
+    function decide(g) { var s0 = st[cur], ok = s0.pr && !s0.ne; s0.verdict = g; only([gb, bb], g ? gb : bb); vb[cur].classList.add('tkdone');
+      var why = ok ? 'Вал годен: прошёл ПР и не прошёл НЕ.' : !s0.pr ? 'Вал брак: не прошёл ПР, значит он толще допустимого. Это исправимый брак: вал можно доточить.' : 'Вал брак: прошёл через НЕ, значит он тоньше допустимого. Это неисправимый брак: металл уже не вернуть.';
+      m.textContent = (g === ok ? 'Верно. ' : 'Не совсем. ') + why + ' Настоящий диаметр: ' + f(V[cur], 3) + ' мм.'; upd(); }
+    only(vb, vb[0]); draw(); upd();
+  };
+
+  // ===== 4. Статистические методы: диаграмма Исикавы =====
+  T['b1-o-19-03'] = function (root) {
+    var Cat = [['Люди', 'опыт, обучение, внимательность персонала'], ['Оборудование', 'станки, инструмент, их износ'], ['Метод', 'технология и инструкции'], ['Материал', 'сырьё и заготовки'], ['Измерение', 'приборы и способы контроля'], ['Среда', 'температура, влажность, освещение']];
+    var Q = [['Новый оператор не прошёл обучение', 0], ['Резец станка затупился', 1], ['В инструкции не указана скорость резания', 2], ['В партии заготовок встречаются трещины', 3], ['Штангенциркуль давно не поверяли', 4], ['Зимой в цехе холодно, металл сжимается', 5], ['Оператор торопится к концу смены', 0], ['Станок вибрирует из-за изношенных подшипников', 1]];
+    root.appendChild(h('div', 'tkprod', 'Проблема: диаметр валов часто выходит за допуск. Разложи возможные причины по группам, чтобы понять, где искать.'));
+    var fish = h('div', 'tkfish'), boxes = Cat.map(function (c) { var b = h('div', 'tkbone'); b.appendChild(h('b', '', c[0])); b.appendChild(h('small', '', c[1])); b.appendChild(h('ul')); fish.appendChild(b); return b; });
+    var head = h('div', 'tkhead', 'Брак: диаметр не в допуске'); fish.appendChild(head); root.appendChild(fish);
+    var cur = -1, placed = {}, qb = [], cb = [], m;
+    Q.forEach(function (q, i) { var b = btn(q[0], function () { if (placed[i]) return; cur = i; only(qb, b); cb.forEach(function (x) { x.disabled = false; }); m.textContent = 'К какой группе относится причина «' + q[0] + '»?'; }); qb.push(b); });
+    root.appendChild(row(qb, 'Причины')); root.appendChild(h('p', 'tkread', 'Группа:'));
+    Cat.forEach(function (c, k) { var b = btn(c[0], function () { if (cur < 0) return; var q = Q[cur];
+      if (q[1] === k) { placed[cur] = 1; qb[cur].classList.add('tkdone'); qb[cur].disabled = true; boxes[k].querySelector('ul').appendChild(h('li', '', q[0])); cur = -1; cb.forEach(function (x) { x.disabled = true; });
+        var n = Object.keys(placed).length; m.textContent = n === Q.length ? 'Готово: это диаграмма Исикавы («рыбья кость»). Она помогает не гадать, а проверить все группы причин по очереди: люди, оборудование, метод, материал, измерения, среда.' : 'Верно, это «' + c[0] + '». Разложено ' + n + ' из ' + Q.length + '.'; }
+      else m.textContent = 'Не совсем: группа «' + c[0] + '» про ' + c[1] + '. Подумай, о чём причина «' + q[0] + '».'; }); b.disabled = true; cb.push(b); });
+    root.appendChild(row(cb, 'Группы')); m = say(root); m.textContent = 'Выбери причину, а потом группу, к которой она относится.';
+  };
+
+  // ===== 5. Сертификация: собери путь по порядку =====
+  T['b1-o-19-01-07'] = function (root) {
+    var P = [['Заявка в орган по сертификации', 'Изготовитель выбирает аккредитованный орган и подаёт заявку.'], ['Отбор образцов продукции', 'Образцы отбирают так, чтобы они представляли всю партию или производство.'], ['Испытания в аккредитованной лаборатории', 'Лаборатория проверяет образцы на соответствие требованиям регламента.'], ['Проверка производства (для некоторых схем)', 'Орган смотрит, стабильно ли завод выпускает такую продукцию.'], ['Решение и выдача сертификата', 'Орган анализирует результаты и решает, выдавать ли сертификат.'], ['Маркировка знаком ЕАС', 'Знак ЕАС означает, что продукция прошла оценку соответствия регламентам ЕАЭС.'], ['Инспекционный контроль', 'Орган периодически проверяет, что продукция остаётся такой же, как при сертификации.']];
+    root.appendChild(h('div', 'tkprod', 'Новую продукцию нужно сертифицировать. Собери шаги по порядку: нажимай на шаг, который, по-твоему, идёт следующим.'));
+    var path = h('ol', 'tkflow'), next = 0, bs = [], m;
+    P.forEach(function (p, i) { var b = btn(p[0], function () {
+      if (i === next) { b.disabled = true; b.classList.add('tkdone'); var li = h('li'); li.appendChild(h('b', '', p[0])); li.appendChild(h('span', '', ' ' + p[1])); path.appendChild(li); next++;
+        m.textContent = next === P.length ? 'Путь собран. Это общая схема: какие именно шаги нужны, определяет технический регламент на конкретную продукцию.' : 'Верно. Что дальше?'; }
+      else m.textContent = 'Этот шаг ' + (i > next ? 'позже' : 'уже был') + '. ' + p[1] + ' Подумай, что нужно сделать до него.'; }); bs.push(b); });
+    root.appendChild(row(shuffle(bs), 'Шаги сертификации')); root.appendChild(path); m = say(root); m.textContent = 'С чего всё начинается?';
+  };
+
+  // ===== 6. Методы и средства измерений: выбери предел мультиметра =====
+  T['b1-o-19-05'] = function (root) {
+    var O = [['Батарейка АА', 1.53], ['Батарейка «Крона»', 9.47], ['Лабораторный блок питания', 12.6]], R = [2, 20, 200], o = -1, r = -1;
+    root.appendChild(info('Предел измерения', ['Предел: наибольшее значение, которое прибор может показать в этом режиме.', 'Если значение больше предела, прибор покажет OL (перегрузка).', 'Чем меньше предел, тем больше знаков после запятой: лучший выбор — наименьший предел, который больше измеряемого значения.']));
+    var lcd = h('div', 'tklcd', '----'), ob = O.map(function (x, i) { return btn(x[0], function () { o = i; only(ob, ob[i]); upd(); }); }), rb = R.map(function (x, i) { return btn('Предел ' + x + ' В', function () { r = i; only(rb, rb[i]); upd(); }, 'tkbig'); });
+    root.appendChild(h('p', 'tkread', 'Что измеряем:')); root.appendChild(row(ob, 'Что измеряем')); root.appendChild(h('p', 'tkread', 'Предел мультиметра:')); root.appendChild(row(rb, 'Предел')); root.appendChild(lcd);
+    var m = say(root); m.textContent = 'Выбери, что измеряем, и предел мультиметра.';
+    function upd() { if (o < 0 || r < 0) { lcd.textContent = '----'; return; } var v = O[o][1], lim = R[r], d = lim === 2 ? 3 : lim === 20 ? 2 : 1, best = R.filter(function (x) { return x > v; })[0];
+      lcd.textContent = v >= lim ? 'OL' : f(v, d) + ' В'; lcd.classList.toggle('tkol', v >= lim);
+      m.textContent = v >= lim ? 'Перегрузка: ' + f(v, 2) + ' В больше предела ' + lim + ' В. Выбери предел побольше.' : lim === best ? 'Лучший выбор: самый точный предел для этого значения (' + d + ' знак' + (d === 1 ? '' : 'а') + ' после запятой).' : 'Показания есть, но грубовато: на пределе ' + best + ' В было бы больше знаков после запятой.'; }
+  };
+
+  // ===== 7. Физические основы измерений и эталоны: поверь весы гирями =====
+  T['b1-o-19-06'] = function (root) {
+    var M = [0, 200, 500, 1000], rd = function (m) { return Math.round(m * 1.012 + 3); }, tol = 10, pts = {};
+    root.appendChild(info('Что такое поверка', ['Эталонные гири: их масса известна гораздо точнее, чем могут ошибаться весы.', 'Ставим гирю, сравниваем показание весов с её массой. Разница и есть погрешность весов.', 'Здесь весы годны, если везде ошибка не больше ±10 г.']));
+    var lcd = h('div', 'tklcd', '0 г'), mb = M.map(function (x, i) { return btn(x ? 'Гиря ' + x + ' г' : 'Пустые весы', function () { only(mb, mb[i]); var r = rd(x); pts[x] = r; lcd.textContent = r + ' г'; draw(); upd(x, r); }, 'tkbig'); });
+    root.appendChild(row(mb, 'Эталонные гири')); root.appendChild(lcd);
+    var g = svg(620, 170, 'Погрешность весов при разной массе'); root.appendChild(g); var m = say(root); m.textContent = 'Ставь гири по очереди и смотри, как ошибаются весы.';
+    function X(v) { return 50 + v / 1000 * 520; } function Y(e) { return 85 - e * 4.2; }
+    function draw() { clear(g); g.appendChild(s('rect', { x: 50, y: Y(tol), width: 520, height: Y(-tol) - Y(tol), fill: C.green, opacity: .25 })); g.appendChild(s('text', { x: 56, y: Y(tol) - 4, 'font-size': 11 }, 'допуск ±10 г'));
+      g.appendChild(s('line', { x1: 50, y1: Y(0), x2: 570, y2: Y(0), stroke: C.ink })); [0, 200, 500, 1000].forEach(function (v) { g.appendChild(s('text', { x: X(v), y: 162, 'text-anchor': 'middle', 'font-size': 11 }, v + ' г')); });
+      Object.keys(pts).forEach(function (k) { var e = pts[k] - k; g.appendChild(s('circle', { cx: X(+k), cy: Y(e), r: 7, fill: Math.abs(e) > tol ? C.red : C.blue })); g.appendChild(s('text', { x: X(+k), y: Y(e) - 11, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700 }, (e > 0 ? '+' : '') + e + ' г')); }); }
+    function upd(x, r) { var e = r - x, n = Object.keys(pts).length, base = 'Эталон ' + x + ' г, весы показали ' + r + ' г: ошибка ' + (e > 0 ? '+' : '') + e + ' г' + (Math.abs(e) > tol ? ', это больше допуска.' : ', в пределах допуска.');
+      m.textContent = n >= 3 ? base + ' Заметь: ошибка растёт с массой. Значит, у весов неверная чувствительность, и при 1000 г они выходят за допуск. Вывод поверки: весы не годны, их нужно настроить (откалибровать) и проверить снова.' : base + ' Поставь ещё гири.'; }
+    draw();
+  };
+
+  // ===== 8. МСС и контроль качества: выборочный контроль партии =====
   T['b1-o-19-01-03'] = function (root) {
-    var items = [['Рост человека (около 170 см)', 0], ['Диаметр болта (около 10 мм)', 1], ['Толщина волоса (около 0,05–0,1 мм)', 2]], tools = ['Рулетка', 'Штангенциркуль', 'Микрометр'];
-    var R = [['Подойдёт: точности до миллиметра хватает.', 'Не получится: он измеряет только небольшие предметы, до нескольких десятков сантиметров.', 'Не получится: он рассчитан на несколько сантиметров.'],
-             ['Получится только примерно: точность около 1 мм для болта грубовата.', 'Хороший выбор: точность до сотых и десятых долей миллиметра.', 'Тоже можно, и даже точнее, но для обычного болта это чаще лишнее.'],
-             ['Не получится: деления по 1 мм, а волос в десять и более раз тоньше.', 'Грубовато: измерение будет на пределе точности прибора.', 'Подходит: точность до сотых и тысячных долей миллиметра.']];
-    var ib = [], tb = [], sel = -1, m = msg(root);
-    items.forEach(function (it, i) { var b = btn(it[0], function () { pressOnly(ib, b); sel = i; tb.forEach(function (x) { x.disabled = false; x.setAttribute('aria-pressed', 'false'); }); m.textContent = 'Теперь выбери, чем будешь измерять.'; }); ib.push(b); });
-    tools.forEach(function (t, j) { var b = btn(t, function () { if (sel < 0) return; pressOnly(tb, b); m.textContent = tools[j] + ' и «' + items[sel][0].split(' (')[0].toLowerCase() + '»: ' + R[sel][j]; }, 'tkbig'); b.disabled = true; tb.push(b); });
-    root.insertBefore(h('p', 'tkread', '1. Что измеряем?'), m); root.insertBefore(group(ib, 'Что измеряем'), m); root.insertBefore(h('p', 'tkread', '2. Чем измеряем?'), m); root.insertBefore(group(tb, 'Чем измеряем'), m);
-    m.textContent = 'Выбери предмет, а потом инструмент, и посмотри, получится ли им измерить.';
+    var B = [['Партия А', 2], ['Партия Б', 10], ['Партия В', 30]], N = 100, n = 10, c = 1, cur = -1, stat = B.map(function () { return { t: 0, a: 0 }; });
+    root.appendChild(info('Правило контроля', ['В партии 100 деталей, проверять все долго и дорого.', 'Берём наугад 10 деталей. Если бракованных 0 или 1, партию принимаем, если больше — возвращаем поставщику.', 'Сколько брака в каждой партии на самом деле, ты не знаешь, как и настоящий контролёр.']));
+    var bb = B.map(function (x, i) { return btn(x[0], function () { cur = i; only(bb, bb[i]); take.disabled = false; clear(grid); m.textContent = 'Возьми 10 деталей из партии.'; }); });
+    root.appendChild(row(bb, 'Партии')); var take = btn('Взять 10 деталей наугад', sample, 'tkbig'); take.disabled = true; root.appendChild(take);
+    var grid = h('div', 'tkgrid'), m, tbl = h('p', 'tkread'); root.appendChild(grid); m = say(root); root.appendChild(tbl);
+    function sample() { var bad = B[cur][1], idx = shuffle(Array.apply(null, { length: N }).map(function (_, i) { return i; })).slice(0, n), k = idx.filter(function (i) { return i < bad; }).length; clear(grid);
+      idx.forEach(function (i) { grid.appendChild(h('span', i < bad ? 'tkbad' : 'tkgood', i < bad ? '✕' : '✓')); });
+      var acc = k <= c, sx = stat[cur]; sx.t++; if (acc) sx.a++;
+      m.textContent = 'Бракованных в выборке: ' + k + '. Решение: ' + (acc ? 'партию принять.' : 'вернуть поставщику.') + (sx.t >= 5 ? ' ' + B[cur][0] + ' принята в ' + sx.a + ' из ' + sx.t + ' проверок. На самом деле в ней ' + B[cur][1] + ' бракованных из 100: выборка иногда ошибается, поэтому план контроля рассчитывают по вероятностям.' : ' Повтори несколько раз.');
+      tbl.textContent = B.map(function (x, i) { return x[0] + ': принята ' + stat[i].a + ' из ' + stat[i].t; }).join(' · '); }
+    m.textContent = 'Выбери партию и проверь её выборкой.';
   };
 
-  // 9. Обязательно или можно выбрать?
+  // ===== 9. Основы технического регулирования: прочитай этикетку =====
   T['b1-o-19-01-01'] = function (root) {
-    var docs = [['Технический регламент', true, 'Обязательно. Технический регламент устанавливает требования, которые обязаны выполнять все.'], ['Национальный стандарт (ГОСТ Р)', false, 'Можно выбрать. Национальные стандарты применяют добровольно.'], ['Стандарт организации', false, 'Можно выбрать. Это правила самой организации, которые она устанавливает для себя.']];
-    var db = [], opened = {}, cur = -1, m = msg(root), ans = group([], 'Твой выбор'), cnt = h('p', 'tkread'), ex = h('p', 'tkbadge'); ex.hidden = true;
-    var yes = btn('Обязательно', function () { pick(true); }, 'tkbig'), no = btn('Можно выбрать самому', function () { pick(false); }, 'tkbig'); ans.appendChild(yes); ans.appendChild(no); ans.hidden = true;
-    docs.forEach(function (d, i) { var b = btn(d[0], function () { cur = i; pressOnly(db, b); ans.hidden = false; yes.setAttribute('aria-pressed', 'false'); no.setAttribute('aria-pressed', 'false'); m.textContent = 'Как думаешь, «' + d[0] + '» обязателен?'; }); db.push(b); });
-    function pick(v) { var d = docs[cur]; (v ? yes : no).setAttribute('aria-pressed', 'true'); (v ? no : yes).setAttribute('aria-pressed', 'false'); opened[cur] = 1; db[cur].classList.add('tkdone');
-      m.textContent = 'Ты выбрал: ' + (v ? 'обязательно' : 'можно выбрать') + '. ' + d[2]; var n = Object.keys(opened).length; cnt.textContent = 'Открыто: ' + n + ' из 3.';
-      if (n === 3) { ex.hidden = false; ex.textContent = 'Есть исключение: добровольный стандарт становится обязательным, если на него сослались в договоре или регламенте, или если изготовитель сам заявил, что продукция ему соответствует.'; } }
-    root.insertBefore(group(db, 'Документы'), m); root.insertBefore(ans, m); root.insertBefore(cnt, m); root.insertBefore(ex, m); cnt.textContent = 'Открыто: 0 из 3.';
-    m.textContent = 'Нажми на документ и угадай, обязателен ли он. Потом посмотри, как на самом деле.';
+    var H = [['name', 'Горбуша натуральная', 'Наименование продукта. Обязательно по регламенту о маркировке (ТР ТС 022/2011).'], ['gost', 'ГОСТ 7452-2014', 'Документ, по которому изготовлены консервы. Если изготовитель его указал, он обязан его выполнять.'], ['comp', 'Состав: горбуша, соль', 'Состав. Обязателен по ТР ТС 022/2011.'], ['mass', 'Масса нетто 245 г', 'Количество продукта. Обязательно по ТР ТС 022/2011.'], ['date', 'Изготовлено и годен до: на крышке', 'Дата изготовления и срок годности. Обязательны по ТР ТС 022/2011.'], ['maker', 'Изготовитель: ООО «Пример», г. Владивосток', 'Изготовитель и его адрес (условный пример). Обязательны по ТР ТС 022/2011.'], ['eac', 'EAC', 'Единый знак обращения продукции ЕАЭС: продукция прошла оценку соответствия техническим регламентам.'], ['bar', '|||| ||| 4 600000 000000', 'Штрихкод нужен магазину для учёта товара. Знаком соответствия он не является.']];
+    var Ms = [['Найди знак, который показывает, что продукция прошла оценку соответствия регламентам.', ['eac']], ['Найди документ, по которому сделаны консервы.', ['gost']], ['Найди любые три сведения, которые регламент о маркировке требует указать на этикетке.', ['name', 'comp', 'mass', 'date', 'maker']]];
+    var lab = h('div', 'tklabel'), hb = {}, mi = 0, found = {}, m;
+    H.forEach(function (x) { var b = btn(x[1], function () { tap(x[0]); }, 'tkspot tk-' + x[0]); hb[x[0]] = b; lab.appendChild(b); });
+    root.appendChild(lab); var exp = h('div', 'tkinfo'); root.appendChild(exp); m = say(root);
+    function tap(id) { var x = H.filter(function (y) { return y[0] === id; })[0]; clear(exp); exp.appendChild(h('b', '', x[1])); exp.appendChild(h('p', '', x[2]));
+      if (mi >= Ms.length) return; var need = Ms[mi][1];
+      if (need.indexOf(id) >= 0) { hb[id].classList.add('tkdone'); found[mi] = (found[mi] || 0) + 1; var goal = mi === 2 ? 3 : 1;
+        if (found[mi] >= goal) { mi++; m.textContent = mi < Ms.length ? 'Есть! Следующее задание: ' + Ms[mi][0] : 'Все задания выполнены. Так специалист по техническому регулированию проверяет этикетку: что обязательно по регламенту, что добровольно, а что нужно магазину.'; }
+        else m.textContent = 'Есть ' + found[mi] + ' из ' + goal + '. Ищи дальше.'; }
+      else m.textContent = 'Это не то, что ищем сейчас, но прочитай пояснение. Задание: ' + Ms[mi][0]; }
+    m.textContent = 'Задание: ' + Ms[0][0];
   };
 
-  // 10. Кто чем занимается
+  // ===== 10. Введение в специальность: путь продукта и кто на каком шаге =====
   T['b1-o-18-08'] = function (root) {
-    var jobs = ['Метролог', 'Специалист по стандартизации', 'Специалист по сертификации'];
-    var tasks = [['Проверить, что весы на рынке показывают верный вес', 0, 'Это работа метролога: он отвечает за точность измерений.'], ['Написать единое правило, как обозначать и упаковывать продукцию', 1, 'Это работа специалиста по стандартизации: он разрабатывает единые правила.'], ['Подтвердить, что товар соответствует требованиям, и оформить документы', 2, 'Это работа специалиста по сертификации: он отвечает за подтверждение соответствия.']];
-    var tb = [], jb = [], cur = -1, done = {}, m = msg(root), jr = group([], 'Кто этим занимается'), fin = h('div', 'tkfin'); fin.hidden = true;
-    jobs.forEach(function (j, k) { var b = btn(j, function () { if (cur < 0) return; var t = tasks[cur]; pressOnly(jb, b); done[cur] = 1; tb[cur].classList.add('tkdone');
-      m.textContent = (k === t[1] ? 'Верно подумал(а). ' : 'Ты выбрал: ' + j.toLowerCase() + '. ') + t[2]; if (Object.keys(done).length === 3) showFin(); }, 'tkbig'); jb.push(b); jr.appendChild(b); });
-    jr.hidden = true;
-    tasks.forEach(function (t, i) { var b = btn(t[0], function () { cur = i; pressOnly(tb, b); jr.hidden = false; jb.forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); m.textContent = 'Кто, по-твоему, этим занимается?'; }); tb.push(b); });
-    var like = ['Если тебе интереснее точность и измерения, смотри предметы «Метрология» и «Методы и средства измерений».', 'Если интереснее правила и документы, смотри «Стандартизацию» и «Разработку нормативной документации».', 'Если интереснее проверки и подтверждение качества, смотри «Сертификацию» и «Основы аккредитации».'];
-    function showFin() { fin.hidden = false; fin.textContent = ''; fin.appendChild(h('p', 'tkread', 'А что из этого тебе показалось интереснее?')); var fb = [];
-      jobs.forEach(function (j, k) { var b = btn(j, function () { pressOnly(fb, b); out.textContent = like[k]; }); fb.push(b); }); fin.appendChild(group(fb, 'Что интереснее')); var out = h('p', 'tkbadge'); fin.appendChild(out); }
-    root.insertBefore(group(tb, 'Задачи'), m); root.insertBefore(jr, m); root.appendChild(fin);
-    m.textContent = 'Нажми на задачу и выбери, кто ею занимается.';
+    var J = ['Специалист по стандартизации', 'Метролог', 'Инженер-испытатель', 'Специалист по сертификации', 'Инженер по качеству'];
+    var S = [['Разработать технические условия на новые консервы', 0], ['Проверить весы и термометры на линии', 1], ['Испытать образцы в лаборатории', 2], ['Подтвердить соответствие и оформить декларацию', 3], ['Наладить систему качества на заводе', 4]];
+    root.appendChild(h('div', 'tkprod', 'Путь консервов от идеи до полки магазина. Кто отвечает за каждый шаг?'));
+    var chain = h('ol', 'tkchain'), slots = S.map(function (x, i) { var li = h('li'); li.appendChild(h('span', '', x[0])); var who = h('b', '', '?'); li.appendChild(who); chain.appendChild(li); return who; });
+    root.appendChild(chain); var cur = -1, done = {}, sb = [], jb = [], m;
+    S.forEach(function (x, i) { var b = btn('Шаг ' + (i + 1), function () { cur = i; only(sb, b); jb.forEach(function (y) { y.disabled = false; }); m.textContent = 'Кто отвечает за шаг «' + x[0] + '»?'; }); sb.push(b); });
+    root.appendChild(row(sb, 'Шаги'));
+    J.forEach(function (j, k) { var b = btn(j, function () { if (cur < 0) return; var x = S[cur];
+      if (k === x[1]) { slots[cur].textContent = j; done[cur] = 1; sb[cur].classList.add('tkdone'); jb.forEach(function (y) { y.disabled = true; }); var n = Object.keys(done).length;
+        m.textContent = n === S.length ? 'Все на местах: пять профессий работают в одной цепочке, и всем им учат на специальности 27.03.01.' : 'Верно. Осталось шагов: ' + (S.length - n) + '.'; }
+      else m.textContent = j + ' здесь не главный. Подсказка: ' + ['кто пишет правила и документы?', 'кто отвечает за точность приборов?', 'кто проводит опыты с образцами?', 'кто оформляет документы о соответствии?', 'кто строит систему, чтобы брака не было?'][x[1]]; }, 'tkbig'); b.disabled = true; jb.push(b); });
+    root.appendChild(row(jb, 'Профессии')); m = say(root); m.textContent = 'Выбери шаг, а потом профессию.';
   };
 
   window.taskMount = function (el, slug) { if (T[slug] && !el.getAttribute('data-ready')) { el.setAttribute('data-ready', '1'); try { T[slug](el); } catch (e) { if (window.console) console.warn('Задание не запустилось', e); } return true; } return false; };
