@@ -72,6 +72,10 @@ LOGO_SVG = ('<svg class="tmlogo" viewBox="0 0 64 64" aria-hidden="true" focusabl
             '<path class="lr" d="M13 50 C 22 50, 20 37, 30 37 S 38 28, 42 27" fill="none" stroke-width="5" stroke-linecap="round"/>'
             '<circle class="lf" cx="13" cy="50" r="5"/><circle class="lf" cx="30" cy="37" r="4.2"/>'
             '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle class="lb" cx="47" cy="18.6" r="4"/></svg>')
+HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><span class="g3 plate"></span><span class="g3 cube">'
+          '<svg viewBox="0 0 64 64"><path d="M13 50 C 22 50, 20 37, 30 37 S 38 28, 42 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'
+          '<circle cx="13" cy="50" r="5" fill="#fff"/><circle cx="30" cy="37" r="4.2" fill="#fff"/>'
+          '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle cx="47" cy="18.6" r="4" fill="#3b4f86"/></svg></span></div>')
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
@@ -94,7 +98,7 @@ def page(title, desc, body, depth=0, live=False, path=False):
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
-<a class="skip" href="#main">К содержимому</a>{body}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
+<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
@@ -247,8 +251,8 @@ def path_page(cards):
     data = json.dumps(path_data(cards), ensure_ascii=False).replace("</", "<\\/")
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Путь студента: от первого семестра до профессии</h1>'
             '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
-            f'<p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
-            f'<div class="facts"><span><b>4</b> года</span><span><b>8</b> семестров</span><span><b>240</b> з.е.</span><span><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
+            f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
+            f'<div class="facts"><span><i>{ic("FaRegClock")}</i><b>4</b> года</span><span><i>{ic("FaLayerGroup")}</i><b>8</b> семестров</span><span><i>{ic("FaChartBar")}</i><b>240</b> з.е.</span><span><i>{ic("FaUserGraduate")}</i><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
     finale = (f'<li class="station finale" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
               '<p>Типичные должности выпускников направления. Нажми «Показать путь к профессии», чтобы подсветить на карте предметы, которые к ней ведут. '
               '<span class="muted">Список составлен по профессиональным задачам из учебного плана; требования и зарплаты смотри в вакансиях.</span></p></div>'

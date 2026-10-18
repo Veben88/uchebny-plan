@@ -31,6 +31,6 @@
     });
   });
   q.addEventListener('input', run);
-  var p = new URLSearchParams(location.search); ['group', 'sem'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); });
+  var p = new URLSearchParams(location.search); ['group', 'sem'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); }); if (p.get('q')) q.value = p.get('q');
   run();
 })();
