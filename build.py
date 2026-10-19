@@ -6,11 +6,11 @@ ROOT = Path(__file__).parent; OUT = ROOT / "site"; E = html.escape
 plan = json.loads((ROOT/"data/plan.json").read_text(encoding="utf-8")); meta, items = plan["meta"], plan["disciplines"]
 def jload(p, d): return json.loads(p.read_text(encoding="utf-8")) if p.exists() else d
 ratings = jload(ROOT/"data/ratings.json", {}); CONFIG = jload(ROOT/"data/config.json", {})
-RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip(); FEEDBACK_URL = (CONFIG.get("feedback_url") or "").strip()
+RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip(); FEEDBACK_URL = (CONFIG.get("feedback_url") or "").strip(); FB_ON = bool(FEEDBACK_URL)
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -79,26 +79,30 @@ HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
-    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Путь студента"),("cat","catalog.html","Все дисциплины"),("road","roadmap.html","Развитие сайта"),("about","about.html","О проекте")))
+    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Путь студента"),("cat","catalog.html","Все дисциплины"),("road","roadmap.html","Развитие сайта"),("about","about.html","О проекте")) + ((("fb","feedback.html","Обратная связь"),) if FB_ON else ()))
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html" aria-label="TeachMap, на главную">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст">{ic("FaEye")} Крупно</button></nav></header>')
-def footer_html():
+def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
+    if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
-def page(title, desc, body, depth=0, live=False, path=False):
+def page(title, desc, body, depth=0, live=False, path=False, form=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
-    fm = f'<meta name="feedback-url" content="{E(FEEDBACK_URL)}">' if (FEEDBACK_URL and (live or path)) else ""
+    fm = f'<meta name="feedback-url" content="{E(FEEDBACK_URL)}">' if (FEEDBACK_URL and (live or path or form)) else ""
+    if FEEDBACK_URL and (live or path): fm += f'<meta name="feedback-page" content="{b}feedback.html">'
+    if form and not FEEDBACK_URL: fm += '<meta name="robots" content="noindex">'
     if FEEDBACK_URL and (live or path): lj += f'<script src="{b}assets/feedback.js?v={ASSET_V}" defer></script>'
     if live or path: lj += f'<script src="{b}assets/tasks.js?v={ASSET_V}" defer></script>'
+    if form: lj += f'<script src="{b}assets/form.js?v={ASSET_V}" defer></script>'
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
-<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html()}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
+<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
@@ -149,6 +153,7 @@ def disc_page(it, c, order, k):
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
 {extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 {f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
+{f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={it["slug"]}">Сообщить об ошибке</a></p>' if FB_ON else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
     return page(f"{name}: что изучают и какая нагрузка · TeachMap", c["what"] or c["brief"] or name, body, 1, live=True)
 STAGES = [
@@ -170,6 +175,53 @@ def road_page():
 <h2 style="color:var(--pri)">Для кого</h2><div class="principles">{who}</div>
 <h2 style="color:var(--pri)">Этапы развития</h2><div class="legend"><span>{ic("FaCheck")}сделано</span><span>{ic("FaSyncAlt")}в работе</span><span>{ic("FaRegClock")}планируется</span></div><div class="road">{st}</div></div></main>'''
     return page("Развитие сайта · TeachMap","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
+
+ROLES = [("school89","Школьник 8–9 класса"),("school1011","Школьник 10–11 класса"),("graduate","Выпускник школы или колледжа"),("student","Студент"),("parent","Родитель"),("teacher","Учитель или педагог-профориентатор"),("uni","Преподаватель или сотрудник вуза"),("other","Другое")]
+def f_opts(name, opts, typ="radio"):
+    return '<div class="fopts">' + "".join(f'<label class="fo"><input type="{typ}" name="{name}" value="{E(v)}"><span>{E(v)}</span></label>' for v in opts) + '</div>'
+def f_scale(name, lo, hi):
+    return ('<div class="fscale">' + "".join(f'<label class="fo fn"><input type="radio" name="{name}" value="{i}"><span>{i}</span></label>' for i in range(1, 6)) + f'</div><div class="fends"><span>{E(lo)}</span><span>{E(hi)}</span></div>')
+def f_q(title, inner, roles=None, qid=None, hint="", req=False, hidden=False, name=None):
+    a = (f' id="{qid}"' if qid else "") + (f' data-roles="{roles}"' if roles else "") + (' hidden' if (roles or hidden) else "") + (f' data-q="{name}"' if name else "")
+    return f'<fieldset class="fq"{a}><legend>{E(title)}{" <b class=req aria-hidden=true>*</b>" if req else ""}</legend>' + (f'<p class="fhint">{E(hint)}</p>' if hint else "") + inner + '</fieldset>'
+def feedback_page():
+    sel = '<option value="">Выберите предмет</option>' + "".join(f'<option value="{E(i["idx"] + " " + clean(i["name"]))}" data-slug="{i["slug"]}">{E(i["idx"])} · {E(clean(i["name"]))}</option>' for i in sorted(items, key=SORT))
+    roles = "".join(f'<label class="fo fr"><input type="radio" name="role" value="{c}" data-label="{E(l)}"><span>{E(l)}</span></label>' for c, l in ROLES)
+    ALL = " ".join(c for c, _ in ROLES); ADULT = "graduate student parent teacher uni other"
+    q = []
+    q.append(f_q("Кто вы?", f'<div class="fopts">{roles}</div>', req=True, name="role"))
+    inner = []
+    inner.append(f_q("Стало ли вам понятнее, чем занимаются на специальности «Стандартизация и метрология»?", f_opts("clarity", ["Да", "Скорее да", "Не очень", "Нет"]), req=True, name="clarity"))
+    inner.append(f_q("Что стало понятнее больше всего?", f_opts("clearer", ["Что изучают по семестрам", "Какая нагрузка", "Чему учат на каждом предмете", "Как проверяют знания", "Кем можно работать", "Ничего из этого"], "checkbox"), hint="Можно выбрать несколько."))
+    inner.append(f_q("Что осталось непонятным?", '<textarea name="unclear" rows="3" maxlength="500" placeholder="Необязательно. Не пишите личные данные."></textarea>'))
+    inner.append(f_q("Стали ли вы больше или меньше рассматривать эту специальность?", f_opts("interest", ["Больше", "Так же", "Меньше", "Я не выбираю эту специальность"]), roles="school89 school1011 graduate", hint="Это только впечатление, а не обязательство поступать."))
+    inner.append(f_q("Хватает ли информации на сайте, чтобы обсудить выбор с ребёнком?", f_opts("enough", ["Да", "Частично", "Нет"]), roles="parent"))
+    inner.append(f_q("Что для вас важнее всего при выборе вуза?", f_opts("parent_imp", ["Трудоустройство после выпуска", "Нагрузка и сложность", "Стоимость обучения", "Расстояние и общежитие", "Репутация вуза", "Перспективы и профессии"], "checkbox"), roles="parent", hint="Можно выбрать несколько."))
+    inner.append(f_q("Использовали бы вы TeachMap на классном часе или уроке?", f_opts("class_use", ["Да", "Возможно", "Нет"]), roles="teacher"))
+    inner.append(f_q("Какой материал вам нужен?", f_opts("class_fmt", ["Презентация", "Сценарий классного часа", "Памятка для учеников", "Видео о профессиях"], "checkbox"), roles="teacher"))
+    inner.append(f_q("Интересен ли такой сервис для вашей программы или института?", f_opts("uni_interest", ["Да", "Возможно", "Нет"]), roles="uni"))
+    inner.append(f_q("Какой формат сотрудничества вам подходит?", f_opts("uni_fmt", ["Бесплатный пилот", "Подписка", "Разовый отчёт по программе", "Другое"], "checkbox"), roles="uni"))
+    inner.append(f_q("Готовы обсудить пилот?", f_opts("uni_pilot", ["Да", "Позже", "Нет"]), roles="uni", hint="Если «Да», оставьте контакт в конце формы."))
+    inner.append(f_q("Насколько вы доверяете информации на сайте?", f_scale("trust", "1: совсем не доверяю", "5: полностью доверяю")))
+    inner.append(f_q("Что вызывает сомнения?", f_opts("trustwhy", ["Нет проверки преподавателем", "Не указан источник", "Слишком упрощено", "Данные могут устареть", "Другое"], "checkbox"), qid="trustwhy", hidden=True))
+    inner.append(f_q("Чем вы пользовались?", f_opts("used", ["Путь студента", "Карточки предметов", "Задания «Попробуй сам»", "Каталог и поиск", "Профессии на финише", "Оценки студентов", "Блок «Стало ли понятнее»"], "checkbox")))
+    inner.append(f_q("Удобно ли пользоваться сайтом?", f_scale("ux", "1: очень неудобно", "5: очень удобно")))
+    inner.append(f_q("Что мешало?", f_opts("uxwhy", ["На телефоне неудобно", "Мелкий шрифт", "Трудно найти нужное", "Медленно загружается", "Непонятная навигация", "Другое"], "checkbox"), qid="uxwhy", hidden=True))
+    inner.append(f_q("Чего не хватает на сайте?", f_opts("missing", ["Фото и видео лабораторий", "Истории выпускников", "Вакансии и зарплаты", "Правила приёма и проходные баллы", "Сравнение направлений", "Тест «подходит ли мне специальность»", "Другое"], "checkbox") + '<input type="text" name="missing_other" maxlength="200" placeholder="Своё предложение (необязательно)" aria-label="Своё предложение">'))
+    inner.append(f_q("Нашли ошибку?", '<label class="fo fc"><input type="checkbox" id="errchk" name="errchk"><span>Хочу сообщить об ошибке в описании предмета</span></label>'
+                    f'<div id="errbox" hidden><select name="err_d" aria-label="Предмет">{sel}</select><textarea name="err_text" rows="3" maxlength="800" placeholder="Что именно неверно и как должно быть"></textarea></div>'))
+    inner.append(f_q("Контакт для ответа (необязательно)", '<input type="text" name="contact" maxlength="120" placeholder="Почта или Telegram" autocomplete="off" aria-label="Контакт для ответа">'
+                    '<label class="fo fc"><input type="checkbox" name="consent"><span>Согласен(на) на обработку контакта, чтобы команда проекта могла ответить</span></label>', roles=ADULT, hint="Нужен только если вы хотите получить ответ. Контакт не публикуется."))
+    inner.append(f_q("Публикация", '<label class="fo fc"><input type="checkbox" name="quote"><span>Можно анонимно процитировать мой комментарий на сайте или в презентации проекта</span></label>'))
+    body = head_nav(0, "fb") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Обратная связь</h1>
+<p class="lead">Расскажите, что получилось, а что нет. Это займёт около двух минут. Обязательны только два вопроса: кто вы и стало ли вам понятнее.</p></section></div></div>
+<div class="wrap"><div class="fdemo" id="fbdemo" hidden role="note"><b>Демонстрационный режим.</b> Приём ответов ещё не подключён, поэтому форма работает как образец и ничего не отправляет.</div>
+<form id="fbform" class="panel ff" novalidate><p class="fhint ffpriv">Форма анонимная: мы не спрашиваем имя и не сохраняем IP-адрес. Контакт нужен только тем, кто хочет получить ответ, и у школьников 8–11 классов он не принимается. Комментарии не публикуются без вашего согласия.</p>
+<noscript><p class="muted">Для работы формы нужен включённый JavaScript.</p></noscript>
+{q[0]}<div id="rest" hidden>{"".join(inner)}
+<div class="ffsend"><button type="submit" class="btn" id="fbsend">Отправить</button><p id="fbmsg" class="tkmsg" role="alert" aria-live="assertive"></p></div></div>
+<input class="fbtrap" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true"></form></div></main>'''
+    return page("Обратная связь · TeachMap", "Расскажите, что получилось, а что нет: короткая анонимная форма", body, 0, form=True)
 def about_page():
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
     contact = f'<h2>Контакты</h2><p>{E(CONTACT)}</p>' if CONTACT else ""
@@ -179,7 +231,7 @@ def about_page():
      ("Как считаются оценки студентов?",f"Студенты анонимно ставят оценки от 1 до 5. Оценка показывается, если ответили не меньше {MIN_N} человек, это медиана. Ответы тех, кто не разрешил их использовать, не учитываются. Если оценили студенты смежных программ, это указано на странице."),
      ("Почему у предмета нет оценок?",f"Либо ответов пока меньше {MIN_N}, либо предмета нет в опросе (например, практики)."),
      *([("Что происходит с моим ответом «Стало ли понятнее»?","Ответ анонимный: мы не собираем имя и почту. Мы считаем долю ответов «да» и читаем комментарии, чтобы переписать то, что осталось непонятным. Не пишите в комментарии личные данные.")] if FEEDBACK_URL else []),
-     ("Как предложить правку?","Напишите нам по контактам внизу страницы, и мы поправим карточку. Планы могут меняться, поэтому в подвале указана дата сверки.")]
+     ("Как предложить правку?",("Заполните форму на странице «Обратная связь» и отметьте «Хочу сообщить об ошибке в описании предмета». " if FB_ON else "") + "Напишите нам по контактам внизу страницы, и мы поправим карточку. Планы могут меняться, поэтому в подвале указана дата сверки.")]
     fq = "".join(f'<details><summary>{E(q)}</summary><p>{E(a)}</p></details>' for q,a in faq)
     body = head_nav(0, "about") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>О проекте TeachMap</h1><p class="lead">Официальный учебный план написан для проверяющих. TeachMap объясняет его абитуриентам простым языком: чем придётся заниматься и насколько будет трудно.</p></section></div></div><div class="wrap">
 <div class="doc"><h2>Что важно знать</h2><p>Сайт показывает данные плана 27.03.01 «Стандартизация и метрология» ДВФУ и оценки студентов. Мы не собираем имена и почту, цитаты публикуем только с согласия студента.</p>{survey}{contact}</div>
@@ -270,7 +322,7 @@ def build():
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
-    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8")
+    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")

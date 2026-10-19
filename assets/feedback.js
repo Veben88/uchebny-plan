@@ -32,7 +32,7 @@
       send.disabled = true; msg.textContent = 'Отправляем…';
       var body = JSON.stringify({ slug: slug, v: vote, c: ta.value.slice(0, 500), src: src, t: Date.now() });
       fetch(URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body, keepalive: true })
-        .then(function () { mark(slug, vote); while (box.firstChild) box.removeChild(box.firstChild); box.appendChild(h); box.appendChild(el('p', 'fbok', 'Спасибо! Твой ответ поможет сделать описание понятнее.')); })
+        .then(function () { mark(slug, vote); while (box.firstChild) box.removeChild(box.firstChild); box.appendChild(h); box.appendChild(el('p', 'fbok', 'Спасибо! Твой ответ поможет сделать описание понятнее.')); var fp = document.querySelector('meta[name="feedback-page"]'); if (fp) { var a = el('a', '', 'Рассказать подробнее'); a.href = fp.content; var pp = el('p', 'muted'); pp.appendChild(a); box.appendChild(pp); } })
         .catch(function () { send.disabled = false; msg.textContent = 'Не получилось отправить. Попробуй ещё раз позже.'; });
     });
   };
