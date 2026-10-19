@@ -344,3 +344,11 @@ html.access .hero3d{display:none}
 .band .acc{background:rgba(24,32,70,.4);color:#fff;border:1px solid rgba(255,255,255,.5)}
 .band .acc:hover{background:rgba(24,32,70,.58);color:#fff}
 .band .acc[aria-pressed=true]{background:#fff;color:var(--pri-bg);border-color:#fff}
+
+/* ===== кольцо: раскрытие при появлении и конечная пульсация (3 волны, затем покой) ===== */
+.hero3d .ring{animation:ringOpen 1s cubic-bezier(.2,.8,.2,1) .15s both}
+.hero3d .ring::before{content:"";position:absolute;inset:-16px;border-radius:50%;border:5px solid rgba(124,160,34,.9);opacity:0;pointer-events:none;
+  animation:ringPulse 1.8s ease-out 1.2s 3 forwards}
+@keyframes ringOpen{0%{scale:.1;opacity:0}60%{scale:1.1;opacity:1}100%{scale:1;opacity:1}}
+@keyframes ringPulse{0%{scale:1;opacity:.95}100%{scale:2.3;opacity:0}}
+@media(prefers-reduced-motion:reduce){.hero3d .ring{animation:none}.hero3d .ring::before{display:none}}
