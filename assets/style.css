@@ -375,3 +375,11 @@ html.access .hero3d{display:none}
 .fpre{margin:8px 0 0;padding:12px;max-height:260px;overflow:auto;background:var(--card);border-radius:10px;font-size:12px;white-space:pre-wrap}
 .fberr{margin:0 0 6px;text-align:center}
 @media(max-width:560px){.ff{padding:18px 16px}.fo span{padding:8px 13px}.fscale .fn span{min-width:42px}}
+
+/* обновлённый знак: символы в кругах маршрута (π и открытая книга) и подпись под стволом «Т» */
+.tmlogo .lg{fill:none;stroke:var(--lg-bg);stroke-linecap:round;stroke-linejoin:round}
+.bw small{margin-left:4.9px}
+
+/* шапка: логотип не сжимается, меню помещается в один ряд на широких экранах и переносится целиком на узких */
+.top{flex-wrap:wrap;row-gap:8px}.brand{flex:none}.bw small{white-space:nowrap}
+.menu a,.acc{padding-left:13px;padding-right:13px}

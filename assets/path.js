@@ -148,6 +148,7 @@
     var old = src; src = cardFor(slug); cur = slug;
     if (old) old.classList.remove('ghost'); if (src) { src.classList.add('ghost'); src.scrollIntoView({ block: 'center' }); }
     var go = function () {
+      if (!xp || !inner.isConnected) return;      // карточку успели закрыть, пока шла анимация
       inner.replaceWith(nu); growBars(nu);
       var hh = geom().height || Math.min(nu.scrollHeight + 2, window.innerHeight - 48);
       if (!geom().height) { xp.style.height = hh + 'px'; xp.style.top = (window.innerHeight - hh) / 2 + 'px'; }

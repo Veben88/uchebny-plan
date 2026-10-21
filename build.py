@@ -69,13 +69,18 @@ def rating_block(slug):
     inter = f'<div class="meter"><b>{r["interest"]}</b><span>раз отмечен среди самых интересных</span></div>' if r.get("interest") else ""
     return f'<div class="meters">{m("Сложность, 1–5",r.get("hard"))}{m("Польза для профессии, 1–5",r.get("useful"))}{inter}</div><p class="muted" style="margin-top:10px">Ответили: {nn}. Оценили: {scope}. Медианные значения.</p>'
 LOGO_SVG = ('<svg class="tmlogo" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect class="lb" width="64" height="64" rx="15"/>'
-            '<path class="lr" d="M13 50 C 22 50, 20 37, 30 37 S 38 28, 42 27" fill="none" stroke-width="5" stroke-linecap="round"/>'
-            '<circle class="lf" cx="13" cy="50" r="5"/><circle class="lf" cx="30" cy="37" r="4.2"/>'
+            '<path class="lr" d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke-width="5" stroke-linecap="round"/>'
+            '<circle class="lf" cx="15" cy="48.5" r="9"/><circle class="lf" cx="30" cy="34" r="8.5"/>'
+            '<g class="lg" transform="translate(15 48.5)" stroke-width="1.8"><path d="M-4.8 -3.6 H4.8"/><path d="M-2.2 -3.6 V3.8"/><path d="M2.2 -3.6 V1.8 Q2.2 3.9 4.3 3.9"/></g>'
+            '<g class="lg" transform="translate(30 34)" stroke-width="1.5"><path d="M0 -2.6 C-1.7 -4 -3.8 -4.1 -5.4 -3.3 V3.3 C-3.8 2.5 -1.7 2.6 0 3.9 C1.7 2.6 3.8 2.5 5.4 3.3 V-3.3 C3.8 -4.1 1.7 -4 0 -2.6 Z"/><path d="M0 -2.6 V3.9"/></g>'
             '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle class="lb" cx="47" cy="18.6" r="4"/></svg>')
 HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><span class="g3 plate"></span><span class="g3 cube">'
-          '<svg viewBox="0 0 64 64"><path d="M13 50 C 22 50, 20 37, 30 37 S 38 28, 42 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'
-          '<circle cx="13" cy="50" r="5" fill="#fff"/><circle cx="30" cy="37" r="4.2" fill="#fff"/>'
+          '<svg viewBox="0 0 64 64"><path d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'
+          '<circle cx="15" cy="48.5" r="9" fill="#fff"/><circle cx="30" cy="34" r="8.5" fill="#fff"/>'
+          '<g transform="translate(15 48.5)" fill="none" stroke="#3b4f86" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M-4.8 -3.6 H4.8"/><path d="M-2.2 -3.6 V3.8"/><path d="M2.2 -3.6 V1.8 Q2.2 3.9 4.3 3.9"/></g>'
+          '<g transform="translate(30 34)" fill="none" stroke="#3b4f86" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M0 -2.6 C-1.7 -4 -3.8 -4.1 -5.4 -3.3 V3.3 C-3.8 2.5 -1.7 2.6 0 3.9 C1.7 2.6 3.8 2.5 5.4 3.3 V-3.3 C3.8 -4.1 1.7 -4 0 -2.6 Z"/><path d="M0 -2.6 V3.9"/></g>'
           '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle cx="47" cy="18.6" r="4" fill="#3b4f86"/></svg></span></div>')
+
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
