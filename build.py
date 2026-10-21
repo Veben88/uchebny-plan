@@ -68,25 +68,18 @@ def rating_block(slug):
     scope = E(r.get("scope","")) or "студенты, прошедшие предмет"
     inter = f'<div class="meter"><b>{r["interest"]}</b><span>раз отмечен среди самых интересных</span></div>' if r.get("interest") else ""
     return f'<div class="meters">{m("Сложность, 1–5",r.get("hard"))}{m("Польза для профессии, 1–5",r.get("useful"))}{inter}</div><p class="muted" style="margin-top:10px">Ответили: {nn}. Оценили: {scope}. Медианные значения.</p>'
-LOGO_SVG = ('<svg class="tmlogo" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect class="lb" width="64" height="64" rx="15"/>'
-            '<path class="lr" d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke-width="5" stroke-linecap="round"/>'
-            '<circle class="lf" cx="15" cy="48.5" r="9"/><circle class="lf" cx="30" cy="34" r="8.5"/>'
-            '<g class="lg" transform="translate(15 48.5)" stroke-width="1.8"><path d="M-4.8 -3.6 H4.8"/><path d="M-2.2 -3.6 V3.8"/><path d="M2.2 -3.6 V1.8 Q2.2 3.9 4.3 3.9"/></g>'
-            '<g class="lg" transform="translate(30 34)" stroke-width="1.5"><path d="M0 -2.6 C-1.7 -4 -3.8 -4.1 -5.4 -3.3 V3.3 C-3.8 2.5 -1.7 2.6 0 3.9 C1.7 2.6 3.8 2.5 5.4 3.3 V-3.3 C3.8 -4.1 1.7 -4 0 -2.6 Z"/><path d="M0 -2.6 V3.9"/></g>'
-            '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle class="lb" cx="47" cy="18.6" r="4"/></svg>')
+ICON_BODY = '<rect x="2" y="2" width="60" height="60" rx="14" fill="#F57C1F" stroke="#161616" stroke-width="3"/><path d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke="#161616" stroke-width="8" stroke-linecap="round"/><path d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="15" cy="48.5" r="8.6" fill="#fff" stroke="#161616" stroke-width="2.4"/><circle cx="30" cy="34" r="8.2" fill="#fff" stroke="#161616" stroke-width="2.4"/><g transform="translate(15 48.5)" fill="none" stroke="#161616" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M-4.6 -3.4 H4.6"/><path d="M-2.1 -3.4 V3.6"/><path d="M2.1 -3.4 V1.7 Q2.1 3.7 4.1 3.7"/></g><g transform="translate(30 34)" fill="none" stroke="#161616" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M0 -2.5 C-1.6 -3.8 -3.6 -3.9 -5.1 -3.1 V3.1 C-3.6 2.4 -1.6 2.5 0 3.7 C1.6 2.5 3.6 2.4 5.1 3.1 V-3.1 C3.6 -3.9 1.6 -3.8 0 -2.5 Z"/><path d="M0 -2.5 V3.7"/></g><path d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z" fill="#A259FF" stroke="#161616" stroke-width="2.4" stroke-linejoin="round"/><circle cx="47" cy="18.6" r="4" fill="#fff" stroke="#161616" stroke-width="2"/>'
+LOGO_SVG = '<svg class="tmlogo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">' + ICON_BODY + '</svg>'
 HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><span class="g3 plate"></span><span class="g3 cube">'
-          '<svg viewBox="0 0 64 64"><path d="M15 48.5 C 24 48.5, 20 34, 30 34 S 40 30, 46 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>'
-          '<circle cx="15" cy="48.5" r="9" fill="#fff"/><circle cx="30" cy="34" r="8.5" fill="#fff"/>'
-          '<g transform="translate(15 48.5)" fill="none" stroke="#3b4f86" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M-4.8 -3.6 H4.8"/><path d="M-2.2 -3.6 V3.8"/><path d="M2.2 -3.6 V1.8 Q2.2 3.9 4.3 3.9"/></g>'
-          '<g transform="translate(30 34)" fill="none" stroke="#3b4f86" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M0 -2.6 C-1.7 -4 -3.8 -4.1 -5.4 -3.3 V3.3 C-3.8 2.5 -1.7 2.6 0 3.9 C1.7 2.6 3.8 2.5 5.4 3.3 V-3.3 C3.8 -4.1 1.7 -4 0 -2.6 Z"/><path d="M0 -2.6 V3.9"/></g>'
-          '<path fill="#9cc23a" d="M47 8 c-6.3 0-11 4.6-11 10.6 0 7.4 11 18.4 11 18.4 s11-11 11-18.4 C58 12.6 53.3 8 47 8 z"/><circle cx="47" cy="18.6" r="4" fill="#3b4f86"/></svg></span></div>')
+          '<svg viewBox="0 0 64 64">' + ICON_BODY + '</svg></span></div>')
 
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
-    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}>{t}</a>' for k,h,t in (("home","index.html","Путь студента"),("cat","catalog.html","Все дисциплины"),("road","roadmap.html","Развитие сайта"),("about","about.html","О проекте")) + ((("fb","feedback.html","Обратная связь"),) if FB_ON else ()))
+    NAV = (("home","index.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
+    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html" aria-label="TeachMap, на главную">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span></a>'
-            f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст">{ic("FaEye")} Крупно</button></nav></header>')
+            f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'

@@ -13,7 +13,7 @@
   function info(title, lines) { var d = h('div', 'tkinfo'); if (title) d.appendChild(h('b', '', title)); var ul = h('ul'); lines.forEach(function (l) { ul.appendChild(h('li', '', l)); }); d.appendChild(ul); return d; }
   function f(v, d) { return v.toFixed(d == null ? 1 : d).replace('.', ','); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  var C = { green: '#9cc23a', blue: '#4c8ddb', navy: '#3b4f86', grey: '#c9cde0', red: '#d9534f', ink: '#2e3350', metal: '#aab3c5', light: '#e8ebf3' };
+  var C = { green: '#2DBE60', blue: '#4DA3FF', navy: '#7C4DFF', grey: '#D9D2C7', red: '#EF4444', ink: '#161616', metal: '#B9B2A6', light: '#FFF1E3' };
 
   // ===== 1. Метрология: измерь деталь штангенциркулем и прочитай нониус =====
   T['b1-o-19-01-04'] = function (root) {
