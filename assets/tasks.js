@@ -13,7 +13,7 @@
   function info(title, lines) { var d = h('div', 'tkinfo'); if (title) d.appendChild(h('b', '', title)); var ul = h('ul'); lines.forEach(function (l) { ul.appendChild(h('li', '', l)); }); d.appendChild(ul); return d; }
   function f(v, d) { return v.toFixed(d == null ? 1 : d).replace('.', ','); }
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  var C = { green: '#2DBE60', blue: '#4DA3FF', navy: '#7C4DFF', grey: '#D9D2C7', red: '#EF4444', ink: '#161616', metal: '#B9B2A6', light: '#FFF1E3' };
+  var C = { green: '#1E8E3E', blue: '#E60023', navy: '#101010', grey: '#CFCAC2', red: '#E60023', ink: '#101010', metal: '#9A9690', light: '#F5F3EF' };
 
   // ===== 1. Метрология: измерь деталь штангенциркулем и прочитай нониус =====
   T['b1-o-19-01-04'] = function (root) {
@@ -27,7 +27,7 @@
     root.appendChild(row([hb, nb], 'Управление'));
     var form = h('div', 'tkform'), inp = h('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'например, 23,7'; inp.setAttribute('aria-label', 'Твой результат измерения, мм');
     var cb = btn('Проверить', check, 'tkbig'); form.appendChild(h('span', 'tkread', 'Сколько показывает? ')); form.appendChild(inp); form.appendChild(h('span', 'tkread', ' мм ')); form.appendChild(cb); root.appendChild(form);
-    var m = say(root); m.textContent = 'Перетащи подвижную губку (синюю) влево, пока она не коснётся детали. Можно стрелками на клавиатуре.';
+    var m = say(root); m.textContent = 'Перетащи подвижную губку (красную) влево, пока она не коснётся детали. Можно стрелками на клавиатуре.';
     var jaw;
     function draw() {
       clear(main); var touch = Math.abs(pos - Wd) < 1e-6;

@@ -6,7 +6,7 @@
   var D = JSON.parse(pd.textContent), I = D.items;
   var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches, DUR = RM ? 0 : 460, EASE = 'cubic-bezier(.2,.8,.2,1)';
   var track = document.getElementById('track'), journey = document.getElementById('journey');
-  var COL = ['#FFB36B', '#6FB4FF', '#B98AFF', '#3ED6B7'];   // цвета групп, как .c-0….c-3 в style.css
+  var COL = ['#E60023', '#101010', '#5E5E5E', '#FFFFFF'];   // цвета групп, как .c-0….c-3 в style.css
   var GLAB = ['Профильный предмет', 'Политехнический предмет', 'Общий предмет', 'Практика или итоговая аттестация'];
   var CTL = { 'Эк': 'экзамен', 'За': 'зачёт', 'ЗаО': 'зачёт с оценкой', 'КР': 'курсовая работа', 'КП': 'курсовой проект', 'К': 'контрольные', 'Оц': 'оценка', 'РГР': 'расчётно-графическая работа' };
   var order = [];
