@@ -697,6 +697,8 @@ html:active-view-transition-type(back)::view-transition-new(root){animation-name
 .card:active,.dc:active{translate:3px 3px;box-shadow:var(--sh-s);transition-duration:60ms}
 .card.p5-enter{animation:p5enter 300ms var(--e-snap) calc(var(--k,0) * 30ms) backwards}
 #empty:not([hidden]){animation:p5enter 300ms var(--e-snap)}
+.card.p5-leave{animation:p5leave 180ms var(--e-in) forwards;pointer-events:none}
+@keyframes p5leave{from{opacity:1;clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}to{opacity:0;translate:18px 0;clip-path:polygon(120% 0,120% 0,100% 100%,100% 100%)}}
 #count.p5-tick{animation:p5tick 200ms var(--e-snap)}
 @keyframes p5enter{from{opacity:0;translate:-16px 0;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{opacity:1;translate:0 0;clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}}
 @keyframes p5tick{0%{translate:-6px 0;opacity:.35}100%{translate:0 0;opacity:1}}
