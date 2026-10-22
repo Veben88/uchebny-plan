@@ -36,7 +36,7 @@
     save('p5dir', dir);
   });
 
-  if (RM) { root.classList.remove('p5-navwait'); return; }
+  if (RM) { root.classList.remove('p5-navwait', 'p5-pre'); return; }
   root.classList.add('p5m');
 
 
@@ -47,10 +47,12 @@
   (function reveal() {
     if (!('IntersectionObserver' in window)) return;
     var vh = window.innerHeight;
+    // сигнатуры страниц: плитки каталога и вопросы «О проекте» анимируются всегда, даже если уже на первом экране
+    var forced = [].slice.call(document.querySelectorAll('.tiles .tile, main .wrap > details'));
     var items = [].filter.call(document.querySelectorAll('main .panel, main .pager, main h2, #grid .card'), function (el) {
       if (el.closest('.station, .xp, .heroblock, .band, details') || (el.tagName === 'H2' && el.closest('.panel'))) return false;
       var r = el.getBoundingClientRect(); return r.height > 0 && r.top > vh * 0.92;
-    });
+    }).concat(forced);
     if (!items.length) return;
     var io = new IntersectionObserver(function (entries) {
       var k = 0;
@@ -63,11 +65,32 @@
         else return;
         io.unobserve(el);
         var done = function () { el.classList.remove('p5-rv', 'p5-in', 'p5-now'); el.style.removeProperty('--rd'); };
-        if (el.classList.contains('p5-now')) done(); else { el.addEventListener('animationend', done, { once: true }); setTimeout(done, 900); }
+        if (el.classList.contains('p5-now')) done();
+        else {
+          var end = function (ev) { if (ev && ev.target !== el) return; el.removeEventListener('animationend', end); done(); };
+          el.addEventListener('animationend', end); setTimeout(done, 1200);
+        }
       });
     }, { rootMargin: '0px 0px -8% 0px' });
     items.forEach(function (el) { el.classList.add('p5-rv'); io.observe(el); });
   })();
+
+
+  // ---------- сигнатура «Развития сайта»: линия этапов дорисовывается, этапы встают на неё по очереди ----------
+  (function roadSignature() {
+    var road = document.querySelector('.road');
+    if (!road || !('IntersectionObserver' in window)) return;
+    road.classList.add('p5-sw');                                   // линия и этапы ждут, пока блок не окажется на экране
+    var io = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      io.disconnect(); road.classList.remove('p5-sw'); road.classList.add('p5-draw');
+      setTimeout(function () { road.classList.remove('p5-draw'); }, 1700);   // после рисования остаётся обычное состояние
+    }, { threshold: 0.18 });
+    io.observe(road);
+    setTimeout(function () { road.classList.remove('p5-sw'); }, 8000);       // страховка: блок не должен остаться скрытым
+  })();
+
+  root.classList.remove('p5-pre');   // блоки сигнатур уже скрыты классами p5-rv / p5-sw, временное скрытие из <head> больше не нужно
 
   // ---------- навигация: индикатор активного пункта переезжает от прежнего пункта к новому ----------
   (function navGhost() {
@@ -97,7 +120,7 @@
         { transform: 'translate(0,0) scale(1,1)' },
         { transform: 'translate(' + (dx * 1.06) + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')', offset: 0.78 },
         { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')' }
-      ], { duration: 320, easing: 'cubic-bezier(.2,.9,.1,1)', fill: 'forwards' });
+      ], { duration: 320, easing: 'steps(6, end)', fill: 'forwards' });
       anim.onfinish = function () { clearTimeout(safety); finish(); };
     };
     // ширина пунктов зависит от шрифта Oswald: если он уже загружен, стартуем сразу, иначе ждём не дольше 150 мс

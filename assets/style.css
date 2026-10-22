@@ -119,7 +119,7 @@ footer .wrap{display:grid;gap:8px}footer a{color:#fff}
 .dc.prac{background:var(--tint);border-left-style:dashed}
 .dc.ghost{opacity:0!important}
 .js .station:not(.vis) .dc{opacity:0;transform:translateY(16px)}
-.js .station.vis .dc{transition:transform .5s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*35ms),opacity .5s ease calc(var(--i,0)*35ms),box-shadow .18s,filter .3s}
+.js .station.vis .dc{transition:transform .5s steps(6,end) calc(var(--i,0)*35ms),opacity .5s ease calc(var(--i,0)*35ms),box-shadow .18s,filter .3s}
 .dimmed .dc:not(.hl){opacity:.28;filter:grayscale(.7)}.dc.hl{box-shadow:0 0 0 3px #9cc23a,var(--sh)}
 .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px}
 .job{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px;scroll-margin:90px}
@@ -140,7 +140,7 @@ footer .wrap{display:grid;gap:8px}footer a{color:#fff}
 .xh{background:var(--gc);color:#fff;padding:24px 70px 22px 28px}.xk{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.85}
 .xh h2{margin:6px 0 10px;font-size:clamp(20px,3vw,28px);line-height:1.2}.xm{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;margin-bottom:10px}.xm b{font-size:20px}
 .xb{padding:6px 28px 14px}.xs{padding:16px 0;border-bottom:1px solid var(--line)}.xs:last-of-type{border-bottom:0}.xs h3{margin:0 0 6px;font-size:15px;color:var(--pri)}.xs p{margin:0}
-.xb .bar i{transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.xb .bar i{transition:width .7s steps(8,end)}
 .xl{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:600}
 .xn{display:flex;justify-content:space-between;gap:10px;padding:14px 20px;border-top:1px solid var(--line);margin-top:auto;background:var(--card);position:sticky;bottom:0}
 .xnb{font:inherit;font-size:13px;font-weight:700;color:var(--pri);background:var(--tint);border:0;border-radius:999px;padding:9px 16px;cursor:pointer;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xnb:disabled{opacity:.45;cursor:default}
@@ -346,7 +346,7 @@ html.access .hero3d{display:none}
 .band .acc[aria-pressed=true]{background:#fff;color:var(--pri-bg);border-color:#fff}
 
 /* ===== кольцо: раскрытие при появлении и конечная пульсация (3 волны, затем покой) ===== */
-.hero3d .ring{animation:ringOpen 1s cubic-bezier(.2,.8,.2,1) .15s both}
+.hero3d .ring{animation:ringOpen 1s steps(12,end) .15s both}
 .hero3d .ring::before{content:"";position:absolute;inset:-16px;border-radius:50%;border:5px solid rgba(124,160,34,.9);opacity:0;pointer-events:none;
   animation:ringPulse 1.8s ease-out 1.2s 3 forwards}
 @keyframes ringOpen{0%{scale:.1;opacity:0}60%{scale:1.1;opacity:1}100%{scale:1;opacity:1}}
@@ -440,12 +440,12 @@ main a:not([class]){text-decoration-color:var(--red);text-decoration-thickness:2
 .band::after{display:none}
 .heroblock>.wrap,.band>*{position:relative;z-index:2}
 .hero3d{z-index:1}
-.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:4px 4px 0 #101010;transform:rotate(-1.5deg);transform-origin:left center;animation:p5in .35s cubic-bezier(.2,.8,.2,1) both}
+.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:4px 4px 0 #101010;transform:rotate(-1.5deg);transform-origin:left center;animation:p5in .35s steps(6,end) both}
 .heroblock .lead,.heroblock .muted,.heroblock .hero p{color:#fff}
 .heroblock .line,.line{background:#101010;height:6px;transform:skewX(-30deg)}
 .heroblock .line{background:#fff}
 .heroblock .dots i{background:rgba(255,255,255,.45)}.heroblock .dots i:first-child{background:#fff}
-.band h1{color:#fff;text-shadow:4px 4px 0 var(--red);animation:p5in .35s cubic-bezier(.2,.8,.2,1) both}
+.band h1{color:#fff;text-shadow:4px 4px 0 var(--red);animation:p5in .35s steps(6,end) both}
 .band .crumbs,.band .crumbs a,.band .meta{color:#fff}
 @keyframes p5in{from{opacity:0;translate:-18px 0}to{opacity:1;translate:0 0}}
 /* метки статуса — как вырезанные наклейки */
@@ -601,7 +601,9 @@ html.access .hero h1,html.access .facts span,html.access .tile,html.access .menu
    Анимируются только transform (translate/scale/rotate), opacity и clip-path.
    Классы p5-* на время анимации ставит assets/motion.js.
    ===================================================================== */
-:root{--m-fast:140ms;--m-std:240ms;--m-slow:420ms;--e-snap:cubic-bezier(.2,.9,.1,1);--e-kick:cubic-bezier(.3,1.6,.5,1);--e-in:cubic-bezier(.6,0,.9,.4)}
+:root{--m-fast:140ms;--m-std:240ms;--m-slow:420ms;
+  /* Покадровое движение: вместо плавных кривых — ступени. Так двигаются меню Persona 5: рисунок «стоит» и переключается кадрами. */
+  --e-snap:steps(5,end);--e-kick:steps(6,end);--e-in:steps(3,end)}
 
 /* 1. Переход между страницами: новая страница приходит косым срезом.
    Вперёд — слева направо, назад (хлебные крошки, «предыдущий предмет», логотип) — справа налево.
@@ -655,7 +657,7 @@ html:active-view-transition-type(back)::view-transition-new(root){animation-name
 @media(hover:hover){.btn:not(:disabled):hover::before,.btn-s:not(:disabled):hover::before,.hsearch button:hover::before{animation:p5sweep 380ms var(--e-snap)}}
 @keyframes p5sweep{from{translate:-100% 0}to{translate:560% 0}}
 .btn:active,.btn-s:active,.hsearch button:active{scale:.95}
-.btn:disabled,.btn-s:disabled{cursor:progress;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 8px,transparent 8px 16px);background-size:22.63px 22.63px;animation:p5busy .6s linear infinite}
+.btn:disabled,.btn-s:disabled{cursor:progress;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 8px,transparent 8px 16px);background-size:22.63px 22.63px;animation:p5busy .6s steps(6,end) infinite}
 .btn:disabled:hover,.btn-s:disabled:hover{background-color:var(--btn);transform:none}
 @keyframes p5busy{to{background-position:22.63px 0}}
 .xclose{transition:background-color .12s,color .12s,rotate var(--m-fast) var(--e-snap),scale 70ms ease-out}
@@ -785,8 +787,6 @@ details.p5-closing>:not(summary){animation:p5hide 160ms var(--e-in) forwards}
 .hero3d .cube{animation:p5meter 420ms var(--e-kick) 220ms backwards,float3 7s ease-in-out 700ms infinite}
 .band .crumbs,.band .meta,.band .badge{animation:p5rise 240ms var(--e-snap) backwards}
 .band .crumbs{animation-delay:150ms}.band .meta{animation-delay:200ms}.band .badge{animation-delay:240ms}
-.stage{animation:p5rise 280ms var(--e-snap) backwards}
-.stage:nth-child(2){animation-delay:70ms}.stage:nth-child(3){animation-delay:140ms}.stage:nth-child(4){animation-delay:210ms}
 
 /* 10. Режим «уменьшить движение»: переходы между страницами отключены,
    все анимации и плавные переходы сокращены до мгновенных, индикатор навигации не рисуется. */
@@ -817,3 +817,46 @@ h2.p5-in{animation-name:p5scrollh}
 }
 @keyframes p5parC{to{translate:0 70px}}
 @keyframes p5parD{to{background-position:0 38px}}
+
+/* 13. Интерфейс уходит на время действия (приём из видео про HUD Persona 5).
+   Пока открыта карточка предмета, шапка, полоса прогресса и плашка подсветки уезжают за край экрана
+   кадрами и возвращаются при закрытии. Работает на переходах, поэтому в обе стороны. На телефоне уходит нижняя панель
+   (она закреплена внутри шапки, поэтому шапку целиком не двигаем). Без поддержки :has() интерфейс просто остаётся на месте. */
+.top,.menu,.jbar,.hlpill{transition:translate 200ms var(--e-snap)}
+html:has(.ov) .jbar{translate:0 -220%}
+html:has(.ov) .hlpill{translate:0 240%}
+@media(min-width:701px){html:has(.ov) .top{translate:0 -140%}}
+@media(max-width:700px){html:has(.ov) .menu{translate:0 160%}}
+
+/* 14. Сигнатуры страниц: у каждой страницы свой приём. Классы ставит motion.js. */
+/* «Развитие сайта»: линия этапов дорисовывается кадрами, этапы встают на неё по очереди и «штампуются» */
+.p5-sw::before{scale:0 1}
+.p5-sw .stage{opacity:0}
+.p5-draw::before{transform-origin:left center;animation:p5line 900ms steps(14,end) backwards}
+.p5-draw .stage{animation:p5stage 340ms var(--e-snap) calc(var(--sd,0) * 1ms) backwards}
+.p5-draw .stage .num{animation:p5badge 300ms var(--e-kick) calc(var(--sd,0) * 1ms + 120ms) backwards}
+.p5-draw .stage:nth-child(1){--sd:0}.p5-draw .stage:nth-child(2){--sd:260}.p5-draw .stage:nth-child(3){--sd:520}.p5-draw .stage:nth-child(4){--sd:780}
+@keyframes p5line{from{scale:0 1}to{scale:1 1}}
+@keyframes p5lineV{from{scale:1 0}to{scale:1 1}}
+@keyframes p5stage{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+@media(max-width:900px){.p5-sw::before{scale:1 0}.p5-draw::before{transform-origin:top center;animation-name:p5lineV}}
+
+/* «О проекте»: вопросы раскрываются диагональным срезом, по которому проходит красная полоса; чётные приходят справа */
+details.p5-in{position:relative;animation:p5diag 420ms var(--e-snap) calc(var(--rd,0) * 70ms) backwards}
+details.p5-in:nth-of-type(even){animation-name:p5diagR}
+details.p5-in::after{content:"";position:absolute;z-index:2;left:0;top:0;bottom:0;width:38%;background:var(--red);clip-path:polygon(18% 0,100% 0,82% 100%,0 100%);pointer-events:none;animation:p5slash 420ms var(--e-snap) calc(var(--rd,0) * 70ms) both}
+details.p5-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,82% 0,100% 100%,18% 100%);animation-name:p5slashR}
+@keyframes p5diag{from{opacity:1;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{clip-path:polygon(-20px -20px,calc(120% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),-20px calc(100% + 20px))}}
+@keyframes p5diagR{from{opacity:1;clip-path:polygon(100% 0,100% 0,120% 100%,120% 100%)}to{clip-path:polygon(calc(100% + 20px) -20px,-20px -20px,-20px calc(100% + 20px),calc(120% + 20px) calc(100% + 20px))}}
+@keyframes p5slash{from{translate:-100% 0}to{translate:300% 0}}
+@keyframes p5slashR{from{translate:100% 0}to{translate:-300% 0}}
+
+/* Каталог: плитки разделов по очереди «бьют» по экрану: падают сверху со смещённой красной тенью и встают на место */
+.tile.p5-in{animation:p5tile 380ms var(--e-kick) calc(var(--rd,0) * 110ms) backwards}
+@keyframes p5tile{from{opacity:0;translate:-18px -30px;box-shadow:18px 18px 0 var(--red)}45%{opacity:1;translate:-5px -5px;box-shadow:11px 11px 0 var(--red)}}
+
+/* Блоки сигнатур скрыты с первого кадра (класс p5-pre ставит <head>), чтобы не мелькали до запуска скрипта.
+   Если скрипт не загрузится, через 2,5 с всё покажется само. */
+.p5-pre .tiles .tile,.p5-pre main .wrap>details,.p5-pre .road .stage{opacity:0;animation:p5unhide 1ms 2.5s forwards}
+.p5-pre .road::before{opacity:0;animation:p5unhide 1ms 2.5s forwards}
+@keyframes p5unhide{to{opacity:1}}
