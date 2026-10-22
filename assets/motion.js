@@ -39,6 +39,36 @@
   if (RM) { root.classList.remove('p5-navwait'); return; }
   root.classList.add('p5m');
 
+
+  // ---------- появление при прокрутке ----------
+  // Блоки, которые при загрузке ниже экрана, ждут в скрытом виде (класс p5-rv) и въезжают, когда до них доходит прокрутка.
+  // Те, что остались выше экрана (страницу открыли посередине или перешли по ссылке-якорю), показываются сразу и без анимации.
+  // Если IntersectionObserver недоступен, ничего не скрывается. При «уменьшить движение» сюда код не доходит.
+  (function reveal() {
+    if (!('IntersectionObserver' in window)) return;
+    var vh = window.innerHeight;
+    var items = [].filter.call(document.querySelectorAll('main .panel, main .pager, main h2, #grid .card'), function (el) {
+      if (el.closest('.station, .xp, .heroblock, .band, details') || (el.tagName === 'H2' && el.closest('.panel'))) return false;
+      var r = el.getBoundingClientRect(); return r.height > 0 && r.top > vh * 0.92;
+    });
+    if (!items.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      var k = 0;
+      entries.forEach(function (en) {
+        var el = en.target;
+        if (en.isIntersecting) {
+          el.style.setProperty('--rd', Math.min(k++, 7));
+          el.classList.add('p5-in');
+        } else if (en.boundingClientRect.bottom < 0) el.classList.add('p5-in', 'p5-now');   // уже прокручен: без анимации
+        else return;
+        io.unobserve(el);
+        var done = function () { el.classList.remove('p5-rv', 'p5-in', 'p5-now'); el.style.removeProperty('--rd'); };
+        if (el.classList.contains('p5-now')) done(); else { el.addEventListener('animationend', done, { once: true }); setTimeout(done, 900); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    items.forEach(function (el) { el.classList.add('p5-rv'); io.observe(el); });
+  })();
+
   // ---------- навигация: индикатор активного пункта переезжает от прежнего пункта к новому ----------
   (function navGhost() {
     var raw; try { raw = sessionStorage.getItem('p5nav'); sessionStorage.removeItem('p5nav'); } catch (e) {}
