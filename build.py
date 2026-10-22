@@ -10,7 +10,7 @@ RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.ge
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -99,8 +99,8 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False):
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
-<link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"></head><body>
-<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}</body></html>'''
+<link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{if(sessionStorage.getItem("p5nav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("p5dir");sessionStorage.removeItem("p5dir")}}catch(x){{}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
+<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))

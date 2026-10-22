@@ -146,6 +146,7 @@
     if (!xp || !I[slug]) return;
     var inner = xp.querySelector('.xin'), nu = el('div', 'xin'); nu.appendChild(build(slug));
     var old = src; src = cardFor(slug); cur = slug;
+    xp.setAttribute('data-dir', dir < 0 ? 'b' : 'f');   // направление для анимации шапки (style.css, блок движения)
     if (old) old.classList.remove('ghost'); if (src) { src.classList.add('ghost'); src.scrollIntoView({ block: 'center' }); }
     var go = function () {
       if (!xp || !inner.isConnected) return;      // карточку успели закрыть, пока шла анимация

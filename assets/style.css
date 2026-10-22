@@ -591,3 +591,205 @@ html.access .hero h1,html.access .facts span,html.access .tile,html.access .menu
  .card:hover,.dc:hover,.btn:hover,.btn-s:hover,.pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.xnb:hover{transform:none}
  .hero h1,.heroblock .hero h1,.band h1{animation:none}
 }
+
+/* =====================================================================
+   ДВИЖЕНИЕ В ДУХЕ PERSONA 5
+   У каждого действия свой характер:
+   наведение — короткий сдвиг и косая полоса, выбор — «штамп» с отскоком,
+   снятие выбора — быстрый отскок назад, открытие — слои по очереди
+   (поверхность, декоративный срез, текст, индикатор последним).
+   Анимируются только transform (translate/scale/rotate), opacity и clip-path.
+   Классы p5-* на время анимации ставит assets/motion.js.
+   ===================================================================== */
+:root{--m-fast:140ms;--m-std:240ms;--m-slow:420ms;--e-snap:cubic-bezier(.2,.9,.1,1);--e-kick:cubic-bezier(.3,1.6,.5,1);--e-in:cubic-bezier(.6,0,.9,.4)}
+
+/* 1. Переход между страницами: новая страница приходит косым срезом.
+   Вперёд — слева направо, назад (хлебные крошки, «предыдущий предмет», логотип) — справа налево.
+   Работает в браузерах с View Transitions, в остальных страница открывается как раньше. */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:p5vtOut var(--m-std) var(--e-in) both}
+::view-transition-new(root){animation:p5vtIn 360ms var(--e-snap) both}
+html:active-view-transition-type(back)::view-transition-old(root){animation-name:p5vtOutBack}
+html:active-view-transition-type(back)::view-transition-new(root){animation-name:p5vtInBack}
+@keyframes p5vtIn{from{clip-path:polygon(0 0,0 0,-25% 100%,-25% 100%)}to{clip-path:polygon(0 0,125% 0,100% 100%,-25% 100%)}}
+@keyframes p5vtInBack{from{clip-path:polygon(100% 0,100% 0,125% 100%,125% 100%)}to{clip-path:polygon(100% 0,-25% 0,0 100%,125% 100%)}}
+@keyframes p5vtOut{to{translate:-3% 0;opacity:.55}}
+@keyframes p5vtOutBack{to{translate:3% 0;opacity:.55}}
+
+/* 2. Навигация.
+   Наведение: текст сдвигается, белая плашка выезжает слева, через 40 мс под текстом раскрывается красная косая черта.
+   Переход: красный индикатор переезжает от прежнего пункта к новому и «штампуется» (motion.js). */
+@media(min-width:701px){.menu{position:relative}}
+.menu a{position:relative;z-index:1;isolation:isolate;transition:color 80ms linear 40ms,transform var(--m-fast) var(--e-snap),scale 80ms ease-out}
+.menu a::before{content:"";position:absolute;inset:0;z-index:-1;background:#fff;transform:scaleX(0);transform-origin:left center;transition:transform var(--m-fast) var(--e-snap);pointer-events:none}
+.menu a::after{content:"";position:absolute;left:10px;right:34%;bottom:4px;height:4px;z-index:-1;background:var(--red);transform:skewX(-30deg) scaleX(0);transform-origin:left center;transition:transform var(--m-fast) var(--e-snap) 40ms;pointer-events:none}
+@media(min-width:701px){.menu a .nt{display:inline-block;transition:translate var(--m-fast) var(--e-snap)}}
+.menu a .ni{transition:translate var(--m-fast) var(--e-snap)}
+@media(hover:hover){
+ .menu a:not([aria-current]):hover{background:transparent;color:#101010}
+ .menu a:not([aria-current]):hover::before{transform:scaleX(1)}
+ .menu a:not([aria-current]):hover::after{transform:skewX(-30deg) scaleX(1)}
+ .menu a:hover .nt{translate:4px 0}
+ .menu a[aria-current]:hover .nt{translate:2px -1px}
+}
+.menu a:not([aria-current]):focus-visible{background:transparent;color:#101010}
+.menu a:not([aria-current]):focus-visible::before{transform:scaleX(1)}
+.menu a:not([aria-current]):focus-visible::after{transform:skewX(-30deg) scaleX(1)}
+.menu a:active{scale:.94;transition-duration:60ms}
+.p5-navwait .menu a[aria-current],.p5-navwait .band .menu a[aria-current]{background-color:transparent;animation:p5navback 1ms 1.5s forwards}
+@keyframes p5navback{to{background-color:var(--red)}}   /* страховка: если скрипт не загрузился, подложка вернётся сама */
+.p5-navghost{position:absolute;z-index:0;background:var(--red);clip-path:var(--para);transform-origin:0 0;pointer-events:none}
+.menu a.p5-stamp{animation:p5stamp 260ms var(--e-snap)}
+@keyframes p5stamp{0%{scale:1.22}55%{scale:.94}100%{scale:1}}
+.acc{transition:background-color var(--m-fast),color var(--m-fast),scale 80ms ease-out}
+.acc:active{scale:.94}
+.brand .tmlogo{transition:rotate var(--m-fast) var(--e-snap)}
+@media(hover:hover){.brand:hover .tmlogo{rotate:-8deg}}
+
+/* 3. Кнопки действий.
+   Наведение: кнопка сдвигается вправо, по ней проходит косой блик.
+   Нажатие: короткое сжатие. Отправка: бегущая штриховка, пока кнопка заблокирована на время запроса. */
+.btn,.btn-s,.hsearch button{position:relative;isolation:isolate;overflow:hidden;transition:background-color var(--m-fast),color var(--m-fast),transform var(--m-fast) var(--e-snap),scale 70ms ease-out}
+.btn::before,.btn-s::before,.hsearch button::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-45%;width:35%;z-index:-1;background:rgba(255,255,255,.3);transform:skewX(-24deg);translate:-100% 0;pointer-events:none}
+.heroblock .btn::before{background:rgba(230,0,35,.35)}
+@media(hover:hover){.btn:not(:disabled):hover::before,.btn-s:not(:disabled):hover::before,.hsearch button:hover::before{animation:p5sweep 380ms var(--e-snap)}}
+@keyframes p5sweep{from{translate:-100% 0}to{translate:560% 0}}
+.btn:active,.btn-s:active,.hsearch button:active{scale:.95}
+.btn:disabled,.btn-s:disabled{cursor:progress;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 8px,transparent 8px 16px);background-size:22.63px 22.63px;animation:p5busy .6s linear infinite}
+.btn:disabled:hover,.btn-s:disabled:hover{background-color:var(--btn);transform:none}
+@keyframes p5busy{to{background-position:22.63px 0}}
+.xclose{transition:background-color .12s,color .12s,rotate var(--m-fast) var(--e-snap),scale 70ms ease-out}
+@media(hover:hover){.xclose:hover{rotate:90deg}}
+.xclose:active{scale:.88}
+
+/* 4. Переключатели: фильтры, семестры, разделы, варианты ответов, кнопки заданий.
+   Наведение: контрастная заливка и красная тень. Выбор: «штамп» с наклоном.
+   Снятие выбора: быстрый отскок без наклона. Плитка раздела при выборе «бьёт» тенью. */
+.pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{transition:background-color var(--m-fast),color var(--m-fast),transform var(--m-fast) var(--e-snap),box-shadow var(--m-fast) var(--e-snap),translate 60ms ease-out}
+@media(hover:hover){.pill:hover,.gf:hover,.kchip:hover,.tkb:hover:not(:disabled),.fbb:hover,.fo:hover span,.xnb:hover:not(:disabled){box-shadow:4px 4px 0 var(--red)}}
+.pill:active,.gf:active,.kchip:active,.tkb:active:not(:disabled),.fbb:active,.fo:active span,.xnb:active:not(:disabled){translate:2px 2px;box-shadow:1px 1px 0 var(--bd)}
+.tkb:disabled:hover,.xnb:disabled:hover{background:var(--card);color:var(--ink);transform:none}
+.tkb[aria-pressed=true]:disabled:hover{background:var(--red);color:#fff}
+.xnb:disabled{cursor:default}
+.p5-on,.tkb.tkdone{animation:p5on 280ms var(--e-snap)}
+.p5-off{animation:p5off 140ms ease-out}
+.tile.p5-slam{animation:p5slam 360ms var(--e-snap)}
+@keyframes p5on{0%{scale:.9;rotate:0deg}40%{scale:1.1;rotate:-3deg}70%{scale:.98;rotate:1deg}100%{scale:1;rotate:0deg}}
+@keyframes p5off{0%{scale:.94}100%{scale:1}}
+@keyframes p5slam{0%{translate:0 0}30%{translate:-8px -8px;box-shadow:14px 14px 0 var(--red)}100%{translate:0 0}}
+.tile{transition:transform .12s,box-shadow .12s,translate 70ms ease-out}
+.tile:active{translate:3px 3px}
+
+/* 5. Карточки предметов (каталог и путь студента).
+   Наведение: карточка приподнимается, слева прорастает красная полоса, через 50 мс сдвигается заголовок,
+   через 70 мс поворачивается значок. Нажатие: карточка «вдавливается».
+   После смены фильтра вернувшиеся карточки входят косым срезом лесенкой. */
+.card::before,.dc::before{content:"";position:absolute;left:-3px;top:-3px;bottom:-3px;width:9px;z-index:2;background:var(--red);transform:scaleY(0);transform-origin:50% 0;transition:transform var(--m-fast) var(--e-snap) 30ms;pointer-events:none}
+.card h3,.dc b{transition:translate var(--m-fast) var(--e-snap) 50ms}
+.card .gi,.dc .dci{transition:rotate var(--m-fast) var(--e-snap) 70ms}
+@media(hover:hover){
+ .card:hover::before,.dc:hover::before{transform:scaleY(1)}
+ .card:hover h3,.dc:hover b{translate:5px 0}
+ .card:hover .gi,.dc:hover .dci{rotate:-14deg}
+}
+.card:focus-visible::before,.dc:focus-visible::before{transform:scaleY(1)}
+.card:focus-visible h3,.dc:focus-visible b{translate:5px 0}
+.card:active,.dc:active{translate:3px 3px;box-shadow:var(--sh-s);transition-duration:60ms}
+.card.p5-enter{animation:p5enter 300ms var(--e-snap) calc(var(--k,0) * 30ms) backwards}
+#empty:not([hidden]){animation:p5enter 300ms var(--e-snap)}
+#count.p5-tick{animation:p5tick 200ms var(--e-snap)}
+@keyframes p5enter{from{opacity:0;translate:-16px 0;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{opacity:1;translate:0 0;clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}}
+@keyframes p5tick{0%{translate:-6px 0;opacity:.35}100%{translate:0 0;opacity:1}}
+/* путь студента: карточки семестра въезжают по диагонали, подсвеченные — «штампуются» лесенкой,
+   текущая станция вспыхивает красным кольцом, плашка подсветки выезжает снизу */
+.js .station:not(.vis) .dc{transform:translate(-18px,12px) skewX(-4deg)}
+.dc.hl{animation:p5hl 320ms var(--e-snap) calc(var(--i,0) * 25ms) backwards}
+@keyframes p5hl{0%{scale:1}40%{scale:1.05;rotate:-1deg}100%{scale:1;rotate:0deg}}
+.station.current .node{animation:p5node 380ms var(--e-kick)}
+@keyframes p5node{0%{scale:1.2;box-shadow:0 0 0 0 var(--red),4px 4px 0 #101010}100%{scale:1;box-shadow:0 0 0 5px var(--red),4px 4px 0 #101010}}
+.hlpill:not([hidden]){animation:p5pill 320ms var(--e-kick)}
+.hlpill:not([hidden]) button{animation:p5on 280ms var(--e-snap) 160ms backwards}
+@keyframes p5pill{from{translate:0 140%;rotate:-4deg;opacity:0}to{translate:0 0;rotate:0deg;opacity:1}}
+
+/* 6. Раскрытая карточка предмета (окно поверх пути студента).
+   После того как карточка разворачивается (path.js): штриховка фона сдвигается,
+   шапка открывается косым срезом, затем надпись, название, цифры, а метка статуса — последней.
+   При листании стрелками шапка приходит со стороны движения и без задержек. */
+.ov{animation:p5stripes var(--m-slow) var(--e-snap)}
+@keyframes p5stripes{from{background-position:-64px 0}to{background-position:0 0}}
+.xp .xh{animation:p5wipe 300ms var(--e-snap) 180ms backwards}
+.xp .xh .xk{animation:p5rise 240ms var(--e-snap) 300ms backwards}
+.xp .xh h2{animation:p5title 280ms var(--e-snap) 330ms backwards}
+.xp .xh .xm{animation:p5rise 240ms var(--e-snap) 390ms backwards}
+.xp .xh .badge{animation:p5badge 280ms var(--e-kick) 450ms backwards}
+.xp .xn{animation:p5up 260ms var(--e-snap) 420ms backwards}
+.xclose{animation:p5pop 280ms var(--e-kick) 360ms backwards}
+.xp[data-dir] .xh{animation-delay:0ms}
+.xp[data-dir] .xh .xk,.xp[data-dir] .xh h2{animation-delay:60ms}
+.xp[data-dir] .xh .xm{animation-delay:100ms}
+.xp[data-dir] .xh .badge{animation-delay:150ms}
+.xp[data-dir] .xn{animation:none}
+.xp[data-dir=b] .xh{animation-name:p5wipeB}
+.xp[data-dir=b] .xh h2{animation-name:p5titleB}
+@keyframes p5wipe{from{clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}}
+@keyframes p5wipeB{from{clip-path:polygon(100% 0,100% 0,120% 100%,120% 100%)}to{clip-path:polygon(100% 0,-20% 0,0 100%,120% 100%)}}
+@keyframes p5title{from{opacity:0;translate:-26px 0;transform:skewX(-10deg)}to{opacity:1;translate:0 0;transform:none}}
+@keyframes p5titleB{from{opacity:0;translate:26px 0;transform:skewX(10deg)}to{opacity:1;translate:0 0;transform:none}}
+@keyframes p5rise{from{opacity:0;translate:-14px 0}to{opacity:1;translate:0 0}}
+@keyframes p5badge{from{opacity:0;scale:1.8;rotate:-12deg}to{opacity:1;scale:1;rotate:0deg}}
+@keyframes p5up{from{translate:0 100%}to{translate:0 0}}
+@keyframes p5pop{from{opacity:0;scale:.3;rotate:-120deg}to{opacity:1;scale:1;rotate:0deg}}
+
+/* 7. Раскрывающиеся блоки (вопросы «О проекте», ответы к заданиям).
+   Наведение: заголовок сдвигается. Открытие: содержимое раскрывается слева направо.
+   Закрытие: содержимое уезжает вправо и гаснет, затем блок закрывается (motion.js). */
+details>summary{transition:translate var(--m-fast) var(--e-snap),color var(--m-fast)}
+@media(hover:hover){details>summary:hover{translate:4px 0;color:var(--red)}}
+details[open]>:not(summary){animation:p5reveal 260ms var(--e-snap)}
+details.p5-closing>:not(summary){animation:p5hide 160ms var(--e-in) forwards}
+@keyframes p5reveal{from{opacity:0;translate:-12px 0;clip-path:inset(0 100% 0 0)}to{opacity:1;translate:0 0;clip-path:inset(0 0 0 0)}}
+@keyframes p5hide{from{opacity:1;clip-path:inset(0 0 0 0)}to{opacity:0;translate:10px 0;clip-path:inset(0 0 0 100%)}}
+
+/* 8. Сообщения, ошибки и смена состояний форм.
+   Новое сообщение проявляется слева направо. Вопрос с ошибкой встряхивается при каждой неудачной отправке.
+   Появившиеся вопросы формы выпадают сверху. Благодарность после отправки «штампуется».
+   Оценки студентов появляются по очереди при загрузке и при обновлении с сервера. */
+.p5-msg{animation:p5msg 260ms var(--e-snap)}
+@keyframes p5msg{from{clip-path:inset(0 100% 0 0);translate:-8px 0}to{clip-path:inset(0 0 0 0);translate:0 0}}
+.fq.p5-err{animation:p5shake 320ms var(--e-snap)}
+@keyframes p5shake{0%,100%{translate:0 0}20%{translate:-9px 0}45%{translate:7px 0}70%{translate:-4px 0}85%{translate:2px 0}}
+.fbform:not([hidden]),#rest:not([hidden]),.ff [data-roles]:not([hidden]),#trustwhy:not([hidden]),#uxwhy:not([hidden]),#errbox:not([hidden]){animation:p5drop 280ms var(--e-snap)}
+@keyframes p5drop{from{opacity:0;translate:0 -10px;clip-path:inset(0 0 100% 0)}to{opacity:1;translate:0 0;clip-path:inset(0 0 0 0)}}
+.fbok{transform-origin:left center;animation:p5badge 300ms var(--e-kick)}
+.ff>h2:first-child{animation:p5title 300ms var(--e-snap)}
+.meter{animation:p5meter 300ms var(--e-kick) backwards}
+.meter:nth-child(2){animation-delay:60ms}.meter:nth-child(3){animation-delay:120ms}.meter:nth-child(4){animation-delay:180ms}
+@keyframes p5meter{from{opacity:0;scale:.6;rotate:-6deg}to{opacity:1;scale:1;rotate:0deg}}
+#q,.ff textarea,.ff input[type=text],.ff select,.tkform input,.hsearch{transition:border-color var(--m-fast),box-shadow var(--m-fast) var(--e-snap)}
+
+/* 9. Первое появление страницы: обложка раскрывается косым срезом, затем точечный слой,
+   заголовок, остальные строки обложки лесенкой; знак — «наклейка» с отскоком.
+   Всё содержимое видно меньше чем через полсекунды, отдельного загрузочного экрана нет. */
+.heroblock,.band{animation:p5panel 380ms var(--e-snap) backwards}
+@keyframes p5panel{from{clip-path:polygon(0 0,0 0,-15% 100%,-15% 100%)}to{clip-path:polygon(-20px -20px,calc(115% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),calc(-15% - 20px) calc(100% + 20px))}}
+.heroblock::after,.band::before{animation:p5fade 300ms ease 200ms backwards}
+@keyframes p5fade{from{opacity:0}to{opacity:1}}
+.hero h1,.heroblock .hero h1{animation-delay:120ms}
+.band h1{animation-delay:100ms}
+.hero>:not(h1){animation:p5rise 260ms var(--e-snap) backwards;animation-delay:calc(170ms + var(--n,0) * 50ms)}
+.hero>:nth-child(3){--n:1}.hero>:nth-child(4){--n:2}.hero>:nth-child(5){--n:3}.hero>:nth-child(n+6){--n:4}
+.facts span{animation:p5meter 280ms var(--e-kick) backwards}
+.facts span:nth-child(1){animation-delay:300ms}.facts span:nth-child(2){animation-delay:350ms}.facts span:nth-child(3){animation-delay:400ms}.facts span:nth-child(4){animation-delay:450ms}
+.hero3d .cube{animation:p5meter 420ms var(--e-kick) 220ms backwards,float3 7s ease-in-out 700ms infinite}
+.band .crumbs,.band .meta,.band .badge{animation:p5rise 240ms var(--e-snap) backwards}
+.band .crumbs{animation-delay:150ms}.band .meta{animation-delay:200ms}.band .badge{animation-delay:240ms}
+.stage{animation:p5rise 280ms var(--e-snap) backwards}
+.stage:nth-child(2){animation-delay:70ms}.stage:nth-child(3){animation-delay:140ms}.stage:nth-child(4){animation-delay:210ms}
+
+/* 10. Режим «уменьшить движение»: переходы между страницами отключены,
+   все анимации и плавные переходы сокращены до мгновенных, индикатор навигации не рисуется. */
+@media(prefers-reduced-motion:reduce){
+ @view-transition{navigation:none}
+ *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+ .p5-navghost{display:none}
+}
