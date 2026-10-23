@@ -11,6 +11,28 @@ ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
 ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+
+# ---- сжатие ресурсов при сборке (только стандартная библиотека; исходники в assets/ не меняются) ----
+_STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')')
+def min_css(src):
+    """Убирает комментарии и лишние пробелы. Строки в кавычках не трогает; пробелы вокруг + - * / (calc) сохраняются."""
+    src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
+    out = []
+    for i, part in enumerate(_STR.split(src)):
+        if i % 2: out.append(part); continue
+        part = re.sub(r'\s+', ' ', part)
+        part = re.sub(r'\s*([{};,>])\s*', r'\1', part)
+        part = re.sub(r':\s+', ':', part)
+        out.append(part.replace(';}', '}'))
+    return ''.join(out).strip()
+def min_js(src):
+    """Убирает комментарии на отдельных строках, отступы и пустые строки. Остальной код не трогает
+    (внутри файлов есть регулярные выражения с кавычками, поэтому разбор строк и «хвостовых» комментариев был бы небезопасен)."""
+    lines = [l.strip() for l in src.splitlines()]
+    return '\n'.join(l for l in lines if l and not l.startswith('//')) + '\n'
+def minify_assets(out_assets):
+    for f in out_assets.glob('*.css'): f.write_text(min_css(f.read_text(encoding='utf-8')), encoding='utf-8')
+    for f in out_assets.glob('*.js'): f.write_text(min_js(f.read_text(encoding='utf-8')), encoding='utf-8')
 GROUPS = {
  "Профильные": (("Профессиональный блок","Вариативная часть","По выбору"), "FaRulerCombined", "Предметы специальности"),
  "Политехнические": (("Политехнический модуль",), "FaCog", "Математика, физика, механика"),
@@ -99,7 +121,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False):
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#3b4f86">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
-<link rel="preload" href="{b}assets/fonts/montserrat.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("p5-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("p5nav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("p5dir");sessionStorage.removeItem("p5dir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("p5-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
+<link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("p5-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("p5nav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("p5dir");sessionStorage.removeItem("p5dir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("p5-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
@@ -316,7 +338,7 @@ def path_page(cards):
 
 def build():
     if OUT.exists(): shutil.rmtree(OUT)
-    (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json"))
+    (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json")); minify_assets(OUT/"assets")
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
