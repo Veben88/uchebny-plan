@@ -76,6 +76,13 @@
   })();
 
 
+
+  // ---------- пауза бесконечных анимаций обложки, пока она не видна ----------
+  (function heroPause() {
+    var hb = document.querySelector('.heroblock'); if (!hb || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (es) { root.classList.toggle('p5-herooff', !es[es.length - 1].isIntersecting); }).observe(hb);
+  })();
+
   // ---------- сигнатура «Развития сайта»: линия этапов дорисовывается, этапы встают на неё по очереди ----------
   (function roadSignature() {
     var road = document.querySelector('.road');
@@ -150,7 +157,9 @@
       }
     });
     // появление карточек лесенкой: не больше 10 ступенек, чтобы длинный список не ждал
-    shown.forEach(function (c, i) { c.style.setProperty('--k', Math.min(i, 10)); pulse(c, 'p5-enter'); });
+    // анимируем только карточки, которые видны на экране: срез на 60 карточках за экраном никто не увидит, а браузеру они стоят работы
+    var vh = window.innerHeight, seen = shown.filter(function (c) { var r = c.getBoundingClientRect(); return r.bottom > 0 && r.top < vh; });
+    seen.forEach(function (c, i) { c.style.setProperty('--k', Math.min(i, 10)); pulse(c, 'p5-enter'); });
   });
   obs.observe(document.body, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ['aria-pressed', 'hidden'], childList: true, characterData: true });
 

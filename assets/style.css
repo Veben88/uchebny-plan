@@ -860,3 +860,23 @@ details.p5-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,8
 .p5-pre .tiles .tile,.p5-pre main .wrap>details,.p5-pre .road .stage{opacity:0;animation:p5unhide 1ms 2.5s forwards}
 .p5-pre .road::before{opacity:0;animation:p5unhide 1ms 2.5s forwards}
 @keyframes p5unhide{to{opacity:1}}
+
+/* ===================== ПРОИЗВОДИТЕЛЬНОСТЬ ===================== */
+/* Линия прогресса пути: --fill читает только .track::after. Раньше свойство наследовалось, и на каждом кадре прокрутки
+   браузер пересчитывал стили всех ~900 узлов страницы. Теперь оно не наследуется и обновляет только саму линию.
+   В браузерах без @property всё работает как раньше (свойство просто наследуется). */
+@property --fill{syntax:"<length>";inherits:false;initial-value:0px}
+.track::after{--fill:inherit}
+
+/* Бесконечные анимации обложки (плавание куба и тени) стоят на паузе, пока обложка за пределами экрана.
+   Класс p5-herooff ставит motion.js через IntersectionObserver. */
+.p5-herooff .hero3d .cube,.p5-herooff .hero3d .ring::after{animation-play-state:paused}
+
+/* Лёгкий режим для слабых устройств (мало памяти или ядер, экономия трафика, медленная сеть; класс ставит <head>).
+   Сохраняются цвета, ступенчатое движение, штампы и срезы. Убираются только то, что работает без остановки или дублирует эффект:
+   плавание куба, параллакс обложки, лесенка задержек и межстраничный срез (в <head>). */
+.p5-lite .hero3d .cube,.p5-lite .hero3d .ring::after{animation:none}
+.p5-lite .hero3d{animation:none}
+.p5-lite .heroblock::after,.p5-lite .band::before{animation:p5fade 300ms ease 200ms backwards}
+.p5-lite .p5-in,.p5-lite .card.p5-enter,.p5-lite details.p5-in,.p5-lite details.p5-in::after,.p5-lite .tile.p5-in,.p5-lite .dc.hl{animation-delay:0ms!important}
+

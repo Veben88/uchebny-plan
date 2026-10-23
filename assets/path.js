@@ -243,19 +243,25 @@
     var io = new IntersectionObserver(function (es) { es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('vis'); io.unobserve(en.target); } }); }, { rootMargin: '0px 0px -10% 0px' });
     stations.forEach(function (s) { io.observe(s); });
   } else stations.forEach(function (s) { s.classList.add('vis'); });
+  // Сначала все чтения геометрии, потом все записи: раньше чтение после записи на каждом кадре прокрутки
+  // заставляло браузер заново считать раскладку всей страницы. Записи, которые ничего не меняют, пропускаются.
+  var lastPct = '';
   function prog() {
-    var tr = track.getBoundingClientRect(), mid = window.innerHeight * 0.45;
-    var p = Math.min(1, Math.max(0, (mid - tr.top) / tr.height));
-    track.style.setProperty('--fill', (p * tr.height) + 'px'); jfill.style.width = (p * 100) + '%'; jpct.textContent = Math.round(p * 100) + '%';
-    var curSt = null;
-    stations.forEach(function (s) { var passed = s.getBoundingClientRect().top < mid; s.classList.toggle('passed', passed); if (passed) curSt = s; });
-    stations.forEach(function (s) { s.classList.toggle('current', s === curSt); });
+    var tr = track.getBoundingClientRect(), mid = window.innerHeight * 0.45,
+        tops = stations.map(function (s) { return s.getBoundingClientRect().top; });
+    var p = Math.min(1, Math.max(0, (mid - tr.top) / tr.height)), curIdx = -1;
+    tops.forEach(function (t, i) { if (t < mid) curIdx = i; });
+    track.style.setProperty('--fill', (p * tr.height) + 'px'); jfill.style.width = (p * 100) + '%';
+    var pct = Math.round(p * 100) + '%'; if (pct !== lastPct) { jpct.textContent = pct; lastPct = pct; }
+    stations.forEach(function (s, i) { s.classList.toggle('passed', tops[i] < mid); s.classList.toggle('current', i === curIdx); });
+    var curSt = curIdx < 0 ? null : stations[curIdx];
     var txt = !curSt ? 'Старт: 1 курс' : curSt.classList.contains('finale') ? 'Финиш: диплом и работа' : curSt.dataset.course + ' курс · ' + curSt.dataset.sem + ' семестр';
     if (txt !== lastTxt) { jpos.textContent = txt; lastTxt = txt; }
   }
   var tick = false;
-  window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; prog(); }); } }, { passive: true });
-  window.addEventListener('resize', prog); prog();
+  function schedule() { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; prog(); }); } }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule); prog();
 
   // ---------- ссылка на раскрытую карточку: index.html#d=код ----------
   window.addEventListener('hashchange', function () {
