@@ -4,7 +4,7 @@
   var pd = document.getElementById('pd'); if (!pd) return;
   document.documentElement.classList.add('js');
   var D = JSON.parse(pd.textContent), I = D.items;
-  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches, DUR = RM ? 0 : 460, EASE = 'steps(7, end)';
+  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches, DUR = RM ? 0 : 380, EASE = 'steps(12, end)';
   var track = document.getElementById('track'), journey = document.getElementById('journey');
   var COL = ['#E60023', '#101010', '#5E5E5E', '#FFFFFF'];   // цвета групп, как .c-0….c-3 в style.css
   var GLAB = ['Профильный предмет', 'Политехнический предмет', 'Общий предмет', 'Практика или итоговая аттестация'];

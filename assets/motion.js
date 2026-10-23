@@ -91,7 +91,7 @@
     var io = new IntersectionObserver(function (es) {
       if (!es[0].isIntersecting) return;
       io.disconnect(); road.classList.remove('p5-sw'); road.classList.add('p5-draw');
-      setTimeout(function () { road.classList.remove('p5-draw'); }, 1700);   // после рисования остаётся обычное состояние
+      setTimeout(function () { road.classList.remove('p5-draw'); }, 1300);   // после рисования остаётся обычное состояние
     }, { threshold: 0.18 });
     io.observe(road);
     setTimeout(function () { road.classList.remove('p5-sw'); }, 8000);       // страховка: блок не должен остаться скрытым
@@ -127,7 +127,7 @@
         { transform: 'translate(0,0) scale(1,1)' },
         { transform: 'translate(' + (dx * 1.06) + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')', offset: 0.78 },
         { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')' }
-      ], { duration: 320, easing: 'steps(6, end)', fill: 'forwards' });
+      ], { duration: 280, easing: 'steps(9, end)', fill: 'forwards' });
       anim.onfinish = function () { clearTimeout(safety); finish(); };
     };
     // ширина пунктов зависит от шрифта Oswald: если он уже загружен, стартуем сразу, иначе ждём не дольше 150 мс
