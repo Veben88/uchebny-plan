@@ -777,19 +777,19 @@ details.p5-closing>:not(summary){animation:p5hide 160ms steps(5,end) forwards}
 /* 9. Первое появление страницы: обложка раскрывается косым срезом, затем точечный слой,
    заголовок, остальные строки обложки лесенкой; знак — «наклейка» с отскоком.
    Всё содержимое видно меньше чем через полсекунды, отдельного загрузочного экрана нет. */
-.heroblock,.band{animation:p5panel 380ms steps(13,end) backwards}
+.heroblock,.band{animation:p5panel 260ms steps(9,end) backwards}
 @keyframes p5panel{from{clip-path:polygon(0 0,0 0,-15% 100%,-15% 100%)}to{clip-path:polygon(-20px -20px,calc(115% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),calc(-15% - 20px) calc(100% + 20px))}}
-.heroblock::after,.band::before{animation:p5fade 300ms ease 200ms backwards}
+.heroblock::after,.band::before{animation:p5fade 300ms ease 120ms backwards}
 @keyframes p5fade{from{opacity:0}to{opacity:1}}
-.hero h1,.heroblock .hero h1{animation-delay:120ms}
-.band h1{animation-delay:100ms}
-.hero>:not(h1){animation:p5rise 260ms steps(9,end) backwards;animation-delay:calc(110ms + var(--n,0) * 35ms)}
+.hero h1,.heroblock .hero h1{animation-delay:60ms}
+.band h1{animation-delay:50ms}
+.hero>:not(h1){animation:p5rise 220ms steps(7,end) backwards;animation-delay:calc(60ms + var(--n,0) * 25ms)}
 .hero>:nth-child(3){--n:1}.hero>:nth-child(4){--n:2}.hero>:nth-child(5){--n:3}.hero>:nth-child(n+6){--n:4}
 .facts span{animation:p5meter 280ms steps(9,end) backwards}
-.facts span:nth-child(1){animation-delay:300ms}.facts span:nth-child(2){animation-delay:350ms}.facts span:nth-child(3){animation-delay:400ms}.facts span:nth-child(4){animation-delay:450ms}
-.hero3d .cube{animation:p5meter 420ms steps(14,end) 220ms backwards,float3 7s ease-in-out 700ms infinite}
+.facts span:nth-child(1){animation-delay:200ms}.facts span:nth-child(2){animation-delay:240ms}.facts span:nth-child(3){animation-delay:280ms}.facts span:nth-child(4){animation-delay:320ms}
+.hero3d .cube{animation:p5meter 360ms steps(12,end) 150ms backwards,float3 7s ease-in-out 550ms infinite}
 .band .crumbs,.band .meta,.band .badge{animation:p5rise 240ms steps(8,end) backwards}
-.band .crumbs{animation-delay:150ms}.band .meta{animation-delay:200ms}.band .badge{animation-delay:240ms}
+.band .crumbs{animation-delay:100ms}.band .meta{animation-delay:130ms}.band .badge{animation-delay:160ms}
 
 /* 10. Режим «уменьшить движение»: переходы между страницами отключены,
    все анимации и плавные переходы сокращены до мгновенных, индикатор навигации не рисуется. */
@@ -815,7 +815,7 @@ h2.p5-in{animation-name:p5scrollh}
 @supports (animation-timeline:scroll()){
  @media(prefers-reduced-motion:no-preference){
   .hero3d{animation:p5parC linear both;animation-timeline:scroll(root block);animation-range:0 520px}
-  .heroblock::after,.band::before{animation:p5fade 300ms ease 200ms backwards,p5parD linear both;animation-timeline:auto,scroll(root block);animation-range:normal,0 420px}
+  .heroblock::after,.band::before{animation:p5fade 300ms ease 120ms backwards,p5parD linear both;animation-timeline:auto,scroll(root block);animation-range:normal,0 420px}
  }
 }
 @keyframes p5parC{to{translate:0 70px}}
@@ -880,6 +880,6 @@ details.p5-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,8
    плавание куба, параллакс обложки, лесенка задержек и межстраничный срез (в <head>). */
 .p5-lite .hero3d .cube,.p5-lite .hero3d .ring::after{animation:none}
 .p5-lite .hero3d{animation:none}
-.p5-lite .heroblock::after,.p5-lite .band::before{animation:p5fade 300ms ease 200ms backwards}
+.p5-lite .heroblock::after,.p5-lite .band::before{animation:p5fade 300ms ease 120ms backwards}
 .p5-lite .p5-in,.p5-lite .card.p5-enter,.p5-lite details.p5-in,.p5-lite details.p5-in::after,.p5-lite .tile.p5-in,.p5-lite .dc.hl{animation-delay:0ms!important}
 

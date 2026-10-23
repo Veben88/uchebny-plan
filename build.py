@@ -320,7 +320,7 @@ def path_page(cards):
                  f'<button type="button" class="btn-s" data-job="{k}">{ic("FaMapMarkedAlt")} Показать путь к профессии</button>'
                  f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></article>')
     legend = "".join(f'<button type="button" class="gf c-{k}" data-g="{k}" aria-pressed="false"><i></i>{g}</button>' for k, g in enumerate(GKEYS))
-    data = json.dumps(path_data(cards), ensure_ascii=False).replace("</", "<\\/")
+    data = json.dumps(path_data(cards), ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Путь студента: от первого семестра до профессии</h1>'
             '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
             f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
