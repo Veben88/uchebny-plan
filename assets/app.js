@@ -12,12 +12,12 @@
   var g = document.getElementById('grid'); if (!g) return;
   var cards = [].slice.call(g.querySelectorAll('.card')), q = document.getElementById('q'),
       cnt = document.getElementById('count'), empty = document.getElementById('empty'), F = {};
-  // Карточки, которые больше не подходят под фильтр, сначала уходят анимацией (класс p5-leave в style.css),
+  // Карточки, которые больше не подходят под фильтр, сначала уходят анимацией (класс tm-leave в style.css),
   // и только потом скрываются; оставшиеся плавно съезжают на освободившиеся места.
   // Счётчик и сообщение «Ничего не нашлось» обновляются сразу. При «уменьшении движения» всё мгновенно, как раньше.
   var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches, LEAVE = 180, first = true;
   function slide(change) {                       // сдвиг оставшихся карточек на новые места (приём FLIP)
-    var stay = cards.filter(function (c) { return !c.hidden && !c.classList.contains('p5-leave'); }),
+    var stay = cards.filter(function (c) { return !c.hidden && !c.classList.contains('tm-leave'); }),
         was = stay.map(function (c) { return c.getBoundingClientRect(); });
     change();
     if (!stay[0] || !stay[0].animate) return;
@@ -30,10 +30,10 @@
   }
   function leave(list) {
     if (!list.length) return;
-    list.forEach(function (c) { c.classList.add('p5-leave'); c._out = true; });
+    list.forEach(function (c) { c.classList.add('tm-leave'); c._out = true; });
     setTimeout(function () {
       var go = list.filter(function (c) { return c._out; });   // карточку могли вернуть, пока она уходила
-      slide(function () { go.forEach(function (c) { c._out = false; c.classList.remove('p5-leave'); c.hidden = true; }); });
+      slide(function () { go.forEach(function (c) { c._out = false; c.classList.remove('tm-leave'); c.hidden = true; }); });
     }, LEAVE);
   }
   // Поиск: каждое слово запроса должно встретиться в тексте карточки (порядок не важен), ё и е не различаются.
@@ -68,7 +68,7 @@
                (!F.fav || c.dataset.fav === '1') && (!F.done || c.dataset.done === '1');   // отметки ставит profile.js
       if (ok) n++;
       if (instant) { c.hidden = !ok; return; }
-      if (ok) { if (c._out) { c._out = false; c.classList.remove('p5-leave'); } else if (c.hidden) show.push(c); }
+      if (ok) { if (c._out) { c._out = false; c.classList.remove('tm-leave'); } else if (c.hidden) show.push(c); }
       else if (!c.hidden && !c._out) out.push(c);
     });
     first = false;

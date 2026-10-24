@@ -1,6 +1,6 @@
 // Движение в духе Persona 5. Скрипт не меняет логику сайта: он следит за состояниями,
 // которые уже выставляют другие скрипты (aria-pressed, hidden, текст сообщений, open у <details>),
-// и добавляет на короткое время классы p5-*, а сами анимации описаны в style.css.
+// и добавляет на короткое время классы tm-*, а сами анимации описаны в style.css.
 // При «уменьшении движения» скрипт ничего не анимирует.
 (function () {
   'use strict';
@@ -31,17 +31,17 @@
     if (u.origin !== location.origin || (u.pathname === location.pathname && u.hash)) return;
     var dir = 'fwd', k = links.indexOf(a), from = curIndex();
     if (k >= 0) {
-      if (from >= 0 && k !== from) { dir = k > from ? 'fwd' : 'back'; save('p5nav', JSON.stringify({ from: from, to: k, t: Date.now() })); }
+      if (from >= 0 && k !== from) { dir = k > from ? 'fwd' : 'back'; save('tmNav', JSON.stringify({ from: from, to: k, t: Date.now() })); }
     } else if (a.closest('.crumbs') || (a.closest('.pager') && a === a.parentNode.firstElementChild) || a.classList.contains('brand')) dir = 'back';
-    save('p5dir', dir);
+    save('tmDir', dir);
   });
 
-  if (RM) { root.classList.remove('p5-navwait', 'p5-pre'); return; }
-  root.classList.add('p5m');
+  if (RM) { root.classList.remove('tm-navwait', 'tm-pre'); return; }
+  root.classList.add('tm-motion');
 
 
   // ---------- появление при прокрутке ----------
-  // Блоки, которые при загрузке ниже экрана, ждут в скрытом виде (класс p5-rv) и въезжают, когда до них доходит прокрутка.
+  // Блоки, которые при загрузке ниже экрана, ждут в скрытом виде (класс tm-rv) и въезжают, когда до них доходит прокрутка.
   // Те, что остались выше экрана (страницу открыли посередине или перешли по ссылке-якорю), показываются сразу и без анимации.
   // Если IntersectionObserver недоступен, ничего не скрывается. При «уменьшить движение» сюда код не доходит.
   (function reveal() {
@@ -60,19 +60,19 @@
         var el = en.target;
         if (en.isIntersecting) {
           el.style.setProperty('--rd', Math.min(k++, 7));
-          el.classList.add('p5-in');
-        } else if (en.boundingClientRect.bottom < 0) el.classList.add('p5-in', 'p5-now');   // уже прокручен: без анимации
+          el.classList.add('tm-in');
+        } else if (en.boundingClientRect.bottom < 0) el.classList.add('tm-in', 'tm-now');   // уже прокручен: без анимации
         else return;
         io.unobserve(el);
-        var done = function () { el.classList.remove('p5-rv', 'p5-in', 'p5-now'); el.style.removeProperty('--rd'); };
-        if (el.classList.contains('p5-now')) done();
+        var done = function () { el.classList.remove('tm-rv', 'tm-in', 'tm-now'); el.style.removeProperty('--rd'); };
+        if (el.classList.contains('tm-now')) done();
         else {
           var end = function (ev) { if (ev && ev.target !== el) return; el.removeEventListener('animationend', end); done(); };
           el.addEventListener('animationend', end); setTimeout(done, 1200);
         }
       });
     }, { rootMargin: '0px 0px -8% 0px' });
-    items.forEach(function (el) { el.classList.add('p5-rv'); io.observe(el); });
+    items.forEach(function (el) { el.classList.add('tm-rv'); io.observe(el); });
   })();
 
 
@@ -80,45 +80,45 @@
   // ---------- пауза бесконечных анимаций обложки, пока она не видна ----------
   (function heroPause() {
     var hb = document.querySelector('.heroblock'); if (!hb || !('IntersectionObserver' in window)) return;
-    new IntersectionObserver(function (es) { root.classList.toggle('p5-herooff', !es[es.length - 1].isIntersecting); }).observe(hb);
+    new IntersectionObserver(function (es) { root.classList.toggle('tm-herooff', !es[es.length - 1].isIntersecting); }).observe(hb);
   })();
 
   // ---------- сигнатура «Развития сайта»: линия этапов дорисовывается, этапы встают на неё по очереди ----------
   (function roadSignature() {
     var road = document.querySelector('.road');
     if (!road || !('IntersectionObserver' in window)) return;
-    road.classList.add('p5-sw');                                   // линия и этапы ждут, пока блок не окажется на экране
+    road.classList.add('tm-sw');                                   // линия и этапы ждут, пока блок не окажется на экране
     var io = new IntersectionObserver(function (es) {
       if (!es[0].isIntersecting) return;
-      io.disconnect(); road.classList.remove('p5-sw'); road.classList.add('p5-draw');
-      setTimeout(function () { road.classList.remove('p5-draw'); }, 1300);   // после рисования остаётся обычное состояние
+      io.disconnect(); road.classList.remove('tm-sw'); road.classList.add('tm-draw');
+      setTimeout(function () { road.classList.remove('tm-draw'); }, 1300);   // после рисования остаётся обычное состояние
     }, { threshold: 0.18 });
     io.observe(road);
-    setTimeout(function () { road.classList.remove('p5-sw'); }, 8000);       // страховка: блок не должен остаться скрытым
+    setTimeout(function () { road.classList.remove('tm-sw'); }, 8000);       // страховка: блок не должен остаться скрытым
   })();
 
-  root.classList.remove('p5-pre');   // блоки сигнатур уже скрыты классами p5-rv / p5-sw, временное скрытие из <head> больше не нужно
+  root.classList.remove('tm-pre');   // блоки сигнатур уже скрыты классами tm-rv / tm-sw, временное скрытие из <head> больше не нужно
 
   // ---------- навигация: индикатор активного пункта переезжает от прежнего пункта к новому ----------
   (function navGhost() {
-    var raw; try { raw = sessionStorage.getItem('p5nav'); sessionStorage.removeItem('p5nav'); } catch (e) {}
-    var release = function () { root.classList.remove('p5-navwait'); };   // красная подложка активного пункта снова видна
+    var raw; try { raw = sessionStorage.getItem('tmNav'); sessionStorage.removeItem('tmNav'); } catch (e) {}
+    var release = function () { root.classList.remove('tm-navwait'); };   // красная подложка активного пункта снова видна
     if (!raw || !menu) { release(); return; }
     var d; try { d = JSON.parse(raw); } catch (e) { release(); return; }
     var to = curIndex();
     if (!d || to < 0 || d.to !== to || !links[d.from] || Date.now() - d.t > 8000) { release(); return; }
     var target = links[to], done = false, ghost = null;
-    root.classList.add('p5-navwait');                            // обычно уже стоит: его ставит скрипт в <head>
+    root.classList.add('tm-navwait');                            // обычно уже стоит: его ставит скрипт в <head>
     var finish = function () {
       if (done) return; done = true;
-      if (ghost) ghost.remove(); release(); pulse(target, 'p5-stamp');
+      if (ghost) ghost.remove(); release(); pulse(target, 'tm-stamp');
     };
     var safety = setTimeout(finish, 1000);
     var go = function () {
       if (done) return;
       var m = menu.getBoundingClientRect(), a = links[d.from].getBoundingClientRect(), b = target.getBoundingClientRect();
       if (!a.width || !b.width) { clearTimeout(safety); finish(); return; }
-      ghost = document.createElement('span'); ghost.className = 'p5-navghost'; ghost.setAttribute('aria-hidden', 'true');
+      ghost = document.createElement('span'); ghost.className = 'tm-navghost'; ghost.setAttribute('aria-hidden', 'true');
       ghost.style.left = (a.left - m.left) + 'px'; ghost.style.top = (a.top - m.top) + 'px';
       ghost.style.width = a.width + 'px'; ghost.style.height = a.height + 'px';
       menu.appendChild(ghost);
@@ -145,21 +145,21 @@
       if (r.type === 'attributes' && r.attributeName === 'aria-pressed') {
         var now = el.getAttribute('aria-pressed');
         if (now === r.oldValue) return;
-        if (now === 'true') pulse(el, el.classList.contains('tile') ? 'p5-slam' : 'p5-on', ['p5-off']);
-        else if (r.oldValue === 'true') pulse(el, 'p5-off', ['p5-on', 'p5-slam']);
+        if (now === 'true') pulse(el, el.classList.contains('tile') ? 'tm-slam' : 'tm-on', ['tm-off']);
+        else if (r.oldValue === 'true') pulse(el, 'tm-off', ['tm-on', 'tm-slam']);
       } else if (r.type === 'attributes' && r.attributeName === 'hidden') {
         // карточка каталога снова видна после смены фильтра или поиска
         if (r.oldValue !== null && !el.hidden && el.classList.contains('card')) shown.push(el);
       } else if (r.type === 'childList' || r.type === 'characterData') {
         var t = el.nodeType === 1 ? el : el.parentElement;
         var box = t && t.closest && t.closest('#count, .tkmsg, .fbmsg, #hltext');
-        if (box && box.textContent.trim()) pulse(box, box.id === 'count' ? 'p5-tick' : 'p5-msg');
+        if (box && box.textContent.trim()) pulse(box, box.id === 'count' ? 'tm-tick' : 'tm-msg');
       }
     });
     // появление карточек лесенкой: не больше 10 ступенек, чтобы длинный список не ждал
     // анимируем только карточки, которые видны на экране: срез на 60 карточках за экраном никто не увидит, а браузеру они стоят работы
     var vh = window.innerHeight, seen = shown.filter(function (c) { var r = c.getBoundingClientRect(); return r.bottom > 0 && r.top < vh; });
-    seen.forEach(function (c, i) { c.style.setProperty('--k', Math.min(i, 10)); pulse(c, 'p5-enter'); });
+    seen.forEach(function (c, i) { c.style.setProperty('--k', Math.min(i, 10)); pulse(c, 'tm-enter'); });
   });
   obs.observe(document.body, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ['aria-pressed', 'hidden'], childList: true, characterData: true });
 
@@ -167,24 +167,24 @@
   document.addEventListener('change', function (e) {
     var i = e.target; if (!i || !i.closest || !i.closest('.fo')) return;
     var span = i.nextElementSibling; if (!span) return;
-    if (i.checked) pulse(span, 'p5-on', ['p5-off']);
-    if (i.type === 'radio') [].forEach.call(document.querySelectorAll('input[name="' + i.name + '"]'), function (o) { if (o !== i && o.nextElementSibling) o.nextElementSibling.classList.remove('p5-on'); });
+    if (i.checked) pulse(span, 'tm-on', ['tm-off']);
+    if (i.type === 'radio') [].forEach.call(document.querySelectorAll('input[name="' + i.name + '"]'), function (o) { if (o !== i && o.nextElementSibling) o.nextElementSibling.classList.remove('tm-on'); });
   });
 
   // ошибка в форме: вопрос встряхивается при каждой неудачной отправке, а не только при первой
   document.addEventListener('submit', function (e) {
     var f = e.target; if (!f || f.id !== 'fbform') return;
-    setTimeout(function () { [].forEach.call(f.querySelectorAll('.fbad'), function (q) { pulse(q, 'p5-err'); }); }, 0);
+    setTimeout(function () { [].forEach.call(f.querySelectorAll('.fbad'), function (q) { pulse(q, 'tm-err'); }); }, 0);
   });
 
   // ---------- раскрывающиеся блоки <details>: закрытие тоже анимировано ----------
   document.addEventListener('click', function (e) {
     var s = e.target.closest && e.target.closest('summary'); if (!s) return;
     var d = s.parentElement; if (!d || d.tagName !== 'DETAILS' || !d.open) return;
-    if (d.classList.contains('p5-closing')) { e.preventDefault(); return; }
-    e.preventDefault(); d.classList.add('p5-closing');
+    if (d.classList.contains('tm-closing')) { e.preventDefault(); return; }
+    e.preventDefault(); d.classList.add('tm-closing');
     var body = d.querySelector(':scope > :not(summary)'), closed = false;
-    var end = function () { if (closed) return; closed = true; d.open = false; d.classList.remove('p5-closing'); };
+    var end = function () { if (closed) return; closed = true; d.open = false; d.classList.remove('tm-closing'); };
     if (body) body.addEventListener('animationend', end, { once: true });
     setTimeout(end, 260);
   });
