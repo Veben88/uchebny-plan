@@ -35,6 +35,7 @@
     h.appendChild(meta);
     var st = D.status[it.st]; h.appendChild(el('span', 'badge ' + st[1], st[0]));
     var b = el('div', 'xb');
+    if (window.TMProfile) { var mb = el('div', 'mybar'); window.TMProfile.bar(mb, slug, it.n); b.appendChild(mb); }   // «Избранное» и «Изучил» (profile.js)
     function sec(title, text, muted) { if (!text) return; var s = el('section', 'xs'); s.appendChild(el('h3', '', title)); s.appendChild(el('p', muted ? 'muted' : '', text)); b.appendChild(s); }
     sec('Что это', it.what || it.brief || 'Описание этой дисциплины готовится.', !(it.what || it.brief));
     sec('Зачем нужно в профессии', it.why);
@@ -183,6 +184,7 @@
     growBars(inner);
     setTimeout(function () { if (xp) x.focus({ preventScroll: true }); }, DUR);
     if (!viaHistory) { history.pushState({ xp: slug }, '', '#d=' + slug); pushed = true; }
+    if (window.TMProfile) window.TMProfile.visit(slug, I[slug].n);
   }
   function swap(slug, dir, viaHistory) {
     if (!xp || !I[slug]) return;
@@ -200,6 +202,7 @@
     };
     if (DUR) inner.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(' + (-dir * 40) + 'px)' }], { duration: 160, easing: 'ease-in' }).onfinish = go; else go();
     if (!viaHistory) history.replaceState({ xp: slug }, '', '#d=' + slug);
+    if (window.TMProfile) window.TMProfile.visit(slug, I[slug].n);
   }
   function requestClose() {
     if (pushed && history.state && history.state.xp) history.back();

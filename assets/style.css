@@ -603,6 +603,40 @@ a.rch:hover{border-color:var(--acc);background:var(--ice)}a.rch.key:hover{backgr
 .jbasis .bl{gap:10px}
 @media(max-width:900px){.route{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:560px){.route{grid-template-columns:1fr}.rc{flex-direction:row;flex-wrap:wrap;align-items:center}.rc>b{flex:0 0 100%}.rc.empty{display:none}}
+/* личный план (profile.js): кнопки «Избранное» и «Изучил», метки на карточках, заметки, страница «Мой план» */
+.mybar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 2px}.mybar[hidden]{display:none}
+#mybar:empty{min-height:39px}   /* место под кнопки заранее, чтобы шапка не прыгала, когда их добавит скрипт */
+#profile{min-height:60vh}
+.mybtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-family:var(--hd);font-size:14px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--pri);background:var(--card);border:1.5px solid var(--field);border-radius:var(--r-s);padding:7px 14px;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.mybtn .myi{font-size:15px;line-height:1}
+.mybtn:hover{background:var(--ice)}
+.mybtn.my-fav[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff}
+.mybtn.my-done[aria-pressed=true]{background:var(--ok-s);border-color:var(--ok-s);color:#fff}
+.mylink{font-weight:600;font-size:14px;color:var(--link)}
+.band .mybtn{background:var(--panel);border-color:rgba(255,255,255,.45);color:#fff}
+.band .mybtn:hover{background:rgba(14,48,98,.42)}
+.band .mybtn.my-fav[aria-pressed=true]{background:#fff;border-color:#fff;color:#22609F}
+.band .mybtn.my-done[aria-pressed=true]{background:#1E7A4C;border-color:#fff;color:#fff}
+.band .mylink{color:#fff}
+.band .mynote-off{color:#F2F8FE}
+.mymarks{position:absolute;display:flex;gap:4px;pointer-events:none;z-index:3}
+.card .mymarks{right:54px;top:19px}.dc .mymarks{right:8px;top:8px}
+.mymarks i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-style:normal;font-size:12px;font-weight:700;color:#fff}
+.mk-fav{background:var(--btn)}.mk-done{background:var(--ok-s)}
+.mynote{width:100%;font:inherit;font-size:15px;line-height:1.5;padding:12px 14px;border:1.5px solid var(--field);border-radius:var(--r-s);background:var(--card);color:var(--ink);resize:vertical;margin-top:4px}
+.mynote:focus{outline:2px solid var(--focus);outline-offset:2px;border-color:var(--focus)}
+.mystat{margin-top:6px!important}
+.mine{margin-top:6px}.mine[hidden],#profile[hidden]{display:none}
+.myprog{margin-top:12px}.myprog p{margin:0;font-weight:600}.myprog .bar{max-width:520px}
+.myopen{margin:14px 0 0}
+.mysec h2 .mycnt{font-family:var(--hd);font-size:15px;color:var(--mut);text-shadow:none}
+.mylist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.myitem{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.myitem:last-child{border-bottom:0}.myitem>a{font-weight:700;color:var(--link)}
+.myitem .mysmall{margin-left:auto;padding:5px 10px;font-size:12px}
+.mytext{flex:1 0 100%;margin:4px 0 0;white-space:pre-wrap;color:var(--ink);font-size:14.5px;background:var(--ice-2);border-radius:var(--r-s);padding:8px 12px}
+.mydanger{color:var(--err);border-color:var(--err)}.mydanger:hover{background:var(--err-bg);color:var(--err)}
+.hlinks2{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 /* чипы, переключатели, варианты ответов */
 .pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);box-shadow:var(--sh-s);transition:background .12s,color .12s,border-color .12s}
 .pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.fo:hover span,.xnb:hover{background:var(--ice);color:var(--pri);border-color:var(--acc);transform:none}

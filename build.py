@@ -17,7 +17,7 @@ for _d in _RPA["disciplines"]:
     if _s: RP.setdefault(_s, []).append(_d)
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 
 # ---- сжатие ресурсов при сборке (только стандартная библиотека; исходники в assets/ не меняются) ----
 _STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')')
@@ -111,7 +111,7 @@ def head_nav(depth, active, band=False):
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
-    contact += f'<p><a href="{b}jobs.html">Карта профессий: маршрут к каждой профессии по семестрам</a></p>'
+    contact += f'<p><a href="{b}jobs.html">Карта профессий: маршрут к каждой профессии по семестрам</a> · <a href="{b}profile.html">Мой план: избранное и отметки</a></p>'
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
@@ -130,7 +130,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False):
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("p5-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("p5nav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("p5-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("p5dir");sessionStorage.removeItem("p5dir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("p5-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
-<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
+<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def card_html(it, c):
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
@@ -154,7 +154,7 @@ def home_page(cards):
 <p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
 <section class="wrap" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2><div class="sems" role="group" aria-label="Семестр">{pills}</div>
-<div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
+<div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Изученные</button><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
 <div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
@@ -223,10 +223,10 @@ def disc_page(it, c, order, k):
     prev = f'<a href="{order[k-1]["slug"]}.html">← {E(cut(order[k-1]["name"]))}</a>' if k else "<span></span>"
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
     body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
-<h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
+<h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><div class="mybar" id="mybar" data-slug="{it["slug"]}"></div></div></div>
 <main id="main" class="wrap">{row}{extra_top}{task_panel(c, it["slug"])}{panel("FaUsers","Совет студента", c["tip"])}{links_panel(it["slug"])}{jobs_panel(it["slug"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
-{extra_bot}{rp_panel(it)}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
+{extra_bot}{rp_panel(it)}<section class="panel" id="mynotes" hidden><h2><span class="ci">{ic("FaCommentDots")}</span>Мои заметки</h2><label class="vh" for="mynote">Заметка к предмету</label><textarea id="mynote" class="mynote" rows="4" maxlength="2000" placeholder="Например: что повторить перед экзаменом, вопросы преподавателю"></textarea><p class="muted mystat" aria-live="polite">Заметка хранится только в этом браузере и никуда не отправляется.</p></section><section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 {f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
 {f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={it["slug"]}">Сообщить об ошибке</a></p>' if FB_ON else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
@@ -436,16 +436,25 @@ def path_page(cards):
                f'<div class="jprog" aria-hidden="true"><i id="jfill"></i></div><span id="jpct">0%</span></div>'
                f'<div class="gfs" role="group" aria-label="Подсветить раздел плана">{legend}</div><ol class="track" id="track">{"".join(sts)}{finale}</ol></div></div>')
     pill = f'<div class="hlpill" id="hlpill" hidden><span id="hltext"></span><button type="button" id="hlclear">Снять подсветку</button></div>'
-    body = head_nav(0, "home") + f'<main id="main">{hero}{journey}</main>{pill}<script type="application/json" id="pd">{data}</script>'
+    mine = f'<section class="wrap mine" id="mine" data-total="{len(items)}" hidden aria-labelledby="mineh"><div class="panel"><h2 id="mineh"><span class="ci">{ic("FaStar")}</span>Мой план</h2><div id="minebody"></div></div></section>'
+    body = head_nav(0, "home") + f'<main id="main">{hero}{mine}{journey}</main>{pill}<script type="application/json" id="pd">{data}</script>'
     return page("TeachMap: путь студента по направлению 27.03.01 Стандартизация и метрология ДВФУ", "Интерактивный путь по специальности: семестры, предметы и профессии выпускников", body, path=True)
 
+def profile_page():
+    names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"])] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Мой план</h1>
+<p class="lead">Избранные предметы, отметки «изучил», заметки и недавно просмотренное — без регистрации.</p></section></div></div><div class="wrap">
+<section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. На другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере. На сервер ничего не отправляется.</p></section>
+<noscript><p class="panel">Для личного плана нужен включённый JavaScript.</p></noscript>
+<div id="profile" data-total="{len(items)}"></div></div></main><script type="application/json" id="pnames">{names}</script>'''
+    return page("Мой план · TeachMap", "Избранные предметы, отметки и заметки: хранятся только в вашем браузере", body)
 def build():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json")); minify_assets(OUT/"assets")
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
-    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
+    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")
