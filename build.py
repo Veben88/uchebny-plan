@@ -17,7 +17,7 @@ for _d in _RPA["disciplines"]:
     if _s: RP.setdefault(_s, []).append(_d)
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js","graph.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 
 # ---- сжатие ресурсов при сборке (только стандартная библиотека; исходники в assets/ не меняются) ----
 _STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')')
@@ -105,7 +105,7 @@ HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
-    NAV = (("home","index.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
+    NAV = (("home","index.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("map","map.html","Карта связей","Карта","FaCompass"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
     links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, на главную</span></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
@@ -115,7 +115,7 @@ def footer_html(b=""):
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
-def page(title, desc, body, depth=0, live=False, path=False, form=False):
+def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
@@ -126,6 +126,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False):
     if live or path: lj += f'<script src="{b}assets/tasks.js?v={ASSET_V}" defer></script>'
     if form: lj += f'<script src="{b}assets/form.js?v={ASSET_V}" defer></script>'
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
+    if graph: lj += f'<script src="{b}assets/graph.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
@@ -180,7 +181,7 @@ def links_panel(slug):
             + col("Пригодится для", down, "Связей пока не отмечено.")
             + '</div><p class="muted lknote"><span class="lkt need">нужен</span> без этого предмета трудно начать, <span class="lkt helps">помогает</span> полезная опора. '
               'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.</p>'
-            f'<p style="margin-top:12px"><a class="btn-s" href="../index.html#route={slug}">{ic("FaMapMarkedAlt")} Показать маршрут на пути студента</a></p></section>')
+            f'<p class="hlinks2"><a class="btn-s" href="../index.html#route={slug}">{ic("FaMapMarkedAlt")} Показать маршрут на пути студента</a><a class="btn-o" href="../map.html#node={slug}">{ic("FaCompass")} На карте связей</a></p></section>')
 def jobs_panel(slug):
     js = [(k, j) for k, j in enumerate(JOBS) if slug in j[3]]
     if not js: return ""
@@ -382,7 +383,7 @@ def jobs_page():
                  f'<p class="lkh" style="margin-top:14px">Маршрут по семестрам: {len(keys)} ключевых предметов и {len(anc)} — без которых их трудно начать</p>'
                  f'<ol class="route">{cols}</ol>'
                  + (f'<p class="lkh" style="margin-top:14px">Ключевые предметы формируют компетенции</p><div class="ks">{comps}</div>' if comps else "")
-                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a>'
+                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
                  f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></article>')
     toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS))
     body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
@@ -396,6 +397,91 @@ def jobs_page():
 <section class="panel"><h2><span class="ci">{ic("FaLayerGroup")}</span>Общая основа</h2><p>Эти предметы входят в маршрут к четырём и более профессиям из шести.</p><div class="ks" style="margin-top:10px">{"".join(f'<a class="kchip" href="d/{s}.html">{E(clean(by[s]["name"]))}</a>' for s in base)}</div></section>
 {arts}</div></main>'''
     return page("Карта профессий: предметы, которые ведут к профессии · TeachMap", "Шесть профессий выпускников 27.03.01 ДВФУ и маршрут к каждой по семестрам: ключевые предметы, опоры и компетенции", body)
+# ---- карта связей (map.html): раскладка считается здесь, при сборке; браузер только показывает, подсвечивает и масштабирует ----
+GNW, GNH, GCW, GRH, GTOP, GPAD = 168, 54, 206, 64, 46, 18   # узел: ширина, высота; шаг столбца и строки; место под подписи семестров; поля
+GT = {"need": "нужен", "helps": "помогает", "job": "ведёт к профессии"}
+def graph_model():
+    """Столбец — семестр, в котором предмет начинается; профессии — отдельный столбец справа.
+    Внутри столбца предметы со связями идут сверху: их порядок несколько раз подравнивается по среднему месту соседей
+    в других столбцах (так меньше пересечений линий). Предметы без связей собраны внизу столбца по разделам плана."""
+    by = {i["slug"]: i for i in items}
+    nb = {}
+    for l in LINKS: nb.setdefault(l["from"], set()).add(l["to"]); nb.setdefault(l["to"], set()).add(l["from"])
+    col = {s: start_sem(by[s]["sem"]) or 1 for s in by}
+    cols = {c: sorted((s for s in by if col[s] == c), key=lambda s: (not nb.get(s), gi(by[s]), by[s]["idx"])) for c in range(1, 9)}
+    pos = {}
+    def renum():
+        for lst in cols.values():
+            for k, s in enumerate(lst): pos[s] = k
+    renum()
+    for _ in range(6):
+        for c in list(range(2, 9)) + list(range(7, 0, -1)):
+            def key(s, c=c):
+                ns = [pos[t] for t in nb.get(s, ()) if col[t] != c]
+                return (not nb.get(s), sum(ns) / len(ns) if ns else pos[s], gi(by[s]), by[s]["idx"])
+            cols[c].sort(key=key); renum()
+    rows = max(len(v) for v in cols.values())
+    P = {s: (GPAD + (col[s] - 1) * GCW, GTOP + pos[s] * GRH) for s in by}
+    j0 = GTOP + max(0, (rows - len(JOBS)) * GRH // 2)
+    for k in range(len(JOBS)): P[f"job-{k}"] = (GPAD + 8 * GCW, j0 + k * GRH)
+    W, H = GPAD * 2 + 8 * GCW + GNW, GTOP + rows * GRH + GPAD
+    edges = [(l["from"], l["to"], l["type"], l["why"]) for l in LINKS if l["type"] in ("need", "helps")]
+    edges += [(s, f"job-{k}", "job", "") for k, j in enumerate(JOBS) for s in j[3]]
+    return by, cols, nb, P, W, H, edges
+def edge_d(P, a, b):
+    (x1, y1), (x2, y2) = P[a], P[b]; sx, sy, ey = x1 + GNW, y1 + GNH // 2, y2 + GNH // 2
+    if x2 > x1:                                     # вперёд по семестрам: плавная S-кривая от правого края к левому
+        dx = max(36, (x2 - sx) * 0.42)
+        return f"M{sx},{sy} C{sx + dx:.0f},{sy} {x2 - dx:.0f},{ey} {x2},{ey}"
+    return f"M{sx},{sy} C{sx + 30},{sy} {sx + 30},{ey} {sx},{ey}"   # в том же семестре: дуга справа
+def map_page(cards):
+    by, cols, nb, P, W, H, edges = graph_model()
+    lab = lambda s: ("По выбору: " if by[s]["type"] == "По выбору" else "") + clean(by[s]["name"])
+    heads = "".join(f'<span class="gch" style="left:{GPAD + (c - 1) * GCW}px">{c} семестр</span>' for c in range(1, 9)) + f'<span class="gch gchj" style="left:{GPAD + 8 * GCW}px">Профессии</span>'
+    nodes = ""
+    for c in range(1, 9):
+        for k, s in enumerate(cols[c]):
+            it = by[s]; g = gi(it); x, y = P[s]
+            nodes += (f'<a class="gn c-{g}" href="d/{s}.html" data-id="{s}" data-g="{g}" data-l="{1 if nb.get(s) else 0}" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " '
+                      f'style="left:{x}px;top:{y}px;--c:{c - 1};--r:{min(k, 12)}" title="{E(lab(s))}"><b>{E(cut(lab(s), 50))}</b><small>{E(str(it["sem"]))} сем. · {ze_num(it)} з.е.</small></a>')
+    for k, j in enumerate(JOBS):
+        x, y = P[f"job-{k}"]
+        nodes += (f'<a class="gn gj" href="jobs.html#job-{k}" data-id="job-{k}" data-l="1" style="left:{x}px;top:{y}px;--c:8;--r:{k}">'
+                  f'<span class="gji" aria-hidden="true">{ic(j[0])}</span><b>{E(j[1])}</b><small>профессия</small></a>')
+    marks = "".join(f'<marker id="ga-{t}" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="gm {t}" d="M0,0L10,5L0,10z"/></marker>' for t in GT)
+    paths = "".join(f'<path class="ge {t}" data-f="{a}" data-t="{b}" d="{edge_d(P, a, b)}" marker-end="url(#ga-{t})"/>' for a, b, t, _ in edges)
+    pick = '<option value="">Выбери предмет из списка</option>' + "".join(
+        f'<optgroup label="{c} семестр">' + "".join(f'<option value="{s}">{E(lab(s))}</option>' for s in sorted(cols[c], key=lambda s: by[s]["idx"])) + '</optgroup>' for c in range(1, 9))
+    jopt = '<option value="">Путь к профессии…</option>' + "".join(f'<option value="{k}">{E(j[1])}</option>' for k, j in enumerate(JOBS))
+    sems = "".join(f'<button type="button" class="pill gfp" data-gf="sem" data-v="{c}" aria-pressed="true">{c}</button>' for c in range(1, 9))
+    grs = "".join(f'<button type="button" class="gf c-{k}" data-gf="g" data-v="{k}" aria-pressed="true"><i></i>{g}</button>' for k, g in enumerate(GKEYS))
+    tys = "".join(f'<button type="button" class="pill gft" data-gf="t" data-v="{t}" aria-pressed="true"><svg class="gls" viewBox="0 0 30 10" aria-hidden="true"><path class="ge {t}" d="M1,5H29"/></svg>{GT[t]}</button>' for t in GT)
+    n_iso = sum(1 for s in by if not nb.get(s))
+    data = {"n": {s: [lab(s), str(by[s]["sem"]), by[s]["ze"], by[s]["hours"], by[s]["controls"] or "", gi(by[s]), cut(cards[s]["what"] or cards[s]["brief"], 260)] for s in by},
+            "e": [[a, b, t, w] for a, b, t, w in edges if t != "job"], "j": [[j[1], j[2], j[3], sorted(need_ancestors(j[3]))] for j in JOBS], "g": GKEYS}
+    data = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта связей между предметами</h1>'
+            '<p class="lead">Все предметы плана на одной схеме: на что опирается каждый, к чему ведёт и какие предметы нужны для профессии. Выбери предмет на карте или в списке.</p>'
+            f'<nav class="gtabs" aria-label="Режимы образовательной карты"><a href="index.html#journey">{ic("FaMapMarkedAlt")}Учебный план</a><a href="map.html" aria-current="page">{ic("FaCompass")}Граф связей</a><a href="jobs.html">{ic("FaUserGraduate")}Путь к профессии</a></nav></section></div></div>')
+    tools = (f'<div class="gtools"><details class="gfil" open><summary>Фильтры</summary><div class="gfrows">'
+             f'<div class="gfrow" role="group" aria-label="Показывать семестры"><span class="gfl">Семестры</span>{sems}</div>'
+             f'<div class="gfrow" role="group" aria-label="Показывать разделы плана"><span class="gfl">Разделы</span>{grs}</div>'
+             f'<div class="gfrow" role="group" aria-label="Показывать связи"><span class="gfl">Связи</span>{tys}<button type="button" class="pill" id="giso" aria-pressed="false">Скрыть предметы без связей ({n_iso})</button></div>'
+             f'<div class="gfrow"><label class="sortl">Профессия <select id="gjob">{jopt}</select></label><button type="button" class="btn-o" id="greset" hidden>Сбросить фильтры</button></div></div></details>'
+             f'<p class="muted gcount" id="gcount" aria-live="polite"></p></div>')
+    view = (f'<div class="gview" id="gview" tabindex="-1" role="group" aria-label="Граф связей: {len(by)} предметов и {len(JOBS)} профессий. Выбор предмета показывает его связи в панели рядом.">'
+            f'<div class="gcanvas" id="gcanvas" style="width:{W}px;height:{H}px">{heads}<svg class="gedges" width="{W}" height="{H}" viewBox="0 0 {W} {H}" aria-hidden="true"><defs>{marks}</defs>{paths}</svg>{nodes}</div>'
+            f'<div class="gzoom" role="group" aria-label="Масштаб"><button type="button" data-z="in" aria-label="Крупнее">+</button><button type="button" data-z="out" aria-label="Мельче">−</button><button type="button" data-z="fit">Вся карта</button></div>'
+            '<p class="ghint" aria-hidden="true">Перетаскивай карту · Ctrl + колесо или щипок — масштаб</p></div>')
+    side = (f'<aside class="panel gside" id="gside" aria-labelledby="gsideh"><h2 class="vh" id="gsideh">Выбранный предмет</h2><label class="gpickl" for="gpick">Предмет</label><select id="gpick">{pick}</select>'
+            '<button type="button" class="btn-s gfull" id="gfull" aria-expanded="false" aria-controls="gmain">Показать всю карту</button>'
+            '<div id="gp"><p class="muted">Выбери предмет на карте или в списке: появится, на что он опирается, к чему ведёт и с какими профессиями связан.</p></div></aside>')
+    legend = ('<p class="muted gnote"><b>Как читать карту.</b> Сплошная стрелка «нужен»: без этого предмета трудно начать следующий. Пунктир «помогает»: полезная опора, но начать можно и без неё. '
+              'Точки «ведёт к профессии»: ключевые предметы направления. Связи составлены командой проекта по содержанию предметов и согласованы автором: это логические предположения, '
+              'а не официальные требования учебного плана; связи с профессиями — оценка команды, не гарантия трудоустройства. Тот же план списком — в <a href="catalog.html">каталоге</a> и на <a href="index.html#journey">пути по семестрам</a>.</p>')
+    body = (head_nav(0, "map") + f'<main id="main">{hero}<div class="wrap"><div class="gwrap"><div class="gmain" id="gmain">{tools}{view}</div>{side}</div>{legend}</div></main>'
+            f'<p class="vh" id="glive" aria-live="polite"></p><script type="application/json" id="gd">{data}</script>')
+    return page("Карта связей между предметами 27.03.01 · TeachMap", "Граф учебного плана: на что опирается каждый предмет, к чему ведёт и какие предметы нужны для профессии", body, graph=True)
 def job_chip(sl):
     nm = next(i["name"] for i in items if i["slug"] == sl)
     return f'<a class="kchip" href="d/{sl}.html" data-slug="{sl}" aria-haspopup="dialog">{E(cut(clean(nm),34))}</a>'
@@ -457,7 +543,7 @@ def build():
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
-    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
+    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"map.html").write_text(map_page(cards), encoding="utf-8"); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")

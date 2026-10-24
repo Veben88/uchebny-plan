@@ -63,9 +63,10 @@
         ls.appendChild(w);
       });
       ls.appendChild(el('p', 'muted', 'Логические связи по содержанию предметов, а не официальные требования плана. Почему связаны — на странице предмета.'));
-      var rb = el('button', 'btn-s', 'Показать маршрут на карте'); rb.type = 'button';
+      var rb = el('button', 'btn-s', 'Показать маршрут на пути'); rb.type = 'button';
       rb.addEventListener('click', function () { history.replaceState(null, '', location.pathname + location.search); pushed = false; close(function () { window.tmShowRoute(slug, true); }); });
-      ls.appendChild(rb); b.appendChild(ls);
+      var ma = el('a', 'btn-o', 'На карте связей'); ma.href = 'map.html#node=' + slug;
+      var acts = el('div', 'hlinks2'); acts.appendChild(rb); acts.appendChild(ma); ls.appendChild(acts); b.appendChild(ls);
     }
     var tot = it.h || 0;
     if (tot) {

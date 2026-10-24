@@ -1006,3 +1006,131 @@ details.tm-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,8
 .tm-lite .heroblock::after,.tm-lite .band::before{animation:tmFade 300ms ease 120ms backwards}
 .tm-lite .tm-in,.tm-lite .card.tm-enter,.tm-lite details.tm-in,.tm-lite details.tm-in::after,.tm-lite .tile.tm-in,.tm-lite .dc.hl{animation-delay:0ms!important}
 
+
+/* =====================================================================
+   КАРТА СВЯЗЕЙ (map.html, assets/graph.js)
+   Столбцы — семестры, узлы — предметы и профессии, линии — связи.
+   Типы связей различаются не только цветом: «нужен» — сплошная, «помогает» — пунктир, «профессия» — точки.
+   Движение в общем стиле сайта: ступенчатое, со штампом выбранного узла и косыми срезами.
+   ===================================================================== */
+.gtabs{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:18px}
+.heroblock .gtabs a{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:var(--panel);color:#fff;clip-path:var(--para);font-family:var(--hd);font-weight:600;font-size:15px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;transition:background .12s}
+.heroblock .gtabs a svg{width:16px;height:16px}
+.heroblock .gtabs a:hover{background:rgba(14,48,98,.45)}
+.heroblock .gtabs a[aria-current]{background:#fff;color:#22609F}
+.heroblock .gtabs a:focus-visible{outline:none;box-shadow:inset 0 0 0 3px #fff}
+.heroblock .gtabs a[aria-current]:focus-visible{box-shadow:inset 0 0 0 3px #22609F}
+.gwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start;margin-top:8px}
+.gmain{min-width:0}
+.gtools{margin-bottom:10px}
+.gfil>summary{cursor:pointer;font-family:var(--hd);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--pri);padding:4px 0;width:max-content}
+.gfrows{display:grid;gap:8px;margin-top:6px}
+.gfrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.gfl{flex:0 0 86px;font-family:var(--hd);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.gfrow .pill,.gfrow .gf{padding:6px 12px;font-size:13px}
+.gfp{min-width:38px;justify-content:center}
+.gft{display:inline-flex;align-items:center;gap:7px}
+.gls{width:30px;height:10px;flex:none;overflow:visible}
+.gcount{margin:8px 0 0!important;font-size:13.5px}
+#greset[hidden]{display:none}
+/* на этой странице фильтры по умолчанию включены: «включено» — спокойная светлая заливка, «выключено» — пунктир и зачёркнутая подпись */
+.gfrow .pill[data-gf][aria-pressed=true],.gfrow .gf[aria-pressed=true]{background:var(--ice);color:var(--pri);border-color:var(--acc)}
+.gfrow .pill[data-gf][aria-pressed=false],.gfrow .gf[aria-pressed=false]{background:var(--card);color:var(--mut);border-style:dashed;border-color:var(--field);text-decoration:line-through;text-decoration-thickness:1.5px}
+.gfrow .gf[aria-pressed=true] i{box-shadow:none}.gfrow .gf[aria-pressed=false] i{opacity:.35}
+.gft[aria-pressed=false] .gls{opacity:.35}
+.gview{position:relative;height:clamp(440px,70vh,800px);overflow:auto;border:1px solid var(--line);border-radius:var(--r);background-color:var(--card);background-image:radial-gradient(var(--line) 1px,transparent 1.2px);background-size:22px 22px;box-shadow:var(--sh)}
+.gview.gjs{overflow:hidden;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+.gview.gdrag{cursor:grabbing}.gview.gdrag .gn{pointer-events:none}
+.gview:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.gcanvas{position:relative;transform-origin:0 0}
+.gjs .gcanvas{position:absolute;left:0;top:0;will-change:transform}
+.gcanvas.gmove{transition:transform 240ms steps(8,end)}
+.gch{position:absolute;top:10px;width:168px;font-family:var(--hd);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--pri);padding-bottom:4px;border-bottom:3px solid var(--acc)}
+.gchj{border-bottom-color:var(--g3)}
+.gedges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.ge{fill:none;stroke-width:2.2;stroke-linecap:round;opacity:.3;transition:opacity var(--m-fast) steps(5,end)}
+.ge.need{stroke:var(--btn)}.ge.helps{stroke:var(--acc);stroke-dasharray:7 6}.ge.job{stroke:var(--g3);stroke-dasharray:1 6;stroke-width:2.6}
+.gm.need{fill:var(--btn)}.gm.helps{fill:var(--acc)}.gm.job{fill:var(--g3)}
+.gls .ge{opacity:1}
+.gsel .ge{opacity:.06}.gsel .ge.on{opacity:1;stroke-width:3}
+.ge.ghide{opacity:0!important}
+.gn{position:absolute;width:168px;height:54px;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:5px 8px 5px 11px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gc);border-radius:var(--r-s);box-shadow:var(--sh-s);color:var(--ink);text-decoration:none;line-height:1.2;transition:opacity var(--m-fast) steps(5,end),box-shadow var(--m-fast) steps(5,end),translate 60ms ease-out}
+.gn b{font-size:12px;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gn small{font-size:11px;color:var(--mut);white-space:nowrap}
+.gsmall .gn small{display:none}.gsmall .gn b{font-size:13px}
+@media(hover:hover){.gn:hover{box-shadow:var(--sh-h);border-color:var(--acc);border-left-color:var(--gc);z-index:3}}
+.gn:focus-visible{outline:3px solid var(--focus);outline-offset:2px;z-index:4}
+.gn.gj{background:var(--deep);border-color:var(--deep);border-left-color:var(--g3);color:#fff;padding-left:40px}
+.gn.gj small{color:#E3F1FC}
+.gji{position:absolute;left:9px;top:50%;width:24px;height:24px;margin-top:-12px;display:grid;place-items:center;border-radius:var(--r-s);background:rgba(255,255,255,.18);font-size:12px}
+.gn.ghide{opacity:0;visibility:hidden;transition:opacity var(--m-fast) steps(5,end),visibility 0s linear var(--m-fast)}
+.gn .mymarks{right:4px;top:-9px}
+.gn .mymarks i{width:18px;height:18px;font-size:10px}
+/* выбор: узел — заливка, опоры — рамка, «помогает» — пунктирная рамка, продолжения — бирюзовая рамка, остальное в тени */
+.gsel .gn:not([class*=" r-"]){opacity:.32}
+.gn.r-self{background:var(--btn);border-color:var(--btn);color:#fff;box-shadow:0 0 0 4px rgba(63,149,218,.35),var(--sh-h);z-index:5}
+.gn.r-self small{color:#E3F1FC}
+.gn.gj.r-self{background:var(--g3);border-color:var(--g3)}
+.gn.r-need,.gn.r-key{box-shadow:0 0 0 3px var(--btn),var(--sh-s);z-index:4}
+.gn.r-key{background:var(--ice)}
+.gn.r-help{outline:2px dashed var(--acc);outline-offset:2px;z-index:4}
+.gn.r-down,.gn.r-job{box-shadow:0 0 0 3px var(--g3),var(--sh-s);z-index:4}
+.gzoom{position:absolute;right:10px;top:10px;z-index:8;display:flex;gap:4px}
+.gzoom button{font:inherit;font-family:var(--hd);font-weight:600;font-size:15px;min-width:38px;height:38px;padding:0 10px;color:var(--pri);background:var(--card);border:1px solid var(--field);border-radius:var(--r-s);cursor:pointer;box-shadow:var(--sh-s);text-transform:uppercase;letter-spacing:.04em;transition:background var(--m-fast),scale 70ms ease-out}
+.gzoom button:hover{background:var(--ice)}.gzoom button:active{scale:.92}
+.ghint{position:absolute;left:10px;bottom:8px;margin:0;font-size:12px;color:var(--mut);background:var(--card);padding:3px 8px;border-radius:var(--r-s);pointer-events:none;z-index:8}
+.ghint{transition:opacity var(--m-fast) steps(5,end)}.gview.gused .ghint{opacity:0}
+.gview:not(.gjs) .gzoom,.gview:not(.gjs) .ghint{display:none}
+/* панель выбранного */
+.gside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding:18px!important}
+.gpickl{display:block;font-family:var(--hd);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:4px}
+#gpick,#gjob{font:inherit;font-size:14px;max-width:100%;padding:8px 10px;border:1.5px solid var(--field);border-radius:var(--r-s);background:var(--card);color:var(--ink)}
+#gpick{width:100%;margin-bottom:14px}
+.gk{margin:0!important;font-family:var(--hd);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.gh3{font-size:20px;line-height:1.2;margin:4px 0 4px;color:var(--pri)}.gh3:focus{outline:none}
+.gmeta{margin:0 0 8px!important;font-size:13.5px;color:var(--mut)}
+.gwhat{font-size:14.5px;line-height:1.5;margin:0 0 6px!important}
+.gsec{margin-top:12px}.gsec .lkh{margin:0 0 6px!important}
+.glist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.glist small{display:block;margin-top:2px;color:var(--mut);font-size:12.5px;line-height:1.4}
+.gnb{font:inherit;text-align:left;cursor:pointer;background:none;border:0;padding:0;color:var(--link);display:inline}
+.gnb b{font-weight:700;font-size:14.5px;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.gnb .lkt{margin-left:6px;vertical-align:1px}
+.gnb:hover b{color:var(--pri);text-decoration-thickness:2px}
+.gnb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.kchip.gnb{display:inline-flex;color:var(--ink);padding:6px 12px;font-size:13px}
+.lkt.key{background:var(--ice);color:var(--pri);box-shadow:inset 0 0 0 1.5px var(--btn)}
+.gside .hlinks2{margin-top:14px}
+.gtip{font-size:12.5px;margin-top:10px!important}
+.gfull{display:none}
+.gnote{margin:14px 0 0!important;max-width:90ch;font-size:13.5px;line-height:1.55}
+@media(max-width:1060px){.gwrap{grid-template-columns:1fr}.gside{position:static;max-height:none}}
+/* телефон: сначала панель со списком (фокус на одном предмете и его соседях), вся карта — по кнопке */
+@media(max-width:700px){
+ .gwrap{display:flex;flex-direction:column}
+ .gside{order:-1}
+ .gmain{display:none}.gmain.gopen{display:block}
+ .gfull{display:inline-flex;margin:0 0 14px}
+ .gview{height:72vh}
+ .gfl{flex-basis:100%}
+ .ghint{display:none}
+ .heroblock .gtabs a{flex:1 1 auto;justify-content:center;padding:10px 12px;font-size:13.5px}
+}
+html.access .heroblock .gtabs a{clip-path:none}
+html.access .ge{opacity:.6}html.access .gsel .ge{opacity:.12}html.access .gsel .ge.on{opacity:1}
+/* движение карты */
+.tm-motion .gcanvas.tm-gin .gn{animation:tmEnter 300ms steps(10,end) calc(var(--c,0) * 60ms + var(--r,0) * 14ms) backwards}
+.tm-motion .gcanvas.tm-gin .gch{animation:tmRise 240ms steps(8,end) calc(var(--c,0) * 60ms) backwards}
+.tm-motion .gcanvas.tm-gin .gedges{animation:tmFade 360ms steps(8,end) 620ms backwards}
+.tm-gsel .gn.r-self{animation:tmOn 280ms steps(9,end)}
+.tm-gsel .gn[class*=" r-"]:not(.r-self){animation:tmHl 320ms steps(11,end) calc(var(--i,0) * 22ms + 80ms) backwards}
+.tm-gsel .ge.on.need{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:rtdraw 460ms steps(14,end) calc(var(--i,0) * 40ms + 100ms) forwards}
+.tm-gsel .ge.on:not(.need){animation:tmFade 300ms steps(8,end) calc(var(--i,0) * 40ms + 220ms) backwards}
+#gp.tm-gp .gk,#gp.tm-gp .gmeta{animation:tmRise 200ms steps(7,end) backwards}
+#gp.tm-gp .gh3{animation:tmTitle 240ms steps(8,end) 40ms backwards}
+#gp.tm-gp .gsec,#gp.tm-gp .gwhat{animation:tmReveal 260ms steps(9,end) 90ms backwards}
+#gp.tm-gp .hlinks2{animation:tmUp 220ms steps(7,end) 150ms backwards}
+.gcount.tm-tick{animation:tmTick 200ms steps(7,end)}
+@media(prefers-reduced-motion:reduce){.gcanvas.gmove,.ge,.gn,.gn.ghide,.gtabs a,.gzoom button{transition:none!important}.gcanvas *,#gp *{animation:none!important}}
+.tm-lite .gcanvas.tm-gin .gn,.tm-lite .gcanvas.tm-gin .gch,.tm-lite .tm-gsel .gn{animation-delay:0ms!important}
+@media(max-width:360px){.menu .ns{font-size:10px;letter-spacing:0}}   /* семь пунктов нижней панели на самых узких экранах */

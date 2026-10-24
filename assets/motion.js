@@ -152,8 +152,8 @@
         if (r.oldValue !== null && !el.hidden && el.classList.contains('card')) shown.push(el);
       } else if (r.type === 'childList' || r.type === 'characterData') {
         var t = el.nodeType === 1 ? el : el.parentElement;
-        var box = t && t.closest && t.closest('#count, .tkmsg, .fbmsg, #hltext');
-        if (box && box.textContent.trim()) pulse(box, box.id === 'count' ? 'tm-tick' : 'tm-msg');
+        var box = t && t.closest && t.closest('#count, #gcount, .tkmsg, .fbmsg, #hltext');
+        if (box && box.textContent.trim()) pulse(box, box.id === 'count' || box.id === 'gcount' ? 'tm-tick' : 'tm-msg');
       }
     });
     // появление карточек лесенкой: не больше 10 ступенек, чтобы длинный список не ждал
