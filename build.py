@@ -179,7 +179,8 @@ def links_panel(slug):
             + col("Опирается на", up, "Связей пока не отмечено.")
             + col("Пригодится для", down, "Связей пока не отмечено.")
             + '</div><p class="muted lknote"><span class="lkt need">нужен</span> без этого предмета трудно начать, <span class="lkt helps">помогает</span> полезная опора. '
-              'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.</p></section>')
+              'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.</p>'
+            f'<p style="margin-top:12px"><a class="btn-s" href="../index.html#route={slug}">{ic("FaMapMarkedAlt")} Показать маршрут на пути студента</a></p></section>')
 def jobs_panel(slug):
     js = [(k, j) for k, j in enumerate(JOBS) if slug in j[3]]
     if not js: return ""
@@ -434,7 +435,7 @@ def path_page(cards):
               f'<div class="jobs">{jobs}</div></div></li>')
     journey = (f'<div class="wrap"><div class="journey" id="journey"><div class="jbar"><span class="jpos" id="jpos" aria-live="polite">Старт: 1 курс</span>'
                f'<div class="jprog" aria-hidden="true"><i id="jfill"></i></div><span id="jpct">0%</span></div>'
-               f'<div class="gfs" role="group" aria-label="Подсветить раздел плана">{legend}</div><ol class="track" id="track">{"".join(sts)}{finale}</ol></div></div>')
+               f'<div class="gfs" role="group" aria-label="Подсветить раздел плана">{legend}</div><section class="panel routebox" id="route" hidden aria-live="polite"></section><ol class="track" id="track">{"".join(sts)}{finale}</ol></div></div>')
     pill = f'<div class="hlpill" id="hlpill" hidden><span id="hltext"></span><button type="button" id="hlclear">Снять подсветку</button></div>'
     mine = f'<section class="wrap mine" id="mine" data-total="{len(items)}" hidden aria-labelledby="mineh"><div class="panel"><h2 id="mineh"><span class="ci">{ic("FaStar")}</span>Мой план</h2><div id="minebody"></div></div></section>'
     body = head_nav(0, "home") + f'<main id="main">{hero}{mine}{journey}</main>{pill}<script type="application/json" id="pd">{data}</script>'

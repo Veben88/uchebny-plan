@@ -63,7 +63,9 @@
         ls.appendChild(w);
       });
       ls.appendChild(el('p', 'muted', 'Логические связи по содержанию предметов, а не официальные требования плана. Почему связаны — на странице предмета.'));
-      b.appendChild(ls);
+      var rb = el('button', 'btn-s', 'Показать маршрут на карте'); rb.type = 'button';
+      rb.addEventListener('click', function () { history.replaceState(null, '', location.pathname + location.search); pushed = false; close(function () { window.tmShowRoute(slug, true); }); });
+      ls.appendChild(rb); b.appendChild(ls);
     }
     var tot = it.h || 0;
     if (tot) {
@@ -253,7 +255,8 @@
   // ---------- подсветка: разделы плана и путь к профессии ----------
   var pill = document.getElementById('hlpill'), pillText = document.getElementById('hltext');
   function clearHl() {
-    journey.classList.remove('dimmed'); [].forEach.call(document.querySelectorAll('.dc.hl'), function (c) { c.classList.remove('hl'); });
+    journey.classList.remove('dimmed'); [].forEach.call(document.querySelectorAll('.dc.hl'), function (c) { c.classList.remove('hl', 'rt-self', 'rt-need', 'rt-help', 'rt-down'); });
+    if (routeSvg) { routeSvg.remove(); routeSvg = null; } if (routeBox) routeBox.hidden = true; curRoute = null;
     [].forEach.call(document.querySelectorAll('[data-g],[data-job]'), function (b) { b.setAttribute('aria-pressed', 'false'); });
     pill.hidden = true;
   }
@@ -268,6 +271,100 @@
     var target = toJob ? document.getElementById('job-' + k) : first;
     if (target) target.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' });
   }
+  // ---------- маршрут к предмету: что к нему ведёт и что после него ----------
+  // Роли: self — выбранный предмет; need — всё, без чего его трудно начать (цепочки связей «нужен» на любую глубину);
+  // help — прямые связи «помогает»; down — для чего он пригодится. Связи логические (data/links.json), не официальные.
+  var routeBox = document.getElementById('route'), routeSvg = null, curRoute = null, NS = 'http://www.w3.org/2000/svg';
+  var ROLE = { need: 'Без этого трудно начать', help: 'Помогает', down: 'Пригодится для' };
+  function routeOf(slug) {
+    var role = {}, stack = [slug];
+    while (stack.length) (I[stack.pop()].up || []).forEach(function (u) { if (u[1] === 'need' && !role[u[0]] && u[0] !== slug && I[u[0]]) { role[u[0]] = 'need'; stack.push(u[0]); } });
+    (I[slug].up || []).forEach(function (u) { if (u[1] === 'helps' && !role[u[0]] && I[u[0]]) role[u[0]] = 'help'; });
+    (I[slug].dn || []).forEach(function (d) { if (!role[d[0]] && I[d[0]]) role[d[0]] = 'down'; });
+    role[slug] = 'self';
+    var edges = [];   // линии — только то, что ведёт к предмету; продолжения подсвечены рамкой и перечислены в панели (веер линий вниз перечёркивал карту)
+    Object.keys(role).forEach(function (s) {
+      (I[s].up || []).forEach(function (u) {
+        if (!role[u[0]] || role[u[0]] === 'down') return;
+        if (role[s] === 'need' && u[1] === 'need' && role[u[0]] === 'need') edges.push([u[0], s, 'need']);
+        else if (role[s] === 'self') edges.push([u[0], s, u[1] === 'need' ? 'need' : 'help']);
+      });
+    });
+    return { role: role, edges: edges };
+  }
+  function posIn(el, box) { var x = 0, y = 0; while (el && el !== box) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return { x: x, y: y }; }   // без учёта transform: на результат не влияют анимации карточек
+  function drawRoute(edges, animate) {
+    if (routeSvg) routeSvg.remove();
+    var svg = routeSvg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'rtsvg'); svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('width', track.offsetWidth); svg.setAttribute('height', track.offsetHeight);
+    var defs = document.createElementNS(NS, 'defs');
+    ['need', 'help', 'down'].forEach(function (t) {
+      var m = document.createElementNS(NS, 'marker'); m.setAttribute('id', 'rt-a-' + t); m.setAttribute('viewBox', '0 0 10 10'); m.setAttribute('refX', '9'); m.setAttribute('refY', '5');
+      m.setAttribute('markerWidth', '7'); m.setAttribute('markerHeight', '7'); m.setAttribute('orient', 'auto-start-reverse');
+      var p = document.createElementNS(NS, 'path'); p.setAttribute('d', 'M0 0 L10 5 L0 10 z'); p.setAttribute('class', 'rta ' + t); m.appendChild(p); defs.appendChild(m);
+    });
+    svg.appendChild(defs);
+    edges.forEach(function (e, i) {
+      var a = cardFor(e[0]), b = cardFor(e[1]); if (!a || !b) return;
+      var pa = posIn(a, track), pb = posIn(b, track), d;
+      if (Math.abs(pa.y - pb.y) < 4) {   // в одном ряду: от края к краю
+        var l = pa.x < pb.x, x1 = l ? pa.x + a.offsetWidth : pa.x, x2 = l ? pb.x : pb.x + b.offsetWidth, y1 = pa.y + a.offsetHeight / 2;
+        d = 'M' + x1 + ' ' + y1 + ' C' + (x1 + (x2 - x1) / 2) + ' ' + (y1 - 26) + ',' + (x1 + (x2 - x1) / 2) + ' ' + (y1 - 26) + ',' + x2 + ' ' + y1;
+      } else {
+        var up = pa.y < pb.y, sx = pa.x + a.offsetWidth / 2, sy = up ? pa.y + a.offsetHeight : pa.y, tx = pb.x + b.offsetWidth / 2, ty = up ? pb.y : pb.y + b.offsetHeight, k = Math.min(Math.abs(ty - sy) / 2, 160) * (up ? 1 : -1);
+        d = 'M' + sx + ' ' + sy + ' C' + sx + ' ' + (sy + k) + ',' + tx + ' ' + (ty - k) + ',' + tx + ' ' + ty;
+      }
+      var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', e[2]); p.setAttribute('marker-end', 'url(#rt-a-' + e[2] + ')');
+      svg.appendChild(p);
+      if (animate) { var len = p.getTotalLength(); p.style.setProperty('--len', len); p.style.setProperty('--i', i); p.classList.add('draw'); }
+    });
+    track.appendChild(svg);
+  }
+  function chipList(list) {
+    var w = el('div', 'ks');
+    list.sort(function (x, y) { return order.indexOf(x) - order.indexOf(y); }).forEach(function (s) { var a = el('a', 'kchip', short(I[s].n) + ' · ' + I[s].sem + ' сем.'); a.href = 'd/' + s + '.html'; a.setAttribute('data-slug', s); a.title = I[s].n; w.appendChild(a); });
+    return w;
+  }
+  function showRoute(slug, focusBox, jump) {   // jump: сразу на место, без плавной прокрутки (переход по ссылке #route=)
+    if (!I[slug]) return;
+    var R = routeOf(slug), lines = !NARROW.matches;   // на узком экране линии скрыты (style.css), поэтому их и не считаем
+    hl(function (c) { var r = R.role[c.dataset.slug]; if (r) c.classList.add('rt-' + r); return !!r; }, 'Маршрут: ' + short(I[slug].n), null);
+    var self = cardFor(slug);
+    curRoute = slug;
+    if (routeBox) {
+      // панель собирается целиком вне страницы и вставляется одним действием: так motion.js получает одно изменение, а не десятки
+      var box = document.createDocumentFragment();
+      var h = el('h2', '', 'Маршрут к предмету «' + I[slug].n + '»'); h.setAttribute('tabindex', '-1'); box.appendChild(h);
+      var lg = el('p', 'rtlegend'); [['self', 'выбранный предмет'], ['need', 'нужен: без него трудно начать'], ['help', 'помогает'], ['down', 'пригодится для']].forEach(function (x) { var s = el('span', 'rtk ' + x[0], x[1]); lg.appendChild(s); }); box.appendChild(lg);
+      var any = false;
+      ['need', 'help', 'down'].forEach(function (r) {
+        var list = Object.keys(R.role).filter(function (s) { return R.role[s] === r; }); if (!list.length) return; any = true;
+        box.appendChild(el('p', 'lkh', ROLE[r] + (r === 'need' ? ' (по цепочке)' : '') + ': ' + list.length)); box.appendChild(chipList(list));
+      });
+      if (!any) box.appendChild(el('p', 'muted', 'Связей с другими предметами для этого предмета пока не отмечено.'));
+      box.appendChild(el('p', 'muted', 'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.'));
+      var acts = el('div', 'acts'), ob = el('button', 'btn-s', 'Открыть карточку'); ob.type = 'button'; ob.addEventListener('click', function () { open(slug, cardFor(slug)); });
+      var cb = el('button', 'btn-o', 'Снять подсветку'); cb.type = 'button'; cb.addEventListener('click', function () { clearHl(); });
+      acts.appendChild(ob); acts.appendChild(cb); box.appendChild(acts);
+      routeBox.replaceChildren(box); routeBox.hidden = false;
+      if (focusBox) h.focus({ preventScroll: true });
+    }
+    // линии и прокрутка — через кадр: замеры позиций сразу после смены подсветки заставляли браузер
+    // пересчитать стили всей страницы в той же задаче (на слабых телефонах — до 200 мс без отклика), а прыжок
+    // в том же кадре, где появилась панель маршрута над картой, засчитывался как сдвиг всей карты (CLS)
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      if (curRoute !== slug) return;
+      if (lines) {
+        [].forEach.call(track.querySelectorAll('.station'), function (st) { st.classList.add('vis'); });   // все карточки видны сразу, иначе линии упрутся в ещё не появившиеся
+        drawRoute(R.edges, !RM);
+      }
+      if (self) self.scrollIntoView({ behavior: RM || jump ? 'auto' : 'smooth', block: 'center' });
+    }); });
+  }
+  var NARROW = window.matchMedia('(max-width: 700px)');
+  window.addEventListener('resize', function () { if (curRoute) { clearTimeout(window.__rt); window.__rt = setTimeout(function () { if (!curRoute) return; if (NARROW.matches) { if (routeSvg) { routeSvg.remove(); routeSvg = null; } return; } [].forEach.call(track.querySelectorAll('.station'), function (st) { st.classList.add('vis'); }); drawRoute(routeOf(curRoute).edges, false); }, 150); } });
+  window.tmShowRoute = showRoute;   // для кнопки в окне карточки
+
   [].forEach.call(document.querySelectorAll('[data-job]'), function (b) {
     b.addEventListener('click', function () { if (b.getAttribute('aria-pressed') === 'true') clearHl(); else showJob(+b.dataset.job, false); });
   });
@@ -309,12 +406,17 @@
 
   // ---------- ссылка на раскрытую карточку: index.html#d=код ----------
   window.addEventListener('hashchange', function () {
+    var rt = location.hash.match(/^#route=([\w-]+)$/), jb = location.hash.match(/^#path=(\d+)$/);
+    if (rt && I[rt[1]]) { if (xp) close(function () { showRoute(rt[1], true, true); }); else showRoute(rt[1], true, true); return; }
+    if (jb && D.jobs[+jb[1]]) { if (xp) close(function () { showJob(+jb[1], false); }); else showJob(+jb[1], false); return; }
     var h = location.hash.match(/^#d=([\w-]+)/);
     if (h && I[h[1]] && cur !== h[1]) { var c = cardFor(h[1]); if (xp) swap(h[1], 1, true); else { if (c) c.scrollIntoView({ block: 'center' }); open(h[1], c, true); } }
   });
   var m = location.hash.match(/^#d=([\w-]+)/);
   if (m && I[m[1]]) { var c = cardFor(m[1]); if (c) { c.scrollIntoView({ block: 'center' }); prog(); } setTimeout(function () { open(m[1], c, true); }, 60); }
   // ссылка с карты профессий: index.html#path=N сразу подсвечивает путь к профессии N
+  var mr = location.hash.match(/^#route=([\w-]+)$/);
+  if (mr && I[mr[1]]) setTimeout(function () { showRoute(mr[1], true, true); }, 60);
   var mj = location.hash.match(/^#path=(\d+)$/);
   if (mj && D.jobs[+mj[1]]) setTimeout(function () { showJob(+mj[1], false); }, 60);
 })();

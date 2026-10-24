@@ -637,6 +637,28 @@ a.rch:hover{border-color:var(--acc);background:var(--ice)}a.rch.key:hover{backgr
 .mytext{flex:1 0 100%;margin:4px 0 0;white-space:pre-wrap;color:var(--ink);font-size:14.5px;background:var(--ice-2);border-radius:var(--r-s);padding:8px 12px}
 .mydanger{color:var(--err);border-color:var(--err)}.mydanger:hover{background:var(--err-bg);color:var(--err)}
 .hlinks2{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+/* маршрут к предмету на пути студента: роли карточек, линии связей, панель со списком */
+.routebox{margin:12px 0 4px}.routebox[hidden]{display:none}
+.routebox h2{font-size:18px;margin-bottom:6px}.routebox h2:focus{outline:none}
+.rtlegend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 6px!important;font-size:13px;color:var(--mut)}
+.rtk{display:inline-flex;align-items:center;gap:6px}.rtk::before{content:"";width:18px;height:12px;border-radius:3px;background:var(--card);border:2px solid var(--btn)}
+.rtk.self::before{background:var(--btn)}.rtk.help::before{border-style:dashed;border-color:var(--acc)}.rtk.down::before{border-color:var(--g3)}
+.routebox .acts{margin-top:12px}
+.dc.hl{z-index:2}
+.dc.hl.rt-self{background:var(--btn);border-color:var(--btn);box-shadow:0 0 0 4px rgba(63,149,218,.35),var(--sh-h)}
+.dc.hl.rt-self b,.dc.hl.rt-self small{color:#fff}
+.dc.hl.rt-need{box-shadow:0 0 0 3px var(--btn),var(--sh-s)}
+.dc.hl.rt-help{box-shadow:var(--sh-s);outline:2px dashed var(--acc);outline-offset:2px}
+.dc.hl.rt-down{box-shadow:0 0 0 3px var(--g3),var(--sh-s)}
+.rtsvg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:1}
+@media(max-width:700px){.rtsvg{display:none}}   /* в одну колонку линии шли бы прямо по тексту карточек: роли видны по рамкам, список — в панели маршрута */
+.rtsvg path{fill:none;stroke-width:2.5;stroke-linecap:round}
+.rtsvg .need{stroke:var(--btn)}.rtsvg .help{stroke:var(--acc);stroke-dasharray:7 6}.rtsvg .down{stroke:var(--g3)}
+.rtsvg .rta{stroke:none}.rtsvg .rta.need{fill:var(--btn)}.rtsvg .rta.help{fill:var(--acc)}.rtsvg .rta.down{fill:var(--g3)}
+.rtsvg path.draw:not(.help){stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:rtdraw 520ms steps(16,end) calc(var(--i,0) * 45ms + 120ms) forwards}
+.rtsvg path.draw.help{opacity:0;animation:p5fade 300ms steps(8,end) calc(var(--i,0) * 45ms + 300ms) forwards}
+@keyframes rtdraw{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.rtsvg path.draw{stroke-dashoffset:0!important;opacity:1!important}}
 /* чипы, переключатели, варианты ответов */
 .pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);box-shadow:var(--sh-s);transition:background .12s,color .12s,border-color .12s}
 .pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.fo:hover span,.xnb:hover{background:var(--ice);color:var(--pri);border-color:var(--acc);transform:none}
