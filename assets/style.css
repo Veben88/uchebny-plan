@@ -595,8 +595,9 @@ details.ans{background:var(--ice-2);box-shadow:none;border-style:dashed}
 .dc.prac{background:repeating-linear-gradient(var(--slash),var(--card) 0 10px,var(--ice-2) 10px 20px);border-style:dashed}
 .dc.hl{box-shadow:0 0 0 3px var(--acc),var(--sh-s)}
 /* раскрытая карточка и затемнение */
-.ov{background:repeating-linear-gradient(var(--slash),rgba(255,255,255,.06) 0 1px,transparent 1px 14px),rgba(20,50,90,.5)}
-.xp{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l)!important;box-shadow:var(--sh-pop)}
+.ov{background:rgba(20,50,90,.5);overflow:hidden}
+.ov::before{content:"";position:absolute;top:0;bottom:0;left:-64px;right:0;background:repeating-linear-gradient(var(--slash),rgba(255,255,255,.06) 0 1px,transparent 1px 14px);pointer-events:none}
+.xp{background:var(--card);border:1px solid var(--line);border-radius:var(--r-l)!important;box-shadow:var(--sh-pop);contain:layout style}
 .xh{background:linear-gradient(var(--slash),var(--deep) 0 80%,var(--gc) 80% calc(80% + 3px),var(--deep-2) calc(80% + 3px) 100%);color:#fff;border-bottom:3px solid var(--acc)}
 .xp .xh,.xp .xh *{color:#fff}
 .xclose{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:var(--r-s);transition:background .12s,color .12s}
@@ -771,8 +772,8 @@ html:active-view-transition-type(back)::view-transition-new(root){animation-name
    После того как карточка разворачивается (path.js): штриховка фона сдвигается,
    шапка открывается косым срезом, затем надпись, название, цифры, а метка статуса — последней.
    При листании стрелками шапка приходит со стороны движения и без задержек. */
-.ov{animation:p5stripes var(--m-slow) steps(14,end)}
-@keyframes p5stripes{from{background-position:-64px 0}to{background-position:0 0}}
+.ov::before{animation:p5stripes var(--m-slow) steps(14,end)}
+@keyframes p5stripes{from{translate:0 0}to{translate:64px 0}}
 .xp .xh{animation:p5wipe 260ms steps(9,end) 90ms backwards}
 .xp .xh .xk{animation:p5rise 200ms steps(7,end) 170ms backwards}
 .xp .xh h2{animation:p5title 240ms steps(8,end) 190ms backwards}

@@ -106,36 +106,62 @@
     if (w < 700) return { left: 0, top: 0, width: w, height: h, r: 0 };
     var W = Math.min(820, w - 48); return { left: (w - W) / 2, width: W, r: 26 };
   }
-  function lock(on) {
-    var sb = window.innerWidth - document.documentElement.clientWidth;
+  // sb — ширина полосы прокрутки. Её нужно измерить до того, как окно вставлено в страницу: измерение после вставки
+  // заставляло браузер синхронно раскладывать всю страницу вместе с окном (самая долгая часть клика).
+  function lock(on, sb) {
+    if (sb == null) sb = window.innerWidth - document.documentElement.clientWidth;
     document.documentElement.style.overflow = on ? 'hidden' : '';
     document.body.style.paddingRight = on && sb > 0 ? sb + 'px' : '';
   }
+  // Окно «вырастает» из карточки и «сжимается» обратно в неё. Раньше анимировались left/top/width/height, и браузер
+  // на каждом шаге заново раскладывал и перерисовывал всё окно с большой тенью (на слабых устройствах — по 50–200 мс на кадр).
+  // Теперь окно один раз рисуется в итоговом размере, а рост из карточки — это сдвиг и масштаб (их двигает видеокарта).
+  // Содержимое и кнопка «×» на каждом шаге получают обратный масштаб, поэтому текст не растягивается.
+  // Ступени те же, что у EASE: каждая ключевая точка держится до следующей (steps(1, end)).
+  function morph(box, r, closing, dur) {
+    var N = 12, sx0 = Math.max(r.width / box.width, 0.05), sy0 = Math.max(r.height / box.height, 0.05), dx0 = r.left - box.left, dy0 = r.top - box.top;
+    var outer = [], counter = [];
+    for (var k = 0; k <= N; k++) {
+      var p = closing ? 1 - k / N : k / N, sx = sx0 + (1 - sx0) * p, sy = sy0 + (1 - sy0) * p;
+      var o = k / N, e = k < N ? 'steps(1, end)' : 'linear';
+      outer.push({ offset: o, easing: e, transform: 'translate(' + (dx0 * (1 - p)) + 'px,' + (dy0 * (1 - p)) + 'px) scale(' + sx + ',' + sy + ')' });
+      counter.push({ offset: o, easing: e, transform: 'scale(' + (1 / sx) + ',' + (1 / sy) + ')' });
+    }
+    var opt = { duration: dur, fill: closing ? 'forwards' : 'none' }, box0 = closing ? closingEl : xp, inn = box0.querySelector('.xin');
+    box0.style.transformOrigin = inn.style.transformOrigin = '0 0';   // кнопка «×» масштабируется вокруг своего центра: так её поворот при появлении остаётся прежним
+    [].forEach.call(box0.children, function (c) { c.animate(counter, opt); });
+    var a = box0.animate(outer, opt);
+    if (!closing) a.onfinish = function () { box0.style.transformOrigin = inn.style.transformOrigin = ''; };
+    return a;
+  }
+  var closingEl = null;   // закрываемое окно: в close() ссылка xp уже обнулена
   function cardFor(slug) { return document.querySelector('.dc[data-slug="' + slug + '"]'); }
   function visible(r) { return r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight; }
   function open(slug, from, viaHistory) {
     if (!I[slug]) return;
     if (xp) { swap(slug, 1, viaHistory); return; }
+    // Порядок важен для скорости: всё, что нужно измерить на странице (полоса прокрутки, положение карточки), читается
+    // до изменений; окно измеряется отдельно; блокировка прокрутки — последней. Так за клик страница раскладывается один раз.
     src = from || cardFor(slug); cur = slug; lastFocus = document.activeElement;
+    var sb = window.innerWidth - document.documentElement.clientWidth, r = src && src.getBoundingClientRect();
     ov = el('div', 'ov'); xp = el('div', 'xp');
     xp.setAttribute('role', 'dialog'); xp.setAttribute('aria-modal', 'true'); xp.setAttribute('aria-labelledby', 'xpt');
     var x = el('button', 'xclose'); x.type = 'button'; x.setAttribute('aria-label', 'Закрыть'); x.textContent = '×';
     x.addEventListener('click', requestClose); ov.addEventListener('click', requestClose);
     var inner = el('div', 'xin'); inner.appendChild(build(slug));
     xp.appendChild(x); xp.appendChild(inner);
-    document.body.appendChild(ov); document.body.appendChild(xp); lock(true);
     var T = geom(); xp.style.left = T.left + 'px'; xp.style.width = T.width + 'px'; xp.style.top = '0px';
+    document.body.appendChild(ov); document.body.appendChild(xp);
     var hh = T.height || Math.min(xp.scrollHeight, window.innerHeight - 48);
     var top = T.top != null ? T.top : (window.innerHeight - hh) / 2;
     xp.style.top = top + 'px'; xp.style.height = hh + 'px'; xp.style.borderRadius = T.r + 'px';
-    var r = src && src.getBoundingClientRect();
+    lock(true, sb);
     if (src) src.classList.add('ghost');
     if (DUR && visible(r)) {
-      xp.animate([{ left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '16px' },
-                  { left: T.left + 'px', top: top + 'px', width: T.width + 'px', height: hh + 'px', borderRadius: T.r + 'px' }], { duration: DUR, easing: EASE });
+      morph({ left: T.left, top: top, width: T.width, height: hh }, r, false, DUR);
     } else if (DUR) xp.animate([{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: DUR * 0.6, easing: EASE });
     if (DUR) {
-      inner.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: DUR * 0.45, easing: EASE, fill: 'backwards' });
+      inner.animate([{ opacity: 0, translate: '0 14px' }, { opacity: 1, translate: '0 0' }], { duration: 320, delay: DUR * 0.45, easing: EASE, fill: 'backwards' });
       ov.animate([{ opacity: 0 }, { opacity: 1 }], { duration: DUR });
     }
     growBars(inner);
@@ -176,8 +202,7 @@
     X.querySelector('.xin').animate([{ opacity: 1 }, { opacity: 0 }], { duration: DUR * 0.35, fill: 'forwards' });
     O.animate([{ opacity: 1 }, { opacity: 0 }], { duration: DUR, fill: 'forwards' });
     var a = visible(r)
-      ? X.animate([{ left: X.style.left, top: X.style.top, width: X.style.width, height: X.style.height, borderRadius: X.style.borderRadius },
-                   { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '16px' }], { duration: DUR * 0.85, easing: EASE, fill: 'forwards' })
+      ? (closingEl = X, morph({ left: parseFloat(X.style.left), top: parseFloat(X.style.top), width: X.offsetWidth, height: X.offsetHeight }, r, true, DUR * 0.85))
       : X.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96)' }], { duration: DUR * 0.5, fill: 'forwards' });
     a.onfinish = done; setTimeout(done, DUR + 200);
   }
