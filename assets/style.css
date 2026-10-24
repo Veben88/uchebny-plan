@@ -395,8 +395,8 @@ html.access .hero3d{display:none}
    (исключение — белый текст на глубоком синем и иллюстрации заданий, у которых свой постоянный фон).
    Контраст токенов проверен по WCAG 2.1: текст от 4,5:1, границы полей и значки от 3:1.
    ===================================================================== */
-@font-face{font-family:"Exo 2";src:url("fonts/exo2-cyrillic.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
-@font-face{font-family:"Exo 2";src:url("fonts/exo2-latin.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Oswald";src:url("fonts/oswald-cyrillic.woff2") format("woff2");font-weight:200 700;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Oswald";src:url("fonts/oswald-latin.woff2") format("woff2");font-weight:200 700;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
  /* поверхности и текст: светлые, с лёгким небесным оттенком */
  --bg:#F4F9FE;--card:#FFFFFF;--ice:#E3F1FC;--ice-2:#F0F7FE;--ink:#1F2B3D;--mut:#52657F;
@@ -426,7 +426,7 @@ html.access .hero3d{display:none}
  --sh-pop:0 24px 60px rgba(20,50,90,.24);
  --para:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);--slash:112deg;
  --lines:rgba(255,255,255,.08);
- --hd:"Exo 2","Montserrat",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+ --hd:"Oswald","Arial Narrow","Roboto Condensed","Helvetica Neue",Impact,sans-serif;
  /* прежние имена: на них ещё ссылаются слой движения и ранние правила; убрать вместе с переименованием p5-* */
  --red:var(--acc);--bd:var(--line);--tint:var(--ice);--on:#FFFFFF;--pri-bg:var(--deep);--blue:var(--focus);--lime:var(--ok-s);--limed:var(--ok);--slate:var(--mut);--amber:var(--warn);--sh-r:var(--sh);
  --glass:var(--card);--glass-2:var(--card);--glass-brd:var(--line);--glass-sh:var(--sh);--blur:none;--grad:var(--btn)}
@@ -443,11 +443,11 @@ html.access{--bg:#FFFFFF;--card:#FFFFFF;--ice-2:#F2F7FD;--ink:#000;--mut:#1F2A3A
 @media(prefers-color-scheme:dark){html.access{--bg:#000;--card:#0A0F1C;--ice:#182B4B;--ice-2:#0F1C38;--ink:#fff;--mut:#E6EEF9;--line:#B3C4DC;--field:#E6EEF9;--pri:#D3E8FC;--link:#D3E8FC;--focus:#D3E8FC;--lines:transparent}}
 *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body{background:var(--bg);color:var(--ink)}
-/* типографика: заголовки и короткие метки — Exo 2, длинный текст — Montserrat */
+/* типографика: заголовки и короткие метки — Oswald заглавными, длинный текст — Montserrat */
 h1,h2,h3,.tile b,.facts b,.meter b,.node b,.stage .num,.jbar,.menu a,.acc,.btn,.btn-s,.btn-o,.xnb,.pill,.gf,.kchip,.badge,.hsearch button,.kicker,.xk,.stage .when{font-family:var(--hd)}
-h1{font-weight:800;letter-spacing:-.005em;line-height:1.1}
-h2{font-weight:700;letter-spacing:0}
-h3{font-weight:700;letter-spacing:0}
+h1{text-transform:uppercase;font-weight:700;letter-spacing:.01em;line-height:1.04}
+h2{text-transform:uppercase;font-weight:600;letter-spacing:.02em}
+h3{text-transform:uppercase;font-weight:600;letter-spacing:.02em}
 .kicker,.xk,.stage .when{text-transform:uppercase;letter-spacing:.08em}
 main li::marker{color:var(--acc)}
 main a:not([class]){color:var(--link);text-decoration-thickness:1px;text-underline-offset:3px}
@@ -458,10 +458,10 @@ main a:not([class]){color:var(--link);text-decoration-thickness:1px;text-underli
 .top{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
 .band .top{background:var(--card);border-color:var(--line);box-shadow:var(--sh);margin:12px 14px 0;width:auto}
 .brand,.band .top .brand{color:var(--ink)}
-.bw b,.band .bw b{color:var(--pri);font-family:var(--hd);font-weight:800;letter-spacing:.01em;font-size:24px}
+.bw b,.band .bw b{color:var(--pri);font-family:var(--hd);text-transform:uppercase;letter-spacing:.03em;font-size:24px}
 .bw b em,.band .bw b em{color:var(--acc)}.bw small,.band .bw small{color:var(--mut)}
 .tmlogo{width:44px;height:44px}
-.menu a,.acc,.band .menu a{color:var(--mut);background:transparent;border:0;border-radius:var(--r-s);clip-path:none;text-transform:uppercase;letter-spacing:.02em;font-weight:600;font-size:13.5px;padding-left:10px;padding-right:10px;transition:background .12s,color .12s}
+.menu a,.acc,.band .menu a{color:var(--mut);background:transparent;border:0;border-radius:var(--r-s);clip-path:none;text-transform:uppercase;letter-spacing:.05em;font-weight:600;font-size:15px;transition:background .12s,color .12s}
 @media(min-width:701px){.acc{display:inline-flex;align-items:center;gap:6px}}
 .menu a:hover,.band .menu a:hover{background:var(--ice);color:var(--pri)}
 .menu a[aria-current],.band .menu a[aria-current]{background:var(--btn);color:#fff;box-shadow:none;border-radius:0;clip-path:var(--para)}
@@ -482,7 +482,7 @@ main a:not([class]){color:var(--link);text-decoration-thickness:1px;text-underli
 .band::after{display:none}
 .heroblock>.wrap,.band>*{position:relative;z-index:2}
 .hero3d{z-index:1}
-.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:none;transform:none;animation:p5in .35s steps(10,end) both}
+.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:none;transform:rotate(-1.5deg);transform-origin:left center;animation:p5in .35s steps(10,end) both}
 .heroblock .lead,.heroblock .hero p{color:#FFFFFF}.heroblock .muted{color:#F2F8FE}
 .line{background:var(--acc);height:4px;transform:skewX(-30deg)}
 .heroblock .line{background:var(--glow)}
@@ -620,10 +620,11 @@ footer a{color:#fff;text-decoration-color:var(--glow);text-decoration-thickness:
  .menu .acc,.band .menu .acc{background:transparent;color:#FFFFFF}
  .menu .acc[aria-pressed=true]{background:#FFFFFF;color:#22609F}
  .hlpill{bottom:100px}
+ .hero h1{transform:rotate(-1deg)}
 }
 /* «Крупно» и меньше движения: без наклонов, линий и анимаций */
 html.access .heroblock::after,html.access .band::before{display:none}
-html.access .hero3d .cube,html.access .line,html.access .menu a[aria-current],html.access .btn,html.access .btn-s,html.access .hsearch button{transform:none;clip-path:none}
+html.access .hero h1,html.access .hero3d .cube,html.access .line,html.access .menu a[aria-current],html.access .btn,html.access .btn-s,html.access .hsearch button{transform:none;clip-path:none}
 @media(prefers-reduced-motion:reduce){
  .menu a,.acc,.btn,.btn-s,.btn-o,.card,.dc,.tile,.pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb,.xclose,.hsearch button{transition:none!important}
  .card:hover,.dc:hover,.btn:hover,.btn-s:hover,.pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.xnb:hover{transform:none}
