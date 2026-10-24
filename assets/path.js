@@ -4,7 +4,7 @@
   var pd = document.getElementById('pd'); if (!pd) return;
   document.documentElement.classList.add('js');
   var D = JSON.parse(pd.textContent), I = D.items;
-  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches, DUR = RM ? 0 : 380, EASE = 'cubic-bezier(.22,.8,.24,1)';
+  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches, DUR = RM ? 0 : 380, EASE = 'steps(12, end)';
   var track = document.getElementById('track'), journey = document.getElementById('journey');
   var COL = ['#A8DBFF', '#D2EBFF', '#DCE6F0', '#9BEDF0'];   // цвета групп на глубоком синем (шапка карточки), как --gd0…--gd3 в style.css
   var GLAB = ['Профильный предмет', 'Политехнический предмет', 'Общий предмет', 'Практика или итоговая аттестация'];
