@@ -8,6 +8,13 @@ def jload(p, d): return json.loads(p.read_text(encoding="utf-8")) if p.exists() 
 ratings = jload(ROOT/"data/ratings.json", {}); CONFIG = jload(ROOT/"data/config.json", {})
 RATINGS_URL = (CONFIG.get("ratings_url") or "").strip(); SURVEY_URL = (CONFIG.get("survey_url") or "").strip(); CONTACT = (CONFIG.get("contact") or "").strip(); FEEDBACK_URL = (CONFIG.get("feedback_url") or "").strip(); FB_ON = bool(FEEDBACK_URL)
 ICONS = jload(ROOT/"assets/icons.json", {}); MIN_N = 5
+LINKS = jload(ROOT/"data/links.json", {"links": []})["links"]          # логические связи «нужен / помогает», согласованы автором проекта
+_RPA = jload(ROOT/"data/rp_analysis.json", {"disciplines": []}); RP_SRC = _RPA.get("source", "рабочие программы дисциплин")
+RP = {}                                                                  # разбор рабочих программ по позициям плана (у предмета по выбору — по программе на вариант)
+_IDX = {i["idx"]: i["slug"] for i in items}
+for _d in _RPA["disciplines"]:
+    _s = _d.get("slug") or _IDX.get(_d.get("plan_idx"))   # у части записей разбора slug пуст, но код позиции плана есть
+    if _s: RP.setdefault(_s, []).append(_d)
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
 ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
@@ -150,6 +157,53 @@ def home_page(cards):
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
 <div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
+LINK_T = {"need": ("нужен", "Без этого предмета трудно начать"), "helps": ("помогает", "Полезная опора")}
+COMP = {"УК": "универсальные", "ОПК": "общепрофессиональные", "ПК": "профессиональные"}
+def links_of(slug):
+    """связи предмета: на что опирается (up) и для чего пригодится (down); сначала «нужен», затем по семестру"""
+    by = {i["slug"]: i for i in items}
+    key = lambda s_t: (s_t[1] != "need", start_sem(by[s_t[0]]["sem"]), by[s_t[0]]["idx"])
+    up = sorted(((l["from"], l["type"], l["why"]) for l in LINKS if l["to"] == slug), key=key)
+    down = sorted(((l["to"], l["type"], l["why"]) for l in LINKS if l["from"] == slug), key=key)
+    return up, down, by
+def links_panel(slug):
+    up, down, by = links_of(slug)
+    if not up and not down: return ""
+    def col(title, lst, empty):
+        if not lst: return f'<div><h3 class="lkh">{title}</h3><p class="muted">{empty}</p></div>'
+        li = "".join(f'<li><a href="{s}.html">{E(clean(by[s]["name"]))}</a> <span class="lkt {t}" title="{LINK_T[t][1]}">{LINK_T[t][0]}</span>'
+                     f'<small>{E(str(by[s]["sem"]))} сем. · {E(w)}</small></li>' for s, t, w in lst)
+        return f'<div><h3 class="lkh">{title}</h3><ul class="lk">{li}</ul></div>'
+    return (f'<section class="panel" id="links"><h2><span class="ci">{ic("FaCompass")}</span>Связи с другими предметами</h2><div class="lk2">'
+            + col("Опирается на", up, "Связей пока не отмечено.")
+            + col("Пригодится для", down, "Связей пока не отмечено.")
+            + '</div><p class="muted lknote"><span class="lkt need">нужен</span> без этого предмета трудно начать, <span class="lkt helps">помогает</span> полезная опора. '
+              'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.</p></section>')
+def jobs_panel(slug):
+    js = [(k, j) for k, j in enumerate(JOBS) if slug in j[3]]
+    if not js: return ""
+    ch = "".join(f'<a class="kchip" href="../index.html#job-{k}">{E(j[1])}</a>' for k, j in js)
+    return (f'<section class="panel"><h2><span class="ci">{ic("FaUserGraduate")}</span>Ведёт к профессиям</h2><div class="ks">{ch}</div>'
+            '<p class="muted" style="margin-top:10px">Это оценка команды проекта по задачам профессии, а не гарантия трудоустройства: требования работодателей смотри в вакансиях.</p></section>')
+def rp_panel(it):
+    """Компетенции из рабочих программ. Цель дисциплины не выводится: при извлечении текста из документов
+    в части целей перепутан порядок слов, и показывать их как цитату нельзя. Коды компетенций — структурные данные."""
+    rs = RP.get(it["slug"]) or []
+    order = lambda c: (list(COMP).index(c.split("-")[0]) if c.split("-")[0] in COMP else 9, c)
+    sets = [sorted(set(r.get("competencies") or []), key=order) for r in rs]
+    if not any(sets): return ""
+    def chips(cs): return '<div class="ks">' + "".join(f'<span class="kchip ccode">{E(c)}</span>' for c in cs) + '</div>'
+    same = all(s_ == sets[0] for s_ in sets)
+    if len(rs) > 1 and not same:   # у вариантов предмета по выбору разные компетенции — показываем по вариантам
+        body = "".join(f'<p class="lkh">{E(r["title"])}</p>{chips(s_)}' for r, s_ in zip(rs, sets) if s_)
+    else: body = chips(next(s_ for s_ in sets if s_))
+    allc = {c for s_ in sets for c in s_}
+    kinds = sorted({c.split("-")[0] for c in allc if c.split("-")[0] in COMP}, key=list(COMP).index)
+    note = " У обоих вариантов предмета по выбору компетенции одинаковые." if len(rs) > 1 and same else ""
+    progs = "; ".join(f'{E(r["code"].replace("_", "."))}' + (f' от {E(r["date"])}' if r.get("date") else "") for r in rs if r.get("code"))
+    return (f'<section class="panel" id="rp"><h2><span class="ci">{ic("FaBullseye")}</span>Компетенции по рабочей программе</h2>{body}'
+            f'<p class="muted" style="margin-top:10px">Коды индикаторов компетенций из образовательного стандарта'
+            + (f' ({"; ".join(k + " — " + COMP[k] for k in kinds)})' if kinds else "") + f'.{note} Источник: {E(RP_SRC)}' + (f', {"программы" if len(rs) > 1 else "программа"} {progs}' if progs else "") + '.</p></section>')
 def task_panel(c, slug):
     if not c["example"]: return ""
     note = '' if c["status"] == "проверено" else '<p class="muted" style="margin-top:8px">Черновик задания: формулировку проверит преподаватель.</p>'
@@ -169,9 +223,9 @@ def disc_page(it, c, order, k):
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
     body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
 <h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></div></div>
-<main id="main" class="wrap">{row}{extra_top}{task_panel(c, it["slug"])}{panel("FaUsers","Совет студента", c["tip"])}
+<main id="main" class="wrap">{row}{extra_top}{task_panel(c, it["slug"])}{panel("FaUsers","Совет студента", c["tip"])}{links_panel(it["slug"])}{jobs_panel(it["slug"])}
 <section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p></section>
-{extra_bot}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
+{extra_bot}{rp_panel(it)}<section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
 {f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
 {f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={it["slug"]}">Сообщить об ошибке</a></p>' if FB_ON else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
@@ -288,6 +342,7 @@ def path_data(cards):
             "sem": it["sem"], "ze": it["ze"], "h": it["hours"], "c": it["contact"], "lec": it["lec"] or 0, "lab": it["lab"] or 0, "pr": it["pr"] or 0, "ctl": it["controls"] or "",
             "st": c["status"] if c["status"] in STATUS else "готовится", "what": c["what"], "why": c["why"], "brief": c["brief"], "ex": c["example"], "ans": c["answer"], "tip": c["tip"],
             "learn": blist(c["learn"]), "themes": tlist(c["themes"]), "acts": c["acts"], "tools": blist(c["tools"]), "assess": c["assess"],
+            "up": [[s, t] for s, t, _ in links_of(it["slug"])[0]], "dn": [[s, t] for s, t, _ in links_of(it["slug"])[1]],
             "r": ({"n": r.get("n",0), "hard": r.get("hard"), "useful": r.get("useful"), "int": r.get("interest"), "scope": r.get("scope","")} if r.get("n",0) >= MIN_N else None)}
     return {"items": out, "jobs": [{"i": j[0], "t": j[1], "d": j[2], "s": j[3]} for j in JOBS], "status": STATUS, "min_n": MIN_N}
 def job_chip(sl):

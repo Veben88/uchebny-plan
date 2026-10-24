@@ -576,6 +576,18 @@ details.ans{background:var(--ice-2);box-shadow:none;border-style:dashed}
 #reset[hidden],#empty[hidden]{display:none}
 @media(max-width:560px){.tools #q{flex:1 1 100%}.sortl{flex:1 1 auto}.sortl select{flex:1}}
 #empty{display:grid;justify-items:start;gap:10px;margin:10px 0 40px}#empty p{margin:0}
+/* связи с другими предметами и компетенции (страница предмета и окно карточки) */
+.lk2{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px}
+.lkh{font-size:13px!important;font-weight:600;color:var(--mut)!important;text-transform:uppercase;letter-spacing:.06em;margin:4px 0 8px!important;text-shadow:none!important}
+.lk{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.lk a{font-weight:700;color:var(--link)}.lk .lkt{margin-left:4px;vertical-align:2px}.lk small{display:block;margin-top:2px;color:var(--mut);font-size:13px;line-height:1.45}
+.lkt{display:inline-block;font-family:var(--hd);font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:1px 8px;border-radius:var(--r-s);white-space:nowrap}
+.lkt.need{background:var(--btn);color:#fff}.lkt.helps{background:var(--ice);color:var(--pri)}
+.lknote{margin-top:14px!important}
+.kchip.need{background:var(--btn)!important;color:#fff!important;border-color:var(--btn)!important}
+.kchip.ccode{cursor:default;font-family:var(--hd);letter-spacing:.03em}.kchip.ccode:hover{background:var(--card);color:var(--ink);border-color:var(--line)}
+.xs .lkh{margin-top:10px!important}
+@media(max-width:700px){.lk2{grid-template-columns:1fr}}
 /* чипы, переключатели, варианты ответов */
 .pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);box-shadow:var(--sh-s);transition:background .12s,color .12s,border-color .12s}
 .pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.fo:hover span,.xnb:hover{background:var(--ice);color:var(--pri);border-color:var(--acc);transform:none}

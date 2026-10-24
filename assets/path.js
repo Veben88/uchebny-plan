@@ -48,6 +48,22 @@
       b.appendChild(ts); if (window.taskMount) window.taskMount(tk, slug);
     }
     sec('Совет студента', it.tip);
+    // связи с другими предметами: короткие ссылки, открываются тут же в окне; обоснование каждой связи — на странице предмета
+    if ((it.up && it.up.length) || (it.dn && it.dn.length)) {
+      var ls = el('section', 'xs'); ls.appendChild(el('h3', '', 'Связи с другими предметами'));
+      [['Опирается на', it.up], ['Пригодится для', it.dn]].forEach(function (gr) {
+        if (!gr[1] || !gr[1].length) return;
+        ls.appendChild(el('p', 'lkh', gr[0])); var w = el('div', 'ks');
+        gr[1].forEach(function (x) {
+          if (!I[x[0]]) return;
+          var a = el('a', 'kchip' + (x[1] === 'need' ? ' need' : ''), short(I[x[0]].n) + (x[1] === 'need' ? ' · нужен' : ''));
+          a.href = 'd/' + x[0] + '.html'; a.setAttribute('data-slug', x[0]); a.title = I[x[0]].n; w.appendChild(a);
+        });
+        ls.appendChild(w);
+      });
+      ls.appendChild(el('p', 'muted', 'Логические связи по содержанию предметов, а не официальные требования плана. Почему связаны — на странице предмета.'));
+      b.appendChild(ls);
+    }
     var tot = it.h || 0;
     if (tot) {
       var s = el('section', 'xs'); s.appendChild(el('h3', '', 'Нагрузка по плану'));
