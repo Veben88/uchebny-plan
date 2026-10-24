@@ -122,7 +122,7 @@ footer .wrap{display:grid;gap:8px}footer a{color:#fff}
 .dc.prac{background:var(--tint);border-left-style:dashed}
 .dc.ghost{opacity:0!important}
 .js .station:not(.vis) .dc{opacity:0;transform:translateY(16px)}
-.js .station.vis .dc{transition:transform .5s steps(14,end) calc(var(--i,0)*22ms),opacity .5s ease calc(var(--i,0)*22ms),box-shadow .18s,filter .3s}
+.js .station.vis .dc{transition:transform .5s var(--e-out) calc(var(--i,0)*22ms),opacity .5s ease calc(var(--i,0)*22ms),box-shadow .18s,filter .3s}
 .dimmed .dc:not(.hl){opacity:.28;filter:grayscale(.7)}.dc.hl{box-shadow:0 0 0 3px #9cc23a,var(--sh)}
 .jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:16px}
 .job{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px;scroll-margin:90px}
@@ -143,7 +143,7 @@ footer .wrap{display:grid;gap:8px}footer a{color:#fff}
 .xh{background:var(--gc);color:#fff;padding:24px 70px 22px 28px}.xk{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.85}
 .xh h2{margin:6px 0 10px;font-size:clamp(20px,3vw,28px);line-height:1.2}.xm{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;margin-bottom:10px}.xm b{font-size:20px}
 .xb{padding:6px 28px 14px}.xs{padding:16px 0;border-bottom:1px solid var(--line)}.xs:last-of-type{border-bottom:0}.xs h3{margin:0 0 6px;font-size:15px;color:var(--pri)}.xs p{margin:0}
-.xb .bar i{transition:width .7s steps(18,end)}
+.xb .bar i{transition:width .7s var(--e-out)}
 .xl{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:600}
 .xn{display:flex;justify-content:space-between;gap:10px;padding:14px 20px;border-top:1px solid var(--line);margin-top:auto;background:var(--card);position:sticky;bottom:0}
 .xnb{font:inherit;font-size:13px;font-weight:700;color:var(--pri);background:var(--tint);border:0;border-radius:999px;padding:9px 16px;cursor:pointer;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.xnb:disabled{opacity:.45;cursor:default}
@@ -349,7 +349,7 @@ html.access .hero3d{display:none}
 .band .acc[aria-pressed=true]{background:#fff;color:var(--pri-bg);border-color:#fff}
 
 /* ===== кольцо: раскрытие при появлении и конечная пульсация (3 волны, затем покой) ===== */
-.hero3d .ring{animation:ringOpen 1s steps(24,end) .15s both}
+.hero3d .ring{animation:ringOpen 1s var(--e-out) .15s both}
 .hero3d .ring::before{content:"";position:absolute;inset:-16px;border-radius:50%;border:5px solid rgba(124,160,34,.9);opacity:0;pointer-events:none;
   animation:ringPulse 1.8s ease-out 1.2s 3 forwards}
 @keyframes ringOpen{0%{scale:.1;opacity:0}60%{scale:1.1;opacity:1}100%{scale:1;opacity:1}}
@@ -485,12 +485,12 @@ main a:not([class]){color:var(--link);text-decoration-thickness:1px;text-underli
 .band::after{display:none}
 .heroblock>.wrap,.band>*{position:relative;z-index:2}
 .hero3d{z-index:1}
-.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:4px 4px 0 var(--tsh);transform:rotate(-1.5deg);transform-origin:left center;animation:p5in .35s steps(10,end) both}
+.hero h1,.heroblock .hero h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;-webkit-text-fill-color:#fff;text-shadow:4px 4px 0 var(--tsh);transform:rotate(-1.5deg);transform-origin:left center;animation:p5in .35s var(--e-out) both}
 .heroblock .lead,.heroblock .hero p{color:#FFFFFF}.heroblock .muted{color:#F2F8FE}
 .line{background:var(--acc);height:4px;transform:skewX(-30deg)}
 .heroblock .line{background:var(--glow)}
 .heroblock .dots i{background:rgba(255,255,255,.35)}.heroblock .dots i:first-child{background:var(--glow)}
-.band h1{color:#fff;text-shadow:4px 4px 0 var(--tsh);animation:p5in .35s steps(10,end) both}
+.band h1{color:#fff;text-shadow:4px 4px 0 var(--tsh);animation:p5in .35s var(--e-out) both}
 .band .crumbs,.band .meta{color:#F2F8FE}.band .crumbs a{color:#fff}
 @keyframes p5in{from{opacity:0;translate:-18px 0}to{opacity:1;translate:0 0}}
 /* метки статуса */
@@ -645,141 +645,141 @@ html.access .hero h1,html.access .facts span,html.access .facts span i,html.acce
 }
 
 /* =====================================================================
-   ДВИЖЕНИЕ В ДУХЕ PERSONA 5
-   У каждого действия свой характер:
-   наведение — короткий сдвиг и косая полоса, выбор — «штамп» с отскоком,
-   снятие выбора — быстрый отскок назад, открытие — слои по очереди
-   (поверхность, декоративный срез, текст, индикатор последним).
-   Анимируются только transform (translate/scale/rotate), opacity и clip-path.
-   Классы p5-* на время анимации ставит assets/motion.js.
+   ДВИЖЕНИЕ В ДУХЕ PERSONA 3 RELOAD: спокойное, плавное, без вспышек
+   Каждое действие по-прежнему отвечает своим откликом, но мягче:
+   наведение — небольшой сдвиг и проявление полосы, выбор — короткий упругий отклик без наклона,
+   открытие — слои по очереди (поверхность, текст, метка последней).
+   Анимируются только transform (translate/scale), opacity; клип — лишь в разовых «подписях» обложки.
+   Никакого постоянного движения: плавание знака — три цикла, затем покой.
+   Классы p5-* на время анимации ставит assets/motion.js (имена сохранены, чтобы не трогать логику).
    ===================================================================== */
-:root{--m-fast:140ms;--m-std:240ms;--m-slow:420ms;
-  /* Покадровое движение: вместо плавных кривых — ступени. Так двигаются меню Persona 5: рисунок «стоит» и переключается кадрами. */
-  --e-snap:steps(8,end);--e-kick:steps(9,end);--e-in:steps(4,end)}
+:root{--m-fast:160ms;--m-std:260ms;--m-slow:420ms;
+  --e-out:cubic-bezier(.22,.8,.24,1);      /* плавное торможение: появление, сдвиги */
+  --e-io:cubic-bezier(.45,0,.25,1);        /* мягкий разгон и торможение: уход, перелёт индикатора */
+  --e-spring:cubic-bezier(.34,1.35,.5,1)}  /* лёгкий перелёт за цель: отклик на выбор */
 
-/* 1. Переход между страницами: новая страница приходит косым срезом.
-   Вперёд — слева направо, назад (хлебные крошки, «предыдущий предмет», логотип) — справа налево.
+/* 1. Переход между страницами: старая страница мягко гаснет, новая проявляется со сдвигом.
+   Вперёд — сдвиг слева направо, назад (хлебные крошки, «предыдущий предмет», логотип) — справа налево.
    Работает в браузерах с View Transitions, в остальных страница открывается как раньше. */
 @view-transition{navigation:auto}
-::view-transition-old(root){animation:p5vtOut 140ms steps(5,end) both}
-::view-transition-new(root){animation:p5vtIn 260ms steps(9,end) both}
+::view-transition-old(root){animation:p5vtOut 160ms var(--e-io) both}
+::view-transition-new(root){animation:p5vtIn 300ms var(--e-out) both}
 html:active-view-transition-type(back)::view-transition-old(root){animation-name:p5vtOutBack}
 html:active-view-transition-type(back)::view-transition-new(root){animation-name:p5vtInBack}
-@keyframes p5vtIn{from{clip-path:polygon(0 0,0 0,-25% 100%,-25% 100%)}to{clip-path:polygon(0 0,125% 0,100% 100%,-25% 100%)}}
-@keyframes p5vtInBack{from{clip-path:polygon(100% 0,100% 0,125% 100%,125% 100%)}to{clip-path:polygon(100% 0,-25% 0,0 100%,125% 100%)}}
-@keyframes p5vtOut{to{translate:-3% 0;opacity:.55}}
-@keyframes p5vtOutBack{to{translate:3% 0;opacity:.55}}
+@keyframes p5vtIn{from{opacity:0;translate:-14px 0}to{opacity:1;translate:0 0}}
+@keyframes p5vtInBack{from{opacity:0;translate:14px 0}to{opacity:1;translate:0 0}}
+@keyframes p5vtOut{to{opacity:0;translate:8px 0}}
+@keyframes p5vtOutBack{to{opacity:0;translate:-8px 0}}
 
 /* 2. Навигация.
-   Наведение: текст сдвигается, белая плашка выезжает слева, через 40 мс под текстом раскрывается красная косая черта.
-   Переход: красный индикатор переезжает от прежнего пункта к новому и «штампуется» (motion.js). */
+   Наведение: светлая плашка проявляется слева, под текстом прорастает тонкая косая черта.
+   Переход: синий индикатор плавно перелетает от прежнего пункта к новому (motion.js) и мягко «садится». */
 @media(min-width:701px){.menu{position:relative}}
-.menu a{position:relative;z-index:1;isolation:isolate;transition:color 80ms linear 40ms,transform var(--m-fast) steps(5,end),scale 80ms ease-out}
-.menu a::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ice);transform:scaleX(0);transform-origin:left center;transition:transform var(--m-fast) steps(5,end);pointer-events:none}
-.menu a::after{content:"";position:absolute;left:10px;right:34%;bottom:4px;height:4px;z-index:-1;background:var(--red);transform:skewX(-30deg) scaleX(0);transform-origin:left center;transition:transform var(--m-fast) steps(5,end) 40ms;pointer-events:none}
-@media(min-width:701px){.menu a .nt{display:inline-block;transition:translate var(--m-fast) steps(5,end)}}
-.menu a .ni{transition:translate var(--m-fast) steps(5,end)}
+.menu a{position:relative;z-index:1;isolation:isolate;transition:color var(--m-fast) var(--e-out),transform var(--m-fast) var(--e-out),scale 100ms var(--e-out)}
+.menu a::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--ice);transform:scaleX(0);transform-origin:left center;transition:transform var(--m-std) var(--e-out);pointer-events:none}
+.menu a::after{content:"";position:absolute;left:10px;right:34%;bottom:4px;height:3px;z-index:-1;background:var(--acc);transform:skewX(-30deg) scaleX(0);transform-origin:left center;transition:transform var(--m-std) var(--e-out) 40ms;pointer-events:none}
+@media(min-width:701px){.menu a .nt{display:inline-block;transition:translate var(--m-std) var(--e-out)}}
+.menu a .ni{transition:translate var(--m-std) var(--e-out)}
 @media(hover:hover){
  .menu a:not([aria-current]):hover{background:transparent;color:var(--pri)}
  .menu a:not([aria-current]):hover::before{transform:scaleX(1)}
  .menu a:not([aria-current]):hover::after{transform:skewX(-30deg) scaleX(1)}
- .menu a:hover .nt{translate:4px 0}
- .menu a[aria-current]:hover .nt{translate:2px -1px}
+ .menu a:hover .nt{translate:3px 0}
+ .menu a[aria-current]:hover .nt{translate:1px 0}
 }
 .menu a:not([aria-current]):focus-visible{background:transparent;color:var(--pri)}
 .menu a:not([aria-current]):focus-visible::before{transform:scaleX(1)}
 .menu a:not([aria-current]):focus-visible::after{transform:skewX(-30deg) scaleX(1)}
-.menu a:active{scale:.94;transition-duration:60ms}
+.menu a:active{scale:.96;transition-duration:80ms}
 .p5-navwait .menu a[aria-current],.p5-navwait .band .menu a[aria-current]{background-color:transparent;animation:p5navback 1ms 1.5s forwards}
 @keyframes p5navback{to{background-color:var(--btn)}}   /* страховка: если скрипт не загрузился, подложка вернётся сама */
 .p5-navghost{position:absolute;z-index:0;background:var(--btn);clip-path:var(--para);transform-origin:0 0;pointer-events:none}
-.menu a.p5-stamp{animation:p5stamp 260ms steps(9,end)}
-@keyframes p5stamp{0%{scale:1.22}55%{scale:.94}100%{scale:1}}
-.acc{transition:background-color var(--m-fast),color var(--m-fast),scale 80ms ease-out}
-.acc:active{scale:.94}
-.brand .tmlogo{transition:rotate var(--m-fast) steps(5,end)}
-@media(hover:hover){.brand:hover .tmlogo{rotate:-8deg}}
+.menu a.p5-stamp{animation:p5stamp 320ms var(--e-spring)}
+@keyframes p5stamp{0%{scale:.96}100%{scale:1}}
+.acc{transition:background-color var(--m-fast),color var(--m-fast),scale 100ms var(--e-out)}
+.acc:active{scale:.96}
+.brand .tmlogo{transition:rotate var(--m-std) var(--e-out)}
+@media(hover:hover){.brand:hover .tmlogo{rotate:-4deg}}
 
 /* 3. Кнопки действий.
-   Наведение: кнопка сдвигается вправо, по ней проходит косой блик.
-   Нажатие: короткое сжатие. Отправка: бегущая штриховка, пока кнопка заблокирована на время запроса. */
-.btn,.btn-s,.hsearch button{position:relative;isolation:isolate;overflow:hidden;transition:background-color var(--m-fast),color var(--m-fast),transform var(--m-fast) steps(5,end),scale 70ms ease-out}
-.btn::before,.btn-s::before,.hsearch button::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-45%;width:35%;z-index:-1;background:rgba(255,255,255,.3);transform:skewX(-24deg);translate:-100% 0;pointer-events:none}
-.heroblock .btn::before{background:rgba(63,149,218,.25)}
-@media(hover:hover){.btn:not(:disabled):hover::before,.btn-s:not(:disabled):hover::before,.hsearch button:hover::before{animation:p5sweep 380ms steps(13,end)}}
+   Наведение: кнопка чуть сдвигается вправо, по ней медленно проходит мягкий блик.
+   Нажатие: короткое сжатие. Отправка: спокойная бегущая штриховка, пока кнопка ждёт ответа сервера. */
+.btn,.btn-s,.hsearch button{position:relative;isolation:isolate;overflow:hidden;transition:background-color var(--m-fast),color var(--m-fast),transform var(--m-std) var(--e-out),scale 100ms var(--e-out)}
+.btn::before,.btn-s::before,.hsearch button::before{content:"";position:absolute;top:-20%;bottom:-20%;left:-45%;width:35%;z-index:-1;background:rgba(255,255,255,.22);transform:skewX(-24deg);translate:-100% 0;pointer-events:none}
+.heroblock .btn::before{background:rgba(63,149,218,.18)}
+@media(hover:hover){.btn:not(:disabled):hover::before,.btn-s:not(:disabled):hover::before,.hsearch button:hover::before{animation:p5sweep 620ms var(--e-io)}}
 @keyframes p5sweep{from{translate:-100% 0}to{translate:560% 0}}
-.btn:active,.btn-s:active,.hsearch button:active{scale:.95}
-.btn:disabled,.btn-s:disabled{cursor:progress;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 8px,transparent 8px 16px);background-size:22.63px 22.63px;animation:p5busy .6s steps(12,end) infinite}
+.btn:active,.btn-s:active,.hsearch button:active{scale:.97}
+.btn:disabled,.btn-s:disabled{cursor:progress;background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.2) 0 8px,transparent 8px 16px);background-size:22.63px 22.63px;animation:p5busy 1.2s linear infinite}
 .btn:disabled:hover,.btn-s:disabled:hover{background-color:var(--btn);transform:none}
 @keyframes p5busy{to{background-position:22.63px 0}}
-.xclose{transition:background-color .12s,color .12s,rotate var(--m-fast) steps(5,end),scale 70ms ease-out}
+.xclose{transition:background-color var(--m-fast),color var(--m-fast),rotate var(--m-std) var(--e-out),scale 100ms var(--e-out)}
 @media(hover:hover){.xclose:hover{rotate:90deg}}
-.xclose:active{scale:.88}
+.xclose:active{scale:.92}
 
 /* 4. Переключатели: фильтры, семестры, разделы, варианты ответов, кнопки заданий.
-   Наведение: контрастная заливка и красная тень. Выбор: «штамп» с наклоном.
-   Снятие выбора: быстрый отскок без наклона. Плитка раздела при выборе «бьёт» тенью. */
-.pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{transition:background-color var(--m-fast),color var(--m-fast),transform var(--m-fast) steps(5,end),box-shadow var(--m-fast) steps(5,end),translate 60ms ease-out}
+   Наведение: мягкая заливка и приподнятая тень. Выбор: короткий упругий отклик без наклона.
+   Снятие выбора: лёгкое сжатие. Плитка раздела при выборе приподнимается над подложкой. */
+.pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{transition:background-color var(--m-fast),color var(--m-fast),border-color var(--m-fast),transform var(--m-std) var(--e-out),box-shadow var(--m-std) var(--e-out),translate 100ms var(--e-out)}
 @media(hover:hover){.pill:hover,.gf:hover,.kchip:hover,.tkb:hover:not(:disabled),.fbb:hover,.fo:hover span,.xnb:hover:not(:disabled){box-shadow:var(--sh-h)}}
-.pill:active,.gf:active,.kchip:active,.tkb:active:not(:disabled),.fbb:active,.fo:active span,.xnb:active:not(:disabled){translate:2px 2px;box-shadow:1px 1px 0 var(--bd)}
+.pill:active,.gf:active,.kchip:active,.tkb:active:not(:disabled),.fbb:active,.fo:active span,.xnb:active:not(:disabled){translate:0 1px;box-shadow:var(--sh-s)}
 .tkb:disabled:hover,.xnb:disabled:hover{background:var(--card);color:var(--ink);transform:none}
 .tkb[aria-pressed=true]:disabled:hover{background:var(--btn);color:#fff}
 .xnb:disabled{cursor:default}
-.p5-on,.tkb.tkdone{animation:p5on 280ms steps(9,end)}
-.p5-off{animation:p5off 140ms ease-out}
-.tile.p5-slam{animation:p5slam 360ms steps(12,end)}
-@keyframes p5on{0%{scale:.9;rotate:0deg}40%{scale:1.1;rotate:-3deg}70%{scale:.98;rotate:1deg}100%{scale:1;rotate:0deg}}
-@keyframes p5off{0%{scale:.94}100%{scale:1}}
-@keyframes p5slam{0%{translate:0 0}30%{translate:-8px -8px;box-shadow:14px 14px 0 var(--red)}100%{translate:0 0}}
-.tile{transition:transform .12s,box-shadow .12s,translate 70ms ease-out}
-.tile:active{translate:3px 3px}
+.p5-on,.tkb.tkdone{animation:p5on 320ms var(--e-spring)}
+.p5-off{animation:p5off 180ms var(--e-out)}
+.tile.p5-slam{animation:p5slam 420ms var(--e-out)}
+@keyframes p5on{from{scale:.95}to{scale:1}}
+@keyframes p5off{from{scale:.97}to{scale:1}}
+@keyframes p5slam{0%{translate:0 0}35%{translate:-3px -3px;box-shadow:10px 10px 0 var(--tp)}100%{translate:0 0}}
+.tile{transition:transform var(--m-std) var(--e-out),box-shadow var(--m-std) var(--e-out),translate 100ms var(--e-out)}
+.tile:active{translate:2px 2px}
 
 /* 5. Карточки предметов (каталог и путь студента).
-   Наведение: карточка приподнимается, слева прорастает красная полоса, через 50 мс сдвигается заголовок,
-   через 70 мс поворачивается значок. Нажатие: карточка «вдавливается».
-   После смены фильтра вернувшиеся карточки входят косым срезом лесенкой. */
-.card::before,.dc::before{content:"";position:absolute;left:-3px;top:-3px;bottom:-3px;width:9px;z-index:2;background:var(--red);transform:scaleY(0);transform-origin:50% 0;transition:transform var(--m-fast) steps(5,end) 30ms;pointer-events:none}
-.card h3,.dc b{transition:translate var(--m-fast) steps(5,end) 50ms}
-.card .gi,.dc .dci{transition:rotate var(--m-fast) steps(5,end) 70ms}
+   Наведение: карточка приподнимается, слева проявляется синяя полоса, заголовок чуть сдвигается, значок слегка поворачивается.
+   После смены фильтра вернувшиеся карточки проявляются со сдвигом лесенкой, ушедшие — гаснут. */
+.card::before,.dc::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:5px;z-index:2;border-radius:var(--r-s) 0 0 var(--r-s);background:var(--acc);transform:scaleY(0);transform-origin:50% 0;transition:transform var(--m-std) var(--e-out) 30ms;pointer-events:none}
+.card h3,.dc b{transition:translate var(--m-std) var(--e-out) 40ms}
+.card .gi,.dc .dci{transition:rotate var(--m-std) var(--e-out) 60ms}
 @media(hover:hover){
  .card:hover::before,.dc:hover::before{transform:scaleY(1)}
- .card:hover h3,.dc:hover b{translate:5px 0}
- .card:hover .gi,.dc:hover .dci{rotate:-14deg}
+ .card:hover h3,.dc:hover b{translate:3px 0}
+ .card:hover .gi,.dc:hover .dci{rotate:-6deg}
 }
 .card:focus-visible::before,.dc:focus-visible::before{transform:scaleY(1)}
-.card:focus-visible h3,.dc:focus-visible b{translate:5px 0}
-.card:active,.dc:active{translate:3px 3px;box-shadow:var(--sh-s);transition-duration:60ms}
-.card.p5-enter{animation:p5enter 300ms steps(10,end) calc(var(--k,0) * 20ms) backwards}
-#empty:not([hidden]){animation:p5enter 300ms steps(10,end)}
-.card.p5-leave{animation:p5leave 180ms steps(6,end) forwards;pointer-events:none}
-@keyframes p5leave{from{opacity:1;clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}to{opacity:0;translate:18px 0;clip-path:polygon(120% 0,120% 0,100% 100%,100% 100%)}}
-#count.p5-tick{animation:p5tick 200ms steps(7,end)}
-@keyframes p5enter{from{opacity:0;translate:-16px 0;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{opacity:1;translate:0 0;clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}}
-@keyframes p5tick{0%{translate:-6px 0;opacity:.35}100%{translate:0 0;opacity:1}}
-/* путь студента: карточки семестра въезжают по диагонали, подсвеченные — «штампуются» лесенкой,
-   текущая станция вспыхивает красным кольцом, плашка подсветки выезжает снизу */
-.js .station:not(.vis) .dc{transform:translate(-18px,12px) skewX(-4deg)}
-.dc.hl{animation:p5hl 320ms steps(11,end) calc(var(--i,0) * 15ms) backwards}
-@keyframes p5hl{0%{scale:1}40%{scale:1.05;rotate:-1deg}100%{scale:1;rotate:0deg}}
-.station.current .node{animation:p5node 380ms steps(13,end)}
-@keyframes p5node{0%{scale:1.2;box-shadow:0 0 0 0 rgba(63,149,218,.5)}100%{scale:1;box-shadow:0 0 0 5px rgba(63,149,218,.25)}}
-.hlpill:not([hidden]){animation:p5pill 320ms steps(11,end)}
-.hlpill:not([hidden]) button{animation:p5on 280ms steps(9,end) 160ms backwards}
-@keyframes p5pill{from{translate:0 140%;rotate:-4deg;opacity:0}to{translate:0 0;rotate:0deg;opacity:1}}
+.card:focus-visible h3,.dc:focus-visible b{translate:3px 0}
+.card:active,.dc:active{translate:0 1px;box-shadow:var(--sh-s);transition-duration:80ms}
+.card.p5-enter{animation:p5enter 320ms var(--e-out) calc(var(--k,0) * 20ms) backwards}
+#empty:not([hidden]){animation:p5enter 320ms var(--e-out)}
+.card.p5-leave{animation:p5leave 180ms var(--e-io) forwards;pointer-events:none}
+@keyframes p5leave{from{opacity:1}to{opacity:0;translate:0 6px;scale:.98}}
+#count.p5-tick{animation:p5tick 240ms var(--e-out)}
+@keyframes p5enter{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@keyframes p5tick{from{opacity:.4;translate:0 -3px}to{opacity:1;translate:0 0}}
+/* путь студента: карточки семестра проявляются снизу лесенкой, подсвеченные мягко «вспухают»,
+   вокруг текущей станции расходится голубое кольцо, плашка подсветки выезжает снизу */
+.js .station:not(.vis) .dc{transform:translateY(14px)}
+.dc.hl{animation:p5hl 360ms var(--e-spring) calc(var(--i,0) * 15ms) backwards}
+@keyframes p5hl{from{scale:.97}to{scale:1}}
+.station.current .node{animation:p5node 520ms var(--e-out)}
+@keyframes p5node{0%{scale:1.08;box-shadow:0 0 0 0 rgba(63,149,218,.45)}100%{scale:1;box-shadow:0 0 0 5px rgba(63,149,218,.25)}}
+.hlpill:not([hidden]){animation:p5pill 360ms var(--e-out)}
+.hlpill:not([hidden]) button{animation:p5on 320ms var(--e-spring) 160ms backwards}
+@keyframes p5pill{from{translate:0 120%;opacity:0}to{translate:0 0;opacity:1}}
 
 /* 6. Раскрытая карточка предмета (окно поверх пути студента).
-   После того как карточка разворачивается (path.js): штриховка фона сдвигается,
-   шапка открывается косым срезом, затем надпись, название, цифры, а метка статуса — последней.
+   После того как карточка разворачивается (path.js): линии фона чуть сдвигаются,
+   шапка проявляется, затем надпись, название, цифры, а метка статуса — последней.
    При листании стрелками шапка приходит со стороны движения и без задержек. */
-.ov{animation:p5stripes var(--m-slow) steps(14,end)}
-@keyframes p5stripes{from{background-position:-64px 0}to{background-position:0 0}}
-.xp .xh{animation:p5wipe 260ms steps(9,end) 90ms backwards}
-.xp .xh .xk{animation:p5rise 200ms steps(7,end) 170ms backwards}
-.xp .xh h2{animation:p5title 240ms steps(8,end) 190ms backwards}
-.xp .xh .xm{animation:p5rise 200ms steps(7,end) 230ms backwards}
-.xp .xh .badge{animation:p5badge 240ms steps(8,end) 270ms backwards}
-.xp .xn{animation:p5up 220ms steps(7,end) 250ms backwards}
-.xclose{animation:p5pop 240ms steps(8,end) 210ms backwards}
+.ov{animation:p5stripes var(--m-slow) var(--e-out)}
+@keyframes p5stripes{from{background-position:-32px 0}to{background-position:0 0}}
+.xp .xh{animation:p5wipe 300ms var(--e-out) 60ms backwards}
+.xp .xh .xk{animation:p5rise 260ms var(--e-out) 130ms backwards}
+.xp .xh h2{animation:p5title 300ms var(--e-out) 160ms backwards}
+.xp .xh .xm{animation:p5rise 260ms var(--e-out) 200ms backwards}
+.xp .xh .badge{animation:p5badge 280ms var(--e-spring) 240ms backwards}
+.xp .xn{animation:p5up 280ms var(--e-out) 220ms backwards}
+.xclose{animation:p5pop 260ms var(--e-out) 180ms backwards}
 .xp[data-dir] .xh{animation-delay:0ms}
 .xp[data-dir] .xh .xk,.xp[data-dir] .xh h2{animation-delay:40ms}
 .xp[data-dir] .xh .xm{animation-delay:70ms}
@@ -787,57 +787,58 @@ html:active-view-transition-type(back)::view-transition-new(root){animation-name
 .xp[data-dir] .xn{animation:none}
 .xp[data-dir=b] .xh{animation-name:p5wipeB}
 .xp[data-dir=b] .xh h2{animation-name:p5titleB}
-@keyframes p5wipe{from{clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{clip-path:polygon(0 0,120% 0,100% 100%,-20% 100%)}}
-@keyframes p5wipeB{from{clip-path:polygon(100% 0,100% 0,120% 100%,120% 100%)}to{clip-path:polygon(100% 0,-20% 0,0 100%,120% 100%)}}
-@keyframes p5title{from{opacity:0;translate:-26px 0;transform:skewX(-10deg)}to{opacity:1;translate:0 0;transform:none}}
-@keyframes p5titleB{from{opacity:0;translate:26px 0;transform:skewX(10deg)}to{opacity:1;translate:0 0;transform:none}}
-@keyframes p5rise{from{opacity:0;translate:-14px 0}to{opacity:1;translate:0 0}}
-@keyframes p5badge{from{opacity:0;scale:1.8;rotate:-12deg}to{opacity:1;scale:1;rotate:0deg}}
+@keyframes p5wipe{from{opacity:.4}to{opacity:1}}
+@keyframes p5wipeB{from{opacity:.4}to{opacity:1}}
+@keyframes p5title{from{opacity:0;translate:-12px 0}to{opacity:1;translate:0 0}}
+@keyframes p5titleB{from{opacity:0;translate:12px 0}to{opacity:1;translate:0 0}}
+@keyframes p5rise{from{opacity:0;translate:-8px 0}to{opacity:1;translate:0 0}}
+@keyframes p5badge{from{opacity:0;scale:.85}to{opacity:1;scale:1}}
 @keyframes p5up{from{translate:0 100%}to{translate:0 0}}
-@keyframes p5pop{from{opacity:0;scale:.3;rotate:-120deg}to{opacity:1;scale:1;rotate:0deg}}
+@keyframes p5pop{from{opacity:0;scale:.7}to{opacity:1;scale:1}}
 
 /* 7. Раскрывающиеся блоки (вопросы «О проекте», ответы к заданиям).
-   Наведение: заголовок сдвигается. Открытие: содержимое раскрывается слева направо.
-   Закрытие: содержимое уезжает вправо и гаснет, затем блок закрывается (motion.js). */
-details>summary{transition:translate var(--m-fast) steps(5,end),color var(--m-fast)}
-@media(hover:hover){details>summary:hover{translate:4px 0;color:var(--red)}}
-details[open]>:not(summary){animation:p5reveal 260ms steps(9,end)}
-details.p5-closing>:not(summary){animation:p5hide 160ms steps(5,end) forwards}
-@keyframes p5reveal{from{opacity:0;translate:-12px 0;clip-path:inset(0 100% 0 0)}to{opacity:1;translate:0 0;clip-path:inset(0 0 0 0)}}
-@keyframes p5hide{from{opacity:1;clip-path:inset(0 0 0 0)}to{opacity:0;translate:10px 0;clip-path:inset(0 0 0 100%)}}
+   Наведение: заголовок чуть сдвигается. Открытие: содержимое проявляется со сдвигом вниз.
+   Закрытие: содержимое гаснет, затем блок закрывается (motion.js). */
+details>summary{transition:translate var(--m-std) var(--e-out),color var(--m-fast)}
+@media(hover:hover){details>summary:hover{translate:3px 0;color:var(--pri)}}
+details[open]>:not(summary){animation:p5reveal 300ms var(--e-out)}
+details.p5-closing>:not(summary){animation:p5hide 160ms var(--e-io) forwards}
+@keyframes p5reveal{from{opacity:0;translate:0 -6px}to{opacity:1;translate:0 0}}
+@keyframes p5hide{from{opacity:1}to{opacity:0;translate:0 -4px}}
 
 /* 8. Сообщения, ошибки и смена состояний форм.
-   Новое сообщение проявляется слева направо. Вопрос с ошибкой встряхивается при каждой неудачной отправке.
-   Появившиеся вопросы формы выпадают сверху. Благодарность после отправки «штампуется».
+   Новое сообщение проявляется. Вопрос с ошибкой коротко покачивается при каждой неудачной отправке.
+   Появившиеся вопросы формы мягко выпадают сверху. Благодарность после отправки проявляется с лёгким откликом.
    Оценки студентов появляются по очереди при загрузке и при обновлении с сервера. */
-.p5-msg{animation:p5msg 260ms steps(9,end)}
-@keyframes p5msg{from{clip-path:inset(0 100% 0 0);translate:-8px 0}to{clip-path:inset(0 0 0 0);translate:0 0}}
-.fq.p5-err{animation:p5shake 320ms steps(11,end)}
-@keyframes p5shake{0%,100%{translate:0 0}20%{translate:-9px 0}45%{translate:7px 0}70%{translate:-4px 0}85%{translate:2px 0}}
-.fbform:not([hidden]),#rest:not([hidden]),.ff [data-roles]:not([hidden]),#trustwhy:not([hidden]),#uxwhy:not([hidden]),#errbox:not([hidden]){animation:p5drop 280ms steps(9,end)}
-@keyframes p5drop{from{opacity:0;translate:0 -10px;clip-path:inset(0 0 100% 0)}to{opacity:1;translate:0 0;clip-path:inset(0 0 0 0)}}
-.fbok{transform-origin:left center;animation:p5badge 300ms steps(10,end)}
-.ff>h2:first-child{animation:p5title 300ms steps(10,end)}
-.meter{animation:p5meter 300ms steps(10,end) backwards}
+.p5-msg{animation:p5msg 300ms var(--e-out)}
+@keyframes p5msg{from{opacity:0;translate:-6px 0}to{opacity:1;translate:0 0}}
+.fq.p5-err{animation:p5shake 360ms var(--e-io)}
+@keyframes p5shake{0%,100%{translate:0 0}25%{translate:-5px 0}55%{translate:4px 0}80%{translate:-2px 0}}
+.fbform:not([hidden]),#rest:not([hidden]),.ff [data-roles]:not([hidden]),#trustwhy:not([hidden]),#uxwhy:not([hidden]),#errbox:not([hidden]){animation:p5drop 300ms var(--e-out)}
+@keyframes p5drop{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
+.fbok{transform-origin:left center;animation:p5badge 320ms var(--e-spring)}
+.ff>h2:first-child{animation:p5title 320ms var(--e-out)}
+.meter{animation:p5meter 340ms var(--e-out) backwards}
 .meter:nth-child(2){animation-delay:60ms}.meter:nth-child(3){animation-delay:120ms}.meter:nth-child(4){animation-delay:180ms}
-@keyframes p5meter{from{opacity:0;scale:.6;rotate:-6deg}to{opacity:1;scale:1;rotate:0deg}}
-#q,.ff textarea,.ff input[type=text],.ff select,.tkform input,.hsearch{transition:border-color var(--m-fast),box-shadow var(--m-fast) steps(5,end)}
+@keyframes p5meter{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+#q,.ff textarea,.ff input[type=text],.ff select,.tkform input,.hsearch{transition:border-color var(--m-fast),box-shadow var(--m-std) var(--e-out)}
 
-/* 9. Первое появление страницы: обложка раскрывается косым срезом, затем точечный слой,
-   заголовок, остальные строки обложки лесенкой; знак — «наклейка» с отскоком.
+/* 9. Первое появление страницы: обложка раскрывается косым срезом (единственный срез на странице — её «подпись»),
+   затем линии фона, заголовок, остальные строки обложки лесенкой; знак проявляется и мягко поднимается.
    Всё содержимое видно меньше чем через полсекунды, отдельного загрузочного экрана нет. */
-.heroblock,.band{animation:p5panel 260ms steps(9,end) backwards}
+.heroblock,.band{animation:p5panel 420ms var(--e-out) backwards}
 @keyframes p5panel{from{clip-path:polygon(0 0,0 0,-15% 100%,-15% 100%)}to{clip-path:polygon(-20px -20px,calc(115% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),calc(-15% - 20px) calc(100% + 20px))}}
-.heroblock::after,.band::before{animation:p5fade 300ms ease 120ms backwards}
+.heroblock::after,.band::before{animation:p5fade 400ms ease 120ms backwards}
 @keyframes p5fade{from{opacity:0}to{opacity:1}}
 .hero h1,.heroblock .hero h1{animation-delay:60ms}
 .band h1{animation-delay:50ms}
-.hero>:not(h1){animation:p5rise 220ms steps(7,end) backwards;animation-delay:calc(60ms + var(--n,0) * 25ms)}
+.hero>:not(h1){animation:p5rise 300ms var(--e-out) backwards;animation-delay:calc(80ms + var(--n,0) * 30ms)}
 .hero>:nth-child(3){--n:1}.hero>:nth-child(4){--n:2}.hero>:nth-child(5){--n:3}.hero>:nth-child(n+6){--n:4}
-.facts span{animation:p5meter 280ms steps(9,end) backwards}
+.facts span{animation:p5meter 340ms var(--e-out) backwards}
 .facts span:nth-child(1){animation-delay:200ms}.facts span:nth-child(2){animation-delay:240ms}.facts span:nth-child(3){animation-delay:280ms}.facts span:nth-child(4){animation-delay:320ms}
-.hero3d .cube{animation:p5meter 360ms steps(12,end) 150ms backwards,float3 7s ease-in-out 550ms infinite}
-.band .crumbs,.band .meta,.band .badge{animation:p5rise 240ms steps(8,end) backwards}
+.hero3d .cube{animation:p5meter 420ms var(--e-out) 150ms backwards,float3 8s ease-in-out 600ms 3}
+.hero3d .ring::after{animation-iteration-count:3}
+.band .crumbs,.band .meta,.band .badge{animation:p5rise 300ms var(--e-out) backwards}
 .band .crumbs{animation-delay:100ms}.band .meta{animation-delay:130ms}.band .badge{animation-delay:160ms}
 
 /* 10. Режим «уменьшить движение»: переходы между страницами отключены,
@@ -849,66 +850,61 @@ details.p5-closing>:not(summary){animation:p5hide 160ms steps(5,end) forwards}
 }
 .jbar #jpct{color:var(--mut)}
 
-/* 11. Появление при прокрутке (motion.js): блок ниже экрана ждёт скрытым и въезжает косым срезом,
-   соседние в одной «пачке» (ряд карточек) — лесенкой. Заголовок вместе с подчёркиванием раскрывается слева направо. */
+/* 11. Появление при прокрутке (motion.js): блок ниже экрана ждёт скрытым и проявляется, слегка поднимаясь;
+   соседние в одной «пачке» (ряд карточек) — лесенкой. */
 .p5-rv:not(.p5-in){opacity:0}
-.p5-in{animation:p5scroll 340ms steps(11,end) calc(var(--rd,0) * 28ms) backwards}
+.p5-in{animation:p5scroll 420ms var(--e-out) calc(var(--rd,0) * 35ms) backwards}
 h2.p5-in{animation-name:p5scrollh}
-@keyframes p5scroll{from{opacity:0;translate:-22px 14px;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{opacity:1;translate:0 0;clip-path:polygon(-20px -20px,calc(120% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),-20px calc(100% + 20px))}}
-@keyframes p5scrollh{from{opacity:0;translate:-18px 0;clip-path:inset(-10px 100% -10px 0)}to{opacity:1;translate:0 0;clip-path:inset(-10px -10px -10px 0)}}
+@keyframes p5scroll{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@keyframes p5scrollh{from{opacity:0;translate:-10px 0}to{opacity:1;translate:0 0}}
 @media print{.p5-rv{opacity:1!important}}
 
-/* 12. Параллакс обложки: пока страница прокручивается первые 500 px, слои движутся с разной скоростью:
-   куб сзади отстаёт сильнее, точечная текстура слегка. Работает на CSS без скриптов (animation-timeline: scroll()),
-   в браузерах без этой возможности обложка просто стоит как раньше. Только если движение не ограничено. */
+/* 12. Лёгкий параллакс обложки: пока страница прокручивается первые 500 px, знак отстаёт на несколько пикселей,
+   линии фона сдвигаются чуть-чуть. Работает на CSS без скриптов (animation-timeline: scroll()),
+   в браузерах без этой возможности обложка просто стоит. Только если движение не ограничено. */
 @supports (animation-timeline:scroll()){
  @media(prefers-reduced-motion:no-preference){
   .hero3d{animation:p5parC linear both;animation-timeline:scroll(root block);animation-range:0 520px}
-  .heroblock::after,.band::before{animation:p5fade 300ms ease 120ms backwards,p5parD linear both;animation-timeline:auto,scroll(root block);animation-range:normal,0 420px}
+  .heroblock::after,.band::before{animation:p5fade 400ms ease 120ms backwards,p5parD linear both;animation-timeline:auto,scroll(root block);animation-range:normal,0 420px}
  }
 }
-@keyframes p5parC{to{translate:0 70px}}
-@keyframes p5parD{to{background-position:0 38px}}
+@keyframes p5parC{to{translate:0 28px}}
+@keyframes p5parD{to{background-position:0 16px}}
 
-/* 13. Интерфейс уходит на время действия (приём из видео про HUD Persona 5).
-   Пока открыта карточка предмета, шапка, полоса прогресса и плашка подсветки уезжают за край экрана
-   кадрами и возвращаются при закрытии. Работает на переходах, поэтому в обе стороны. На телефоне уходит нижняя панель
+/* 13. Интерфейс уступает место карточке: пока открыта карточка предмета, шапка, полоса прогресса и плашка подсветки
+   плавно уходят за край экрана и возвращаются при закрытии. На телефоне уходит нижняя панель
    (она закреплена внутри шапки, поэтому шапку целиком не двигаем). Без поддержки :has() интерфейс просто остаётся на месте. */
-.top,.menu,.jbar,.hlpill{transition:translate 200ms steps(7,end)}
+.top,.menu,.jbar,.hlpill{transition:translate 280ms var(--e-io)}
 html:has(.ov) .jbar{translate:0 -220%}
 html:has(.ov) .hlpill{translate:0 240%}
 @media(min-width:701px){html:has(.ov) .top{translate:0 -140%}}
 @media(max-width:700px){html:has(.ov) .menu{translate:0 160%}}
 
 /* 14. Сигнатуры страниц: у каждой страницы свой приём. Классы ставит motion.js. */
-/* «Развитие сайта»: линия этапов дорисовывается кадрами, этапы встают на неё по очереди и «штампуются» */
+/* «Развитие сайта»: линия этапов плавно дорисовывается, этапы встают на неё по очереди */
 .p5-sw::before{scale:0 1}
 .p5-sw .stage{opacity:0}
-.p5-draw::before{transform-origin:left center;animation:p5line 620ms steps(20,end) backwards}
-.p5-draw .stage{animation:p5stage 340ms steps(11,end) calc(var(--sd,0) * 1ms) backwards}
-.p5-draw .stage .num{animation:p5badge 300ms steps(10,end) calc(var(--sd,0) * 1ms + 120ms) backwards}
+.p5-draw::before{transform-origin:left center;animation:p5line 800ms var(--e-io) backwards}
+.p5-draw .stage{animation:p5stage 420ms var(--e-out) calc(var(--sd,0) * 1ms) backwards}
+.p5-draw .stage .num{animation:p5badge 340ms var(--e-spring) calc(var(--sd,0) * 1ms + 120ms) backwards}
 .p5-draw .stage:nth-child(1){--sd:0}.p5-draw .stage:nth-child(2){--sd:170}.p5-draw .stage:nth-child(3){--sd:340}.p5-draw .stage:nth-child(4){--sd:510}
 @keyframes p5line{from{scale:0 1}to{scale:1 1}}
 @keyframes p5lineV{from{scale:1 0}to{scale:1 1}}
-@keyframes p5stage{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+@keyframes p5stage{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
 @media(max-width:900px){.p5-sw::before{scale:1 0}.p5-draw::before{transform-origin:top center;animation-name:p5lineV}}
 
-/* «О проекте»: вопросы раскрываются диагональным срезом, по которому проходит красная полоса; чётные приходят справа */
-details.p5-in{position:relative;animation:p5diag 420ms steps(14,end) calc(var(--rd,0) * 40ms) backwards}
+/* «О проекте»: вопросы проявляются по очереди, нечётные слева, чётные справа */
+details.p5-in{position:relative;animation:p5diag 420ms var(--e-out) calc(var(--rd,0) * 40ms) backwards}
 details.p5-in:nth-of-type(even){animation-name:p5diagR}
-details.p5-in::after{content:"";position:absolute;z-index:2;left:0;top:0;bottom:0;width:38%;background:var(--red);clip-path:polygon(18% 0,100% 0,82% 100%,0 100%);pointer-events:none;animation:p5slash 420ms steps(14,end) calc(var(--rd,0) * 40ms) both}
-details.p5-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,82% 0,100% 100%,18% 100%);animation-name:p5slashR}
-@keyframes p5diag{from{opacity:1;clip-path:polygon(0 0,0 0,-20% 100%,-20% 100%)}to{clip-path:polygon(-20px -20px,calc(120% + 20px) -20px,calc(100% + 20px) calc(100% + 20px),-20px calc(100% + 20px))}}
-@keyframes p5diagR{from{opacity:1;clip-path:polygon(100% 0,100% 0,120% 100%,120% 100%)}to{clip-path:polygon(calc(100% + 20px) -20px,-20px -20px,-20px calc(100% + 20px),calc(120% + 20px) calc(100% + 20px))}}
-@keyframes p5slash{from{translate:-100% 0}to{translate:300% 0}}
-@keyframes p5slashR{from{translate:100% 0}to{translate:-300% 0}}
+@keyframes p5diag{from{opacity:0;translate:-12px 0}to{opacity:1;translate:0 0}}
+@keyframes p5diagR{from{opacity:0;translate:12px 0}to{opacity:1;translate:0 0}}
 
-/* Каталог: плитки разделов по очереди «бьют» по экрану: падают сверху со смещённой красной тенью и встают на место */
-.tile.p5-in{animation:p5tile 380ms steps(13,end) calc(var(--rd,0) * 65ms) backwards}
-@keyframes p5tile{from{opacity:0;translate:-18px -30px;box-shadow:18px 18px 0 var(--red)}45%{opacity:1;translate:-5px -5px;box-shadow:11px 11px 0 var(--red)}}
+/* Каталог: плитки разделов по очереди опускаются на свои подложки */
+.tile.p5-in{animation:p5tile 460ms var(--e-out) calc(var(--rd,0) * 70ms) backwards}
+@keyframes p5tile{from{opacity:0;translate:0 -14px;box-shadow:0 0 0 var(--tp)}}
 
 /* Блоки сигнатур скрыты с первого кадра (класс p5-pre ставит <head>), чтобы не мелькали до запуска скрипта.
-   Если скрипт не загрузится, через 2,5 с всё покажется само. */
+   Если скрипт не загрузится, через 1,5 с всё покажется само. */
 .p5-pre .tiles .tile,.p5-pre main .wrap>details,.p5-pre .road .stage{opacity:0;animation:p5unhide 1ms 1.5s forwards}
 .p5-pre .road::before{opacity:0;animation:p5unhide 1ms 1.5s forwards}
 @keyframes p5unhide{to{opacity:1}}
@@ -920,15 +916,15 @@ details.p5-in:nth-of-type(even)::after{left:auto;right:0;clip-path:polygon(0 0,8
 @property --fill{syntax:"<length>";inherits:false;initial-value:0px}
 .track::after{--fill:inherit}
 
-/* Бесконечные анимации обложки (плавание куба и тени) стоят на паузе, пока обложка за пределами экрана.
+/* Анимации обложки (плавание знака и тень под ним) стоят на паузе, пока обложка за пределами экрана.
    Класс p5-herooff ставит motion.js через IntersectionObserver. */
 .p5-herooff .hero3d .cube,.p5-herooff .hero3d .ring::after{animation-play-state:paused}
 
 /* Лёгкий режим для слабых устройств (мало памяти или ядер, экономия трафика, медленная сеть; класс ставит <head>).
-   Сохраняются цвета, ступенчатое движение, штампы и срезы. Убираются только то, что работает без остановки или дублирует эффект:
-   плавание куба, параллакс обложки, лесенка задержек и межстраничный срез (в <head>). */
+   Убирается то, что дублирует эффект или нагружает: плавание знака, параллакс, срез обложки, лесенка задержек
+   и межстраничный переход (в <head>). */
 .p5-lite .hero3d .cube,.p5-lite .hero3d .ring::after{animation:none}
 .p5-lite .hero3d{animation:none}
+.p5-lite .heroblock,.p5-lite .band{animation:p5fade 300ms ease backwards}
 .p5-lite .heroblock::after,.p5-lite .band::before{animation:p5fade 300ms ease 120ms backwards}
-.p5-lite .p5-in,.p5-lite .card.p5-enter,.p5-lite details.p5-in,.p5-lite details.p5-in::after,.p5-lite .tile.p5-in,.p5-lite .dc.hl{animation-delay:0ms!important}
-
+.p5-lite .p5-in,.p5-lite .card.p5-enter,.p5-lite details.p5-in,.p5-lite .tile.p5-in,.p5-lite .dc.hl{animation-delay:0ms!important}

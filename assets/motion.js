@@ -1,4 +1,4 @@
-// Движение в духе Persona 5. Скрипт не меняет логику сайта: он следит за состояниями,
+// Спокойное движение в духе Persona 3 Reload. Скрипт не меняет логику сайта: он следит за состояниями,
 // которые уже выставляют другие скрипты (aria-pressed, hidden, текст сообщений, open у <details>),
 // и добавляет на короткое время классы p5-*, а сами анимации описаны в style.css.
 // При «уменьшении движения» скрипт ничего не анимирует.
@@ -20,7 +20,7 @@
 
   // ---------- направление перехода между страницами (для View Transitions) ----------
   // Запоминаем, куда ведёт ссылка: вперёд или назад. Скрипт в <head> следующей страницы
-  // передаёт это в переход, и красный срез приходит с нужной стороны.
+  // передаёт это в переход, и новая страница проявляется со сдвигом с нужной стороны.
   var menu = document.querySelector('.menu'), links = menu ? [].slice.call(menu.querySelectorAll('a')) : [];
   function curIndex() { for (var i = 0; i < links.length; i++) if (links[i].hasAttribute('aria-current')) return i; return -1; }
   function save(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
@@ -102,7 +102,7 @@
   // ---------- навигация: индикатор активного пункта переезжает от прежнего пункта к новому ----------
   (function navGhost() {
     var raw; try { raw = sessionStorage.getItem('p5nav'); sessionStorage.removeItem('p5nav'); } catch (e) {}
-    var release = function () { root.classList.remove('p5-navwait'); };   // красная подложка активного пункта снова видна
+    var release = function () { root.classList.remove('p5-navwait'); };   // синяя подложка активного пункта снова видна
     if (!raw || !menu) { release(); return; }
     var d; try { d = JSON.parse(raw); } catch (e) { release(); return; }
     var to = curIndex();
@@ -125,9 +125,9 @@
       var dx = b.left - a.left, dy = b.top - a.top, sx = b.width / a.width, sy = b.height / a.height;
       var anim = ghost.animate([
         { transform: 'translate(0,0) scale(1,1)' },
-        { transform: 'translate(' + (dx * 1.06) + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')', offset: 0.78 },
+        { transform: 'translate(' + (dx * 1.03) + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')', offset: 0.8 },
         { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')' }
-      ], { duration: 280, easing: 'steps(9, end)', fill: 'forwards' });
+      ], { duration: 320, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' });
       anim.onfinish = function () { clearTimeout(safety); finish(); };
     };
     // ширина пунктов зависит от шрифта Oswald: если он уже загружен, стартуем сразу, иначе ждём не дольше 150 мс

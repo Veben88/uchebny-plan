@@ -25,7 +25,7 @@
       if (c.hidden) return;
       var r = c.getBoundingClientRect(), dx = was[i].left - r.left, dy = was[i].top - r.top;
       if ((dx || dy) && r.bottom > -200 && r.top < window.innerHeight + 200)
-        c.animate([{ translate: dx + 'px ' + dy + 'px' }, { translate: '0 0' }], { duration: 220, easing: 'steps(8, end)' });
+        c.animate([{ translate: dx + 'px ' + dy + 'px' }, { translate: '0 0' }], { duration: 260, easing: 'cubic-bezier(.22,.8,.24,1)' });
     });
   }
   function leave(list) {
