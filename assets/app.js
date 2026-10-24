@@ -36,11 +36,35 @@
       slide(function () { go.forEach(function (c) { c._out = false; c.classList.remove('p5-leave'); c.hidden = true; }); });
     }, LEAVE);
   }
+  // Поиск: каждое слово запроса должно встретиться в тексте карточки (порядок не важен), ё и е не различаются.
+  // Семестр: карточка подходит, если дисциплина идёт в этом семестре, а не только начинается в нём («1–2» видна и во 2-м).
+  var sortSel = document.getElementById('sort'), reset = document.getElementById('reset'), grid = g;
+  cards.forEach(function (c, i) { c._ord = i; });
+  var SORTS = {
+    '': function (a, b) { return a._ord - b._ord; },
+    name: function (a, b) { return a.dataset.name.localeCompare(b.dataset.name, 'ru') || a._ord - b._ord; },
+    ze: function (a, b) { return (+b.dataset.ze) - (+a.dataset.ze) || a._ord - b._ord; }
+  };
+  function norm(s) { return s.toLowerCase().replace(/ё/g, 'е').trim(); }
+  function sortCards(animate) {
+    var cmp = SORTS[sortSel.value] || SORTS[''], sorted = cards.slice().sort(cmp);
+    var apply = function () { sorted.forEach(function (c) { grid.appendChild(c); }); };
+    if (animate && !RM) slide(apply); else apply();
+  }
+  // Состояние фильтров хранится в адресе страницы: ссылку можно отправить, а «Назад» с карточки предмета возвращает тот же список.
+  function saveUrl() {
+    var p = new URLSearchParams();
+    if (q.value.trim()) p.set('q', q.value.trim());
+    ['sem', 'group', 'kr', 'lab'].forEach(function (k) { if (F[k]) p.set(k, F[k]); });
+    if (sortSel.value) p.set('sort', sortSel.value);
+    var s = p.toString();
+    try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch (e) {}
+  }
   function run() {
-    var t = q.value.trim().toLowerCase(), n = 0, show = [], out = [], instant = RM || first;
+    var words = norm(q.value).split(/\s+/).filter(Boolean), n = 0, show = [], out = [], instant = RM || first;
     cards.forEach(function (c) {
-      var ok = (!t || c.dataset.text.indexOf(t) >= 0) && (!F.sem || c.dataset.sem === F.sem) && (!F.group || c.dataset.group === F.group) &&
-               (!F.kr || c.dataset.kr === '1') && (!F.lab || c.dataset.lab === '1');
+      var ok = words.every(function (w) { return c.dataset.text.indexOf(w) >= 0; }) && (!F.sem || c.dataset.sems.indexOf(' ' + F.sem + ' ') >= 0) &&
+               (!F.group || c.dataset.group === F.group) && (!F.kr || c.dataset.kr === '1') && (!F.lab || c.dataset.lab === '1');
       if (ok) n++;
       if (instant) { c.hidden = !ok; return; }
       if (ok) { if (c._out) { c._out = false; c.classList.remove('p5-leave'); } else if (c.hidden) show.push(c); }
@@ -51,16 +75,29 @@
     leave(out);
     cnt.textContent = 'Показано: ' + n + ' из ' + cards.length; empty.hidden = n > 0;
     [].forEach.call(document.querySelectorAll('[data-f]'), function (b) { b.setAttribute('aria-pressed', F[b.dataset.f] === b.dataset.v); });
+    reset.hidden = !(words.length || Object.keys(F).length || sortSel.value);
+    saveUrl();
+  }
+  function clearAll() {
+    F = {}; q.value = ''; var sorted = sortSel.value; sortSel.value = '';
+    if (sorted) sortCards(true);
+    run(); q.focus();
   }
   [].forEach.call(document.querySelectorAll('[data-f]'), function (b) {
     b.addEventListener('click', function () {
       var f = b.dataset.f, v = b.dataset.v;
       if (F[f] === v) delete F[f]; else F[f] = v;
       run();
-      if (b.classList.contains('tile')) document.getElementById('list').scrollIntoView({ behavior: 'smooth' });
+      if (b.classList.contains('tile')) document.getElementById('list').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' });
     });
   });
   q.addEventListener('input', run);
-  var p = new URLSearchParams(location.search); ['group', 'sem'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); }); if (p.get('q')) q.value = p.get('q');
+  sortSel.addEventListener('change', function () { sortCards(true); run(); });
+  reset.addEventListener('click', clearAll);
+  document.getElementById('reset2').addEventListener('click', clearAll);
+  var p = new URLSearchParams(location.search);
+  ['group', 'sem', 'kr', 'lab'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); });
+  if (p.get('q')) q.value = p.get('q');
+  if (p.get('sort') && SORTS[p.get('sort')]) { sortSel.value = p.get('sort'); sortCards(false); }
   run();
 })();

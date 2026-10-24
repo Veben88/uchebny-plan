@@ -100,7 +100,7 @@ def head_nav(depth, active, band=False):
     b = "../"*depth
     NAV = (("home","index.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
     links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
-    return (f'<header class="top wrap"><a class="brand" href="{b}index.html" aria-label="TeachMap, на главную">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span></a>'
+    return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, на главную</span></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
@@ -129,8 +129,8 @@ def card_html(it, c):
     blurb = c["what"] or c["brief"] or "Описание готовится."
     if len(blurb) > 120: blurb = blurb[:117].rsplit(" ",1)[0] + "…"
     label = ("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"])
-    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]).lower())
-    return (f'<a class="card" href="d/{it["slug"]}.html" data-sem="{start_sem(it["sem"])}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" data-text="{hay}">'
+    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]).lower().replace("ё","е"))
+    return (f'<a class="card" href="d/{it["slug"]}.html" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " data-ze="{it["ze"] or 0}" data-name="{E(clean(it["name"]).lower().replace("ё","е"))}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" data-text="{hay}">'
             f'<span class="gi g-{g}" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span>'
             f'<div class="row"><div class="ze"><b>{ze_num(it)}</b><span>з.е.</span></div><div><div class="sem">{E(str(it["sem"]))} сем. · {n(it["hours"])} ч</div><h3>{E(label)}</h3></div></div>'
             f'<p>{E(blurb)}</p><div class="chips">{ch}</div><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></a>')
@@ -138,17 +138,17 @@ SORT = lambda x: (start_sem(x["sem"]) or 99, gi(x), x["idx"])
 def home_page(cards):
     order = sorted(items, key=SORT); n_ready = sum(1 for c in cards.values() if c["what"])
     tiles = "".join(f'<button type="button" class="tile" data-f="group" data-v="{g}" aria-pressed="false"><span class="big" aria-hidden="true">{ic(GROUPS[g][1])}</span><b>{g}</b><span>{GROUPS[g][2]}</span><em>{sum(1 for i in items if group_of(i["type"])==g)}</em></button>' for g in GKEYS)
-    sems = sorted({start_sem(i["sem"]) for i in items if start_sem(i["sem"])})
-    pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{s}" aria-pressed="false">{s} семестр<small>{sum(1 for i in items if start_sem(i["sem"])==s)}</small></button>' for s in sems)
+    sems = sorted({s for i in items for s in sem_list(i["sem"])})
+    pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{s}" aria-pressed="false">{s} семестр<small>{sum(1 for i in items if s in sem_list(i["sem"]))}</small></button>' for s in sems)
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
     body = head_nav(0, "cat") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Что тебя ждёт на «Стандартизации и метрологии»</h1>
 <p class="lead">Учебный план ДВФУ простым языком: что изучают, зачем это нужно в профессии, насколько большая нагрузка и что говорят студенты.</p>{survey}
 <p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
-<section class="wrap" id="list"><div class="sems" role="group" aria-label="Семестр">{pills}</div>
-<div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button></div>
+<section class="wrap" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2><div class="sems" role="group" aria-label="Семестр">{pills}</div>
+<div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
 <p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
-<p id="empty" class="muted" hidden>Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p></section></main>'''
+<div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
 def task_panel(c, slug):
     if not c["example"]: return ""
@@ -323,9 +323,9 @@ def path_page(cards):
     data = json.dumps(path_data(cards), ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Путь студента: от первого семестра до профессии</h1>'
             '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
-            f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
+            f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p class="hlinks"><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a><a class="btn-o" href="catalog.html">Все дисциплины</a><a class="btn-o" href="#jobs">Профессии на финише</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
             f'<div class="facts"><span><i>{ic("FaRegClock")}</i><b>4</b> года</span><span><i>{ic("FaLayerGroup")}</i><b>8</b> семестров</span><span><i>{ic("FaChartBar")}</i><b>240</b> з.е.</span><span><i>{ic("FaUserGraduate")}</i><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
-    finale = (f'<li class="station finale" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
+    finale = (f'<li class="station finale" id="jobs" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
               '<p>Типичные должности выпускников направления. Нажми «Показать путь к профессии», чтобы подсветить на карте предметы, которые к ней ведут. '
               '<span class="muted">Список составлен по профессиональным задачам из учебного плана; требования и зарплаты смотри в вакансиях.</span></p></div>'
               f'<div class="jobs">{jobs}</div></div></li>')

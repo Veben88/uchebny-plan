@@ -7,6 +7,7 @@
 html.access{font-size:118%;--ink:#000;--mut:#2a2f4a;--line:#6b7191}
 @media(prefers-color-scheme:dark){html.access{--ink:#fff;--mut:#e0e4f7;--line:#8d96c4}}
 *{box-sizing:border-box}html{scroll-padding-top:20px}
+.vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}   /* текст только для скринридеров */
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Montserrat",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh}
 main{flex:1 0 auto;padding-bottom:30px}
 a{color:var(--pri)}.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 20px}.muted{color:var(--mut);font-size:14px}
@@ -562,6 +563,19 @@ details.ans{background:var(--ice-2);box-shadow:none;border-style:dashed}
 .btn-o:hover{background:var(--ice);color:var(--pri)}
 .heroblock .btn{background:#fff;color:#22609F}.heroblock .btn:hover{background:#E3F1FC;color:#22609F}
 .btn:disabled{opacity:.55}
+/* главная: три входа на обложке — путь (основная кнопка), каталог и профессии (контурные на синем) */
+.hlinks{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}
+.heroblock .btn-o{background:var(--panel);color:#fff;border:0;border-radius:0;clip-path:var(--para);padding:13px 24px;font-family:var(--hd);font-weight:600;font-size:15px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;transition:background .12s}
+.heroblock .btn-o:hover{background:rgba(14,48,98,.45);color:#fff}
+.heroblock .btn-o:focus-visible{outline:none;box-shadow:inset 0 0 0 3px #fff}
+@media(max-width:560px){.hlinks{align-items:stretch}.hlinks .btn{flex:1 1 100%;text-align:center}.hlinks .btn-o{flex:1 1 0;justify-content:center;text-align:center;padding:12px 14px;font-size:14px;line-height:1.25}}
+#jobs{scroll-margin-top:80px}
+/* каталог: порядок, сброс, пустой результат */
+.sortl{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--mut)}
+.sortl select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--card);border:1.5px solid var(--field);border-radius:var(--r-s);padding:8px 10px;cursor:pointer}
+#reset[hidden],#empty[hidden]{display:none}
+@media(max-width:560px){.tools #q{flex:1 1 100%}.sortl{flex:1 1 auto}.sortl select{flex:1}}
+#empty{display:grid;justify-items:start;gap:10px;margin:10px 0 40px}#empty p{margin:0}
 /* чипы, переключатели, варианты ответов */
 .pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);box-shadow:var(--sh-s);transition:background .12s,color .12s,border-color .12s}
 .pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.fo:hover span,.xnb:hover{background:var(--ice);color:var(--pri);border-color:var(--acc);transform:none}
