@@ -111,6 +111,7 @@ def head_nav(depth, active, band=False):
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
+    contact += f'<p><a href="{b}jobs.html">Карта профессий: маршрут к каждой профессии по семестрам</a></p>'
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
@@ -182,7 +183,7 @@ def links_panel(slug):
 def jobs_panel(slug):
     js = [(k, j) for k, j in enumerate(JOBS) if slug in j[3]]
     if not js: return ""
-    ch = "".join(f'<a class="kchip" href="../index.html#job-{k}">{E(j[1])}</a>' for k, j in js)
+    ch = "".join(f'<a class="kchip" href="../jobs.html#job-{k}">{E(j[1])}</a>' for k, j in js)
     return (f'<section class="panel"><h2><span class="ci">{ic("FaUserGraduate")}</span>Ведёт к профессиям</h2><div class="ks">{ch}</div>'
             '<p class="muted" style="margin-top:10px">Это оценка команды проекта по задачам профессии, а не гарантия трудоустройства: требования работодателей смотри в вакансиях.</p></section>')
 def rp_panel(it):
@@ -345,6 +346,53 @@ def path_data(cards):
             "up": [[s, t] for s, t, _ in links_of(it["slug"])[0]], "dn": [[s, t] for s, t, _ in links_of(it["slug"])[1]],
             "r": ({"n": r.get("n",0), "hard": r.get("hard"), "useful": r.get("useful"), "int": r.get("interest"), "scope": r.get("scope","")} if r.get("n",0) >= MIN_N else None)}
     return {"items": out, "jobs": [{"i": j[0], "t": j[1], "d": j[2], "s": j[3]} for j in JOBS], "status": STATUS, "min_n": MIN_N}
+def need_ancestors(keys):
+    """всё, без чего трудно начать ключевые предметы: цепочки связей «нужен» в обратную сторону"""
+    need = {}
+    for l in LINKS:
+        if l["type"] == "need": need.setdefault(l["to"], []).append(l["from"])
+    seen = set(); stack = list(keys)
+    while stack:
+        for f_ in need.get(stack.pop(), []):
+            if f_ not in seen: seen.add(f_); stack.append(f_)
+    return seen - set(keys)
+def jobs_page():
+    by = {i["slug"]: i for i in items}
+    routes = [(set(j[3]), need_ancestors(j[3])) for j in JOBS]
+    from collections import Counter
+    common = Counter(s for keys, anc in routes for s in keys | anc)
+    base = sorted((s for s, n_ in common.items() if n_ >= 4), key=lambda s: (start_sem(by[s]["sem"]), by[s]["idx"]))
+    def chip(s, key):
+        return (f'<a class="rch{" key" if key else ""}" href="d/{s}.html" title="{E(clean(by[s]["name"]))}">'
+                f'{E(cut(clean(by[s]["name"]), 44))}<span class="vh"> — {"ключевой предмет" if key else "нужен для ключевого"}</span></a>')
+    arts = ""
+    for k, (j, (keys, anc)) in enumerate(zip(JOBS, routes)):
+        cols = ""
+        for s in range(1, 9):
+            here = sorted((x for x in keys | anc if start_sem(by[x]["sem"]) == s), key=lambda x: (x not in keys, by[x]["idx"]))
+            cols += f'<li class="rc{"" if here else " empty"}"><b>{s} сем.</b>{"".join(chip(x, x in keys) for x in here)}</li>'
+        cc = Counter(c for s in keys for r in RP.get(s, []) for c in set(r.get("competencies") or []))
+        order = lambda c: (list(COMP).index(c.split("-")[0]) if c.split("-")[0] in COMP else 9, c)
+        comps = "".join(f'<span class="kchip ccode" title="формируют ключевых предметов: {n_}">{E(c)}{f" ×{n_}" if n_ > 1 else ""}</span>' for c, n_ in sorted(cc.items(), key=lambda x: order(x[0])))
+        q = j[4].replace(" ", "+")
+        arts += (f'<article class="panel jm" id="job-{k}"><h2><span class="ci">{ic(j[0])}</span>{E(j[1])}</h2><p>{E(j[2])}</p>'
+                 f'<p class="lkh" style="margin-top:14px">Маршрут по семестрам: {len(keys)} ключевых предметов и {len(anc)} — без которых их трудно начать</p>'
+                 f'<ol class="route">{cols}</ol>'
+                 + (f'<p class="lkh" style="margin-top:14px">Ключевые предметы формируют компетенции</p><div class="ks">{comps}</div>' if comps else "")
+                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a>'
+                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></article>')
+    toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS))
+    body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
+<p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
+<p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="index.html">Путь студента</a></p></section></div></div>
+<div class="wrap"><nav class="ks jtoc" aria-label="Профессии">{toc}</nav>
+<section class="panel jbasis"><h2><span class="ci">{ic("FaClipboardCheck")}</span>На чём основана карта</h2><ul class="bl">
+<li><span class="rch key sample">ключевой предмет</span> — оценка команды проекта по задачам профессии; это не официальный перечень и не гарантия трудоустройства.</li>
+<li><span class="rch sample">нужен для ключевого</span> — предметы, без которых ключевые трудно начать, по согласованным логическим связям (не официальные пререквизиты).</li>
+<li>Компетенции — коды индикаторов из рабочих программ ключевых предметов; «×2» значит, что компетенцию формируют два ключевых предмета.</li></ul></section>
+<section class="panel"><h2><span class="ci">{ic("FaLayerGroup")}</span>Общая основа</h2><p>Эти предметы входят в маршрут к четырём и более профессиям из шести.</p><div class="ks" style="margin-top:10px">{"".join(f'<a class="kchip" href="d/{s}.html">{E(clean(by[s]["name"]))}</a>' for s in base)}</div></section>
+{arts}</div></main>'''
+    return page("Карта профессий: предметы, которые ведут к профессии · TeachMap", "Шесть профессий выпускников 27.03.01 ДВФУ и маршрут к каждой по семестрам: ключевые предметы, опоры и компетенции", body)
 def job_chip(sl):
     nm = next(i["name"] for i in items if i["slug"] == sl)
     return f'<a class="kchip" href="d/{sl}.html" data-slug="{sl}" aria-haspopup="dialog">{E(cut(clean(nm),34))}</a>'
@@ -378,11 +426,11 @@ def path_page(cards):
     data = json.dumps(path_data(cards), ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Путь студента: от первого семестра до профессии</h1>'
             '<p class="lead">Пройди специальность 27.03.01 «Стандартизация и метрология» за пару минут: листай семестры, открывай карточки предметов и смотри, кем сможешь работать в конце.</p>'
-            f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p class="hlinks"><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a><a class="btn-o" href="catalog.html">Все дисциплины</a><a class="btn-o" href="#jobs">Профессии на финише</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
+            f'<form class="hsearch" action="catalog.html" role="search"><span class="hs-i">{ic("FaSearch")}</span><input name="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="submit" aria-label="Найти">{ic("FaArrowRight")}</button></form><p class="hlinks"><a class="btn" href="#journey">Начать путь {ic("FaArrowRight")}</a><a class="btn-o" href="catalog.html">Все дисциплины</a><a class="btn-o" href="jobs.html">Карта профессий</a></p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>'
             f'<div class="facts"><span><i>{ic("FaRegClock")}</i><b>4</b> года</span><span><i>{ic("FaLayerGroup")}</i><b>8</b> семестров</span><span><i>{ic("FaChartBar")}</i><b>240</b> з.е.</span><span><i>{ic("FaUserGraduate")}</i><b>{len(JOBS)}</b> профессий на финише</span></div></section></div></div>')
     finale = (f'<li class="station finale" id="jobs" data-sem="9"><div class="node">{ic("FaUserGraduate")}</div><div class="stbody"><div class="sthead"><span class="kicker">Финиш</span><h2>Диплом и работа</h2>'
               '<p>Типичные должности выпускников направления. Нажми «Показать путь к профессии», чтобы подсветить на карте предметы, которые к ней ведут. '
-              '<span class="muted">Список составлен по профессиональным задачам из учебного плана; требования и зарплаты смотри в вакансиях.</span></p></div>'
+              '<span class="muted">Список и привязка предметов — оценка команды проекта по задачам профессий; требования и зарплаты смотри в вакансиях. Маршрут к каждой профессии по семестрам — на <a href="jobs.html">карте профессий</a>.</span></p></div>'
               f'<div class="jobs">{jobs}</div></div></li>')
     journey = (f'<div class="wrap"><div class="journey" id="journey"><div class="jbar"><span class="jpos" id="jpos" aria-live="polite">Старт: 1 курс</span>'
                f'<div class="jprog" aria-hidden="true"><i id="jfill"></i></div><span id="jpct">0%</span></div>'
@@ -397,7 +445,7 @@ def build():
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
-    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
+    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")

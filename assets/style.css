@@ -588,6 +588,21 @@ details.ans{background:var(--ice-2);box-shadow:none;border-style:dashed}
 .kchip.ccode{cursor:default;font-family:var(--hd);letter-spacing:.03em}.kchip.ccode:hover{background:var(--card);color:var(--ink);border-color:var(--line)}
 .xs .lkh{margin-top:10px!important}
 @media(max-width:700px){.lk2{grid-template-columns:1fr}}
+/* карта профессий: маршрут по семестрам */
+.jtoc{margin:4px 0 18px}
+.jm h2{font-size:22px}
+.route{list-style:none;margin:8px 0 4px;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.rc{display:flex;flex-direction:column;gap:6px;min-width:0;padding:8px 5px;border-radius:var(--r-s);background:var(--ice-2);border-top:3px solid var(--ice)}
+.rc:not(.empty){border-top-color:var(--acc)}
+.rc>b{font-family:var(--hd);font-size:13px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:.04em}
+.rc.empty>b{color:var(--mut)}
+.rch{display:block;font-size:11.5px;line-height:1.3;font-weight:600;padding:5px 6px;border-radius:var(--r-s);border:1.5px dashed var(--field);color:var(--ink);background:var(--card);text-decoration:none;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;transition:border-color .12s,background .12s}
+.rch.key{background:var(--btn);border:1.5px solid var(--btn);color:#fff}
+a.rch:hover{border-color:var(--acc);background:var(--ice)}a.rch.key:hover{background:var(--btn-h);border-color:var(--btn-h)}
+.rch.sample{display:inline-block;padding:2px 8px;margin-right:2px}
+.jbasis .bl{gap:10px}
+@media(max-width:900px){.route{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:560px){.route{grid-template-columns:1fr}.rc{flex-direction:row;flex-wrap:wrap;align-items:center}.rc>b{flex:0 0 100%}.rc.empty{display:none}}
 /* чипы, переключатели, варианты ответов */
 .pill,.gf,.kchip,.tkb,.fbb,.fo span,.xnb{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-s);box-shadow:var(--sh-s);transition:background .12s,color .12s,border-color .12s}
 .pill:hover,.gf:hover,.kchip:hover,.tkb:hover,.fbb:hover,.fo:hover span,.xnb:hover{background:var(--ice);color:var(--pri);border-color:var(--acc);transform:none}

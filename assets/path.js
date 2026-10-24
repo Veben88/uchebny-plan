@@ -311,4 +311,7 @@
   });
   var m = location.hash.match(/^#d=([\w-]+)/);
   if (m && I[m[1]]) { var c = cardFor(m[1]); if (c) { c.scrollIntoView({ block: 'center' }); prog(); } setTimeout(function () { open(m[1], c, true); }, 60); }
+  // ссылка с карты профессий: index.html#path=N сразу подсвечивает путь к профессии N
+  var mj = location.hash.match(/^#path=(\d+)$/);
+  if (mj && D.jobs[+mj[1]]) setTimeout(function () { showJob(+mj[1], false); }, 60);
 })();
