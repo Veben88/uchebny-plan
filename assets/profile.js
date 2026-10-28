@@ -1,42 +1,90 @@
-// Личный план без регистрации: избранные предметы, отметки «изучил», заметки и недавно просмотренное.
-// Всё хранится только в этом браузере (localStorage, ключ tm-profile-v1) и никуда не отправляется.
-// Скрипт подключается раньше app.js и path.js: каталог фильтрует по отметкам, а окно карточки показывает кнопки.
+// Личный план без регистрации: статусы предметов («Не начато», «Изучаю», «Пройдено»), избранные предметы и профессии,
+// текущий семестр, заметки и недавно просмотренное. Всё хранится только в этом браузере (localStorage) и никуда не отправляется.
+// Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.
+//
+// Хранилище: ключ tm-profile-v2, поле v = 2. Данные прежней версии (ключ tm-profile-v1: fav, done, notes, recent)
+// переносятся автоматически: «изучил» становится статусом «Пройдено». Старый ключ удаляется только после того,
+// как новые данные записаны. Если в браузере данные более новой версии сайта (v > 2), скрипт их не перезаписывает.
+//
+// Скрипт подключается раньше app.js, path.js и graph.js: каталог фильтрует по меткам, окно карточки и карта показывают статусы.
 (function () {
   'use strict';
-  var KEY = 'tm-profile-v1', MAXR = 12, MAXN = 2000;
+  var KEY = 'tm-profile-v2', OLD = 'tm-profile-v1', VER = 2, MAXR = 12, MAXN = 2000, ST = { doing: 1, done: 1 };
   var me = document.currentScript, base = '';
   try { base = new URL('..', me.src).href; } catch (e) {}   // корень сайта: скрипт лежит в assets/
   var avail = (function () { try { localStorage.setItem('__tm', '1'); localStorage.removeItem('__tm'); return true; } catch (e) { return false; } })();
+  var locked = false;                                         // данные новой версии сайта: читаем, но не перезаписываем
 
-  function blank() { return { fav: [], done: [], notes: {}, recent: [], titles: {} }; }
-  function load() {
-    var d = blank(); if (!avail) return d;
-    try {
-      var x = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (!x || typeof x !== 'object') return d;
-      ['fav', 'done', 'recent'].forEach(function (k) { if (Array.isArray(x[k])) d[k] = x[k].filter(function (v) { return typeof v === 'string'; }); });
-      if (x.notes && typeof x.notes === 'object') Object.keys(x.notes).forEach(function (k) { if (typeof x.notes[k] === 'string' && x.notes[k].trim()) d.notes[k] = x.notes[k].slice(0, MAXN); });
-      if (x.titles && typeof x.titles === 'object') Object.keys(x.titles).forEach(function (k) { if (typeof x.titles[k] === 'string') d.titles[k] = x.titles[k]; });
-    } catch (e) {}
+  function blank() { return { v: VER, sem: 0, status: {}, fav: [], jobs: [], notes: {}, recent: [], titles: {} }; }
+  function okSlug(s) { return typeof s === 'string' && /^[\w-]{1,48}$/.test(s); }
+  // приводит к формату v2 любые входные данные: v2, прежний v1 или файл экспорта; лишнее и испорченное отбрасывается
+  function norm(x) {
+    var d = blank(); if (!x || typeof x !== 'object') return d;
+    if (x.format === 'tm-profile' && x.data) x = x.data;      // файл экспорта
+    ['fav', 'recent'].forEach(function (k) { if (Array.isArray(x[k])) d[k] = x[k].filter(okSlug).filter(function (s, i, a) { return a.indexOf(s) === i; }); });
+    d.recent = d.recent.slice(0, MAXR);
+    if (Array.isArray(x.jobs)) d.jobs = x.jobs.map(Number).filter(function (n, i, a) { return n >= 0 && n < 50 && Math.floor(n) === n && a.indexOf(n) === i; });
+    var s = +x.sem; d.sem = s >= 1 && s <= 8 && Math.floor(s) === s ? s : 0;
+    if (x.status && typeof x.status === 'object') Object.keys(x.status).forEach(function (k) { if (okSlug(k) && ST[x.status[k]]) d.status[k] = x.status[k]; });
+    if (Array.isArray(x.done)) x.done.filter(okSlug).forEach(function (k) { d.status[k] = 'done'; });   // формат v1
+    if (x.notes && typeof x.notes === 'object') Object.keys(x.notes).forEach(function (k) { if (okSlug(k) && typeof x.notes[k] === 'string' && x.notes[k].trim()) d.notes[k] = x.notes[k].slice(0, MAXN); });
+    if (x.titles && typeof x.titles === 'object') Object.keys(x.titles).forEach(function (k) { if (okSlug(k) && typeof x.titles[k] === 'string') d.titles[k] = x.titles[k].slice(0, 200); });
     return d;
+  }
+  var migrated = false;
+  function load() {
+    if (!avail) return blank();
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var x = JSON.parse(raw); locked = !!(x && +x.v > VER); return norm(x); }
+      var old = localStorage.getItem(OLD);
+      if (old) { migrated = true; return norm(JSON.parse(old)); }
+    } catch (e) {}
+    return blank();
   }
   var P = load(), subs = [];
   function save() {
-    if (!avail) return false;
-    var used = {}; P.fav.concat(P.done, P.recent, Object.keys(P.notes)).forEach(function (s) { used[s] = 1; });
-    Object.keys(P.titles).forEach(function (s) { if (!used[s]) delete P.titles[s]; });   // названия храним только для того, что ещё в плане
-    try { localStorage.setItem(KEY, JSON.stringify(P)); return true; } catch (e) { return false; }
+    if (!avail || locked) return false;
+    var used = {}; P.fav.concat(Object.keys(P.status), P.recent, Object.keys(P.notes), P.jobs.map(function (k) { return 'job-' + k; })).forEach(function (s) { used[s] = 1; });
+    Object.keys(P.titles).forEach(function (s) { if (!used[s]) delete P.titles[s]; });   // названия храним только для того, что ещё отмечено
+    P.v = VER;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(P));
+      if (migrated) { localStorage.removeItem(OLD); migrated = false; }               // старый ключ — только после успешной записи нового
+      return true;
+    } catch (e) { return false; }
   }
+  if (migrated) save();
   // подписчики, чей элемент уже убран со страницы (например, закрытое окно карточки), возвращают false и забываются
   function emit() { subs = subs.filter(function (f) { try { return f() !== false; } catch (e) { return false; } }); }
-  function remember(slug, t) { if (t) P.titles[slug] = t; }
+  function remember(key, t) { if (t) P.titles[key] = String(t).slice(0, 200); }
+  function count(st) { return Object.keys(P.status).filter(function (k) { return P.status[k] === st; }).length; }
+  function listOf(st) { return Object.keys(P.status).filter(function (k) { return P.status[k] === st; }); }
 
   var api = window.TMProfile = {
-    available: avail, base: base,
-    has: function (list, slug) { return P[list].indexOf(slug) >= 0; },
+    available: avail, base: base, version: VER,
+    locked: function () { return locked; },
+    // совместимость: has('fav'|'done'|'doing', slug), toggle('fav'|'done', slug)
+    has: function (list, slug) { return list === 'fav' ? P.fav.indexOf(slug) >= 0 : P.status[slug] === list; },
     toggle: function (list, slug, t) {
-      var i = P[list].indexOf(slug);
-      if (i >= 0) P[list].splice(i, 1); else { P[list].unshift(slug); remember(slug, t); }
+      if (list !== 'fav') return api.setStatus(slug, P.status[slug] === list ? '' : list, t);
+      var i = P.fav.indexOf(slug);
+      if (i >= 0) P.fav.splice(i, 1); else { P.fav.unshift(slug); remember(slug, t); }
+      save(); emit(); return i < 0;
+    },
+    status: function (slug) { return P.status[slug] || ''; },
+    setStatus: function (slug, st, t) {
+      if (ST[st]) { P.status[slug] = st; remember(slug, t); } else delete P.status[slug];
+      save(); emit(); return !!ST[st];
+    },
+    sem: function (n) {
+      if (n === undefined) return P.sem;
+      P.sem = n >= 1 && n <= 8 ? +n : 0; save(); emit(); return P.sem;
+    },
+    hasJob: function (k) { return P.jobs.indexOf(+k) >= 0; },
+    toggleJob: function (k, t) {
+      k = +k; var i = P.jobs.indexOf(k);
+      if (i >= 0) P.jobs.splice(i, 1); else { P.jobs.push(k); remember('job-' + k, t); }
       save(); emit(); return i < 0;
     },
     note: function (slug, text, t) {
@@ -46,14 +94,29 @@
       var ok = save(); emit(); return ok;
     },
     visit: function (slug, t) {
-      if (!avail || !slug) return;
+      if (!avail || !slug || locked) return;
       P.recent = [slug].concat(P.recent.filter(function (s) { return s !== slug; })).slice(0, MAXR);
       remember(slug, t); save(); emit();
     },
-    title: function (slug) { return P.titles[slug] || ''; },
+    title: function (key) { return P.titles[key] || ''; },
     data: function () { return P; },
-    empty: function () { return !P.fav.length && !P.done.length && !P.recent.length && !Object.keys(P.notes).length; },
-    clear: function () { P = blank(); try { localStorage.removeItem(KEY); } catch (e) {} emit(); },
+    count: count, list: listOf,
+    empty: function () { return !P.fav.length && !Object.keys(P.status).length && !P.recent.length && !Object.keys(P.notes).length && !P.jobs.length && !P.sem; },
+    clear: function () { P = blank(); locked = false; migrated = false; try { localStorage.removeItem(KEY); localStorage.removeItem(OLD); } catch (e) {} emit(); },
+    exportText: function () { return JSON.stringify({ app: 'TeachMap', format: 'tm-profile', v: VER, exported: new Date().toISOString(), data: P }, null, 2); },
+    // файл экспорта: checkText проверяет и возвращает разобранные данные (или бросает ошибку), importText заменяет ими текущие
+    checkText: function (text) {
+      var x = JSON.parse(text);
+      if (!x || typeof x !== 'object' || (x.format && x.format !== 'tm-profile')) throw new Error('format');
+      if (+((x.data || x).v) > VER) throw new Error('newer');
+      var d = norm(x), n = d.fav.length + Object.keys(d.status).length + Object.keys(d.notes).length + d.jobs.length + d.recent.length + (d.sem ? 1 : 0);
+      if (!n) throw new Error('empty');
+      return { data: d, n: n };
+    },
+    importText: function (text) {
+      var c = api.checkText(text);
+      P = c.data; locked = false; if (!save()) throw new Error('save'); emit(); return c.n;
+    },
     on: function (f) { subs.push(f); }
   };
   // изменения из другой вкладки
@@ -62,41 +125,74 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   // подписка, которая сама отпишется, когда элемент уберут со страницы
   function live(node, f) { var seen = false; var g = function () { if (node.isConnected) seen = true; else if (seen) return false; f(); }; api.on(g); g(); }
+  var NOSAVE = 'Этот браузер не даёт сохранять личные отметки (например, в приватном режиме).';
 
-  // ---------- кнопки «Избранное» и «Изучил» (страница предмета и окно карточки) ----------
+  // ---------- кнопки статуса и «Избранное» (страница предмета и окно карточки) ----------
   // Имя кнопки не меняется, состояние передаёт aria-pressed: так её одинаково понимают глаз и скринридер.
+  var STATES = [['', 'Не начато'], ['doing', 'Изучаю'], ['done', 'Пройдено']];
   api.bar = function (box, slug, t) {
     box.textContent = ''; box.hidden = false;
-    if (!avail) { box.appendChild(el('p', 'muted mynote-off', 'Этот браузер не даёт сохранять личные отметки (например, в приватном режиме).')); return; }
-    [['fav', '★', 'Избранное'], ['done', '✓', 'Изучил']].forEach(function (d) {
-      var b = el('button', 'mybtn my-' + d[0]); b.type = 'button';
-      var i = el('span', 'myi', d[1]); i.setAttribute('aria-hidden', 'true'); b.appendChild(i); b.appendChild(document.createTextNode(d[2]));
-      b.addEventListener('click', function () { api.toggle(d[0], slug, t); });
-      live(b, function () { b.setAttribute('aria-pressed', api.has(d[0], slug)); });
-      box.appendChild(b);
+    if (!avail) { box.appendChild(el('p', 'muted mynote-off', NOSAVE)); return; }
+    var g = el('div', 'myst'); g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Мой статус предмета (личная пометка, не оценка)');
+    STATES.forEach(function (d) {
+      var b = el('button', 'mybtn my-st my-' + (d[0] || 'none'), d[1]); b.type = 'button';
+      b.addEventListener('click', function () { api.setStatus(slug, d[0], t); });
+      live(b, function () { b.setAttribute('aria-pressed', api.status(slug) === d[0] ? 'true' : 'false'); });
+      g.appendChild(b);
     });
+    box.appendChild(g);
+    var f = el('button', 'mybtn my-fav'); f.type = 'button';
+    var i = el('span', 'myi', '★'); i.setAttribute('aria-hidden', 'true'); f.appendChild(i); f.appendChild(document.createTextNode('Избранное'));
+    f.addEventListener('click', function () { api.toggle('fav', slug, t); });
+    live(f, function () { f.setAttribute('aria-pressed', api.has('fav', slug) ? 'true' : 'false'); });
+    box.appendChild(f);
     var a = el('a', 'mylink', 'Мой план'); a.href = base + 'profile.html'; box.appendChild(a);
   };
 
+  // ---------- кнопки «В избранные профессии» (карта профессий) ----------
+  function jobButtons() {
+    [].forEach.call(document.querySelectorAll('button.my-job'), function (b) {
+      if (b._tm) return; b._tm = 1;
+      if (!avail) { b.hidden = true; return; }
+      b.hidden = false; var k = +b.dataset.job;
+      b.addEventListener('click', function () { api.toggleJob(k, b.dataset.title); });
+      live(b, function () { b.setAttribute('aria-pressed', api.hasJob(k) ? 'true' : 'false'); });
+    });
+  }
+  jobButtons(); api.jobButtons = jobButtons;
+
   // ---------- метки на карточках каталога, пути студента и узлах карты связей ----------
   function slugOf(c) { if (c.dataset.slug) return c.dataset.slug; var m = (c.getAttribute('href') || '').match(/d\/([\w-]+)\.html/); return m && m[1]; }
+  var LBL = { done: 'пройдено', doing: 'изучаю' };
   function mark() {
     [].forEach.call(document.querySelectorAll('.card, a.dc, a.gn'), function (c) {
       var s = slugOf(c); if (!s) return;
-      var f = api.has('fav', s), d = api.has('done', s);
-      c.dataset.fav = f ? '1' : '0'; c.dataset.done = d ? '1' : '0';
+      var f = api.has('fav', s), st = api.status(s);
+      c.dataset.fav = f ? '1' : '0'; c.dataset.done = st === 'done' ? '1' : '0'; c.dataset.doing = st === 'doing' ? '1' : '0';
       var m = c.querySelector('.mymarks');
-      if (!f && !d) { if (m) m.remove(); return; }
+      if (!f && !st) { if (m) m.remove(); return; }
       if (!m) { m = el('span', 'mymarks'); c.appendChild(m); }
       m.textContent = '';
       if (f) { var a = el('i', 'mk-fav', '★'); a.setAttribute('aria-hidden', 'true'); m.appendChild(a); }
-      if (d) { var b = el('i', 'mk-done', '✓'); b.setAttribute('aria-hidden', 'true'); m.appendChild(b); }
-      m.appendChild(el('span', 'vh', [f ? 'в избранном' : '', d ? 'изучено' : ''].filter(Boolean).join(', ')));
+      if (st) { var b = el('i', 'mk-' + st, st === 'done' ? '✓' : '•'); b.setAttribute('aria-hidden', 'true'); m.appendChild(b); }
+      m.appendChild(el('span', 'vh', [f ? 'в избранном' : '', LBL[st] || ''].filter(Boolean).join(', ')));
     });
-    // фильтры «Избранное» и «Изученные» в каталоге видны, только если есть что показать
-    [].forEach.call(document.querySelectorAll('.mypill'), function (b) { b.hidden = !avail || (!P[b.dataset.f].length && b.getAttribute('aria-pressed') !== 'true'); });
+    // фильтры «Избранное», «Изучаю» и «Пройдено» в каталоге видны, только если есть что показать
+    [].forEach.call(document.querySelectorAll('.mypill'), function (b) {
+      var n = b.dataset.f === 'fav' ? P.fav.length : count(b.dataset.f);
+      b.hidden = !avail || (!n && b.getAttribute('aria-pressed') !== 'true');
+    });
   }
-  if (avail) { mark(); api.on(mark); }
+  // путь студента: текущий семестр из «Моего плана» помечен «Ты здесь»
+  function semNow() {
+    [].forEach.call(document.querySelectorAll('.station[data-sem]'), function (st) {
+      var on = +st.dataset.sem === P.sem, k = st.querySelector('.mynowk'), sh = st.querySelector('.sthead');
+      st.classList.toggle('mynow', on);
+      if (on && !k && sh) { k = el('span', 'mynowk', 'Ты здесь'); sh.insertBefore(k, sh.firstChild); }
+      else if (!on && k) k.remove();
+    });
+  }
+  if (avail) { mark(); api.on(mark); semNow(); api.on(semNow); }
 
   // ---------- страница предмета: кнопки в шапке, заметки, история просмотров ----------
   var bar = document.getElementById('mybar');
@@ -114,7 +210,7 @@
     }
   }
 
-  // ---------- главная: блок «Мой план» (недавние, избранное, сколько изучено) ----------
+  // ---------- главная: блок «Мой план» (семестр, изучаю, недавние, избранное, прогресс) ----------
   function chips(list, cls) {
     var w = el('div', 'ks');
     list.forEach(function (s) {
@@ -124,11 +220,19 @@
     });
     return w;
   }
+  function jobChips() {
+    var w = el('div', 'ks');
+    P.jobs.forEach(function (k) { var a = el('a', 'kchip', P.titles['job-' + k] || ('Профессия ' + (k + 1))); a.href = base + 'jobs.html#job-' + k; w.appendChild(a); });
+    return w;
+  }
   function progress(total) {
-    var n = P.done.length, p = el('div', 'myprog');
-    p.appendChild(el('p', '', 'Отмечено как изученное: ' + n + ' из ' + total));
-    var b = el('div', 'bar'), i = el('i', 's2'); i.style.width = Math.min(100, n / total * 100).toFixed(1) + '%'; b.appendChild(i); b.setAttribute('role', 'img'); b.setAttribute('aria-label', 'Изучено ' + n + ' из ' + total);
-    p.appendChild(b); return p;
+    var d = count('done'), g = count('doing'), p = el('div', 'myprog');
+    p.appendChild(el('p', '', 'Пройдено: ' + d + ' из ' + total + (g ? ', изучаю: ' + g : '')));
+    var b = el('div', 'bar'), i = el('i', 's2'), j = el('i', 's3');
+    i.style.width = Math.min(100, d / total * 100).toFixed(1) + '%'; j.style.width = Math.min(100, g / total * 100).toFixed(1) + '%';
+    b.appendChild(i); b.appendChild(j); b.setAttribute('role', 'img'); b.setAttribute('aria-label', 'Пройдено ' + d + ' из ' + total + ', изучаю ' + g);
+    p.appendChild(b); p.appendChild(el('p', 'muted myprivnote', 'Личные пометки для планирования, а не оценки и не зачёты.'));
+    return p;
   }
   var home = document.getElementById('mine');
   if (home && avail) {
@@ -136,10 +240,15 @@
     var drawHome = function () {
       home.hidden = api.empty(); if (home.hidden) return;
       hb.textContent = '';
+      if (P.sem) { var sp = el('p', 'mysem'); sp.appendChild(document.createTextNode('Сейчас: ')); var sa = el('a', '', P.sem + ' семестр'); sa.href = '#journey'; sa.addEventListener('click', function (e) { var st_ = document.querySelector('.station[data-sem="' + P.sem + '"]'); if (st_) { e.preventDefault(); st_.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); } }); sp.appendChild(sa); hb.appendChild(sp); }
+      var doing = listOf('doing');
+      if (doing.length) { hb.appendChild(el('p', 'lkh', 'Изучаю')); hb.appendChild(chips(doing.slice(0, 10), 'mydoing')); }
       if (P.recent.length) { hb.appendChild(el('p', 'lkh', 'Недавно смотрел')); hb.appendChild(chips(P.recent.slice(0, 6))); }
       if (P.fav.length) { hb.appendChild(el('p', 'lkh', 'Избранное')); hb.appendChild(chips(P.fav.slice(0, 10), 'myfav')); }
-      if (P.done.length) hb.appendChild(progress(total));
-      var a = el('a', 'btn-o', 'Открыть мой план'); a.href = base + 'profile.html'; var p = el('p', 'myopen'); p.appendChild(a); hb.appendChild(p);
+      if (P.jobs.length) { hb.appendChild(el('p', 'lkh', 'Интересные профессии')); hb.appendChild(jobChips()); }
+      if (Object.keys(P.status).length) hb.appendChild(progress(total));
+      var p = el('p', 'hlinks2 myopen'), a = el('a', 'btn-o', 'Открыть мой план'); a.href = base + 'profile.html'; p.appendChild(a);
+      var m = el('a', 'btn-o', 'Мой маршрут на карте'); m.href = base + 'map.html#mine'; p.appendChild(m); hb.appendChild(p);
     };
     drawHome(); api.on(drawHome);
   }
@@ -147,46 +256,110 @@
   // ---------- страница «Мой план» ----------
   var prof = document.getElementById('profile');
   if (prof) {
-    var names = {}; try { names = JSON.parse(document.getElementById('pnames').textContent); } catch (e) {}
+    var names = {}, jobsAll = []; try { names = JSON.parse(document.getElementById('pnames').textContent); } catch (e) {}
+    try { jobsAll = JSON.parse(document.getElementById('pjobs').textContent); } catch (e) {}
     var nm = function (s) { return (names[s] && names[s][0]) || P.titles[s] || s; };
     var sem = function (s) { return names[s] ? names[s][1] + ' сем.' : ''; };
     var ptotal = +prof.dataset.total || 74;
-    var section = function (title, cnt) { var s = el('section', 'panel mysec'); var h = el('h2', '', title); if (cnt != null) h.appendChild(el('small', 'mycnt', ' ' + cnt)); s.appendChild(h); return s; };
-    var item = function (s, extra, actLabel, act) {
+    var section = function (title, cnt, id) { var s = el('section', 'panel mysec'); if (id) s.id = id; var h = el('h2', '', title); if (cnt != null) h.appendChild(el('small', 'mycnt', ' ' + cnt)); s.appendChild(h); return s; };
+    var item = function (s, extra, acts) {
       var li = el('li', 'myitem'), a = el('a', '', nm(s)); a.href = base + 'd/' + s + '.html'; li.appendChild(a);
       if (sem(s)) li.appendChild(el('span', 'muted', ' · ' + sem(s)));
       if (extra) li.appendChild(extra);
-      if (act) { var b = el('button', 'btn-o mysmall', actLabel); b.type = 'button'; b.setAttribute('aria-label', actLabel + ': ' + nm(s)); b.addEventListener('click', act); li.appendChild(b); }
+      (acts || []).forEach(function (x) { var b = el('button', 'btn-o mysmall', x[0]); b.type = 'button'; b.setAttribute('aria-label', x[0] + ': ' + nm(s)); b.addEventListener('click', x[1]); li.appendChild(b); });
       return li;
     };
+    var msg = el('p', 'mymsg'); msg.setAttribute('role', 'status');
+    var focusAfter = null;
     var drawProfile = function () {
-      var had = prof.contains(document.activeElement);   // кнопка «Убрать» исчезает вместе со строкой: фокус вернём на заголовок
+      var had = prof.contains(document.activeElement);   // кнопка исчезает вместе со строкой: фокус вернём на заголовок
       prof.hidden = false; prof.textContent = '';
       if (!avail) { prof.appendChild(el('p', 'panel', 'Этот браузер не даёт сохранять данные сайта (например, в приватном режиме), поэтому личный план недоступен. Остальные разделы работают как обычно.')); return; }
+      if (locked) prof.appendChild(el('p', 'panel mywarn', 'Личные данные в этом браузере сохранены более новой версией сайта. Они показаны, но изменения здесь не сохраняются: обновите страницу, чтобы загрузить новую версию сайта.'));
+      // текущий семестр
+      var s0 = section('Мой семестр'), lab = el('label', 'sortl', 'Сейчас учусь в '), sel = el('select'); sel.id = 'mysem';
+      sel.appendChild(new Option('не указано', '0')); for (var k = 1; k <= 8; k++) sel.appendChild(new Option(k + ' семестре', String(k)));
+      sel.value = String(P.sem); sel.addEventListener('change', function () { focusAfter = 'mysem'; api.sem(+sel.value); });
+      lab.appendChild(sel); s0.appendChild(lab);
+      s0.appendChild(el('p', 'muted', P.sem ? 'На главной и на карте связей подсвечен этот семестр.' : 'Укажи семестр, чтобы главная и карта связей показывали, где ты сейчас.'));
+      prof.appendChild(s0);
       if (api.empty()) {
-        var e = section('Пока пусто'); e.appendChild(el('p', '', 'Открой любой предмет и нажми «Избранное» или «Изучил», напиши заметку — всё появится здесь.'));
-        var p = el('p', 'hlinks2'); [['Путь студента', 'index.html'], ['Все дисциплины', 'catalog.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; p.appendChild(a); });
-        e.appendChild(p); prof.appendChild(e); return;
+        var e = section('Пока пусто'); e.appendChild(el('p', '', 'Открой любой предмет и отметь статус («Изучаю», «Пройдено») или «Избранное», напиши заметку — всё появится здесь. Интересные профессии отмечаются на карте профессий.'));
+        var p = el('p', 'hlinks2'); [['Путь студента', 'index.html'], ['Все дисциплины', 'catalog.html'], ['Карта профессий', 'jobs.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; p.appendChild(a); });
+        e.appendChild(p); prof.appendChild(e);
+      } else {
+        var s1 = section('Прогресс'); s1.appendChild(progress(ptotal));
+        var ma = el('p', 'hlinks2'), mal = el('a', 'btn-s', 'Мой маршрут на карте связей'); mal.href = base + 'map.html#mine'; ma.appendChild(mal); s1.appendChild(ma);
+        prof.appendChild(s1);
+        [['doing', 'Изучаю', 'Пока ничего. Статус «Изучаю» ставится на странице предмета.'], ['done', 'Пройдено', 'Пока ничего. Статус «Пройдено» ставится на странице предмета.']].forEach(function (d) {
+          var L = listOf(d[0]), s = section(d[1], L.length);
+          if (L.length) {
+            L.sort(function (a, b) { return (parseInt(sem(a), 10) || 99) - (parseInt(sem(b), 10) || 99); });
+            var u = el('ul', 'mylist');
+            L.forEach(function (x) { u.appendChild(item(x, null, d[0] === 'doing' ? [['Пройдено', function () { api.setStatus(x, 'done'); }], ['Снять', function () { api.setStatus(x, ''); }]] : [['Снять', function () { api.setStatus(x, ''); }]])); });
+            s.appendChild(u);
+          } else s.appendChild(el('p', 'muted', d[2]));
+          prof.appendChild(s);
+        });
+        var s2 = section('Избранные предметы', P.fav.length);
+        if (P.fav.length) { var u2 = el('ul', 'mylist'); P.fav.forEach(function (s) { u2.appendChild(item(s, null, [['Убрать', function () { api.toggle('fav', s); }]])); }); s2.appendChild(u2); }
+        else s2.appendChild(el('p', 'muted', 'Пока ничего. Звёздочка «Избранное» есть на странице каждого предмета.'));
+        prof.appendChild(s2);
+        var sj = section('Интересные профессии', P.jobs.length);
+        if (P.jobs.length) {
+          var uj = el('ul', 'mylist');
+          P.jobs.forEach(function (k) {
+            var li = el('li', 'myitem'), t_ = jobsAll[k] || P.titles['job-' + k] || ('Профессия ' + (k + 1)), a = el('a', '', t_); a.href = base + 'jobs.html#job-' + k; li.appendChild(a);
+            var m = el('a', 'btn-o mysmall', 'На карте'); m.href = base + 'map.html#job=' + k; m.setAttribute('aria-label', t_ + ' на карте связей'); li.appendChild(m);
+            var b = el('button', 'btn-o mysmall', 'Убрать'); b.type = 'button'; b.setAttribute('aria-label', 'Убрать: ' + t_); b.addEventListener('click', function () { api.toggleJob(k); }); li.appendChild(b);
+            uj.appendChild(li);
+          });
+          sj.appendChild(uj); sj.appendChild(el('p', 'muted', 'Предметы на пути к этим профессиям подсвечиваются как «в планах» в режиме «Мой маршрут» на карте связей.'));
+        } else { var pj = el('p', 'muted'); pj.appendChild(document.createTextNode('Пока ничего. Отметить профессию можно на ')); var aj = el('a', '', 'карте профессий'); aj.href = base + 'jobs.html'; pj.appendChild(aj); pj.appendChild(document.createTextNode('.')); sj.appendChild(pj); }
+        prof.appendChild(sj);
+        var keys = Object.keys(P.notes);
+        var s3 = section('Заметки', keys.length);
+        if (keys.length) { var u3 = el('ul', 'mylist'); keys.forEach(function (s) { u3.appendChild(item(s, el('p', 'mytext', P.notes[s]), [['Удалить заметку', function () { if (confirm('Удалить заметку к предмету «' + nm(s) + '»?')) api.note(s, ''); }]])); }); s3.appendChild(u3); }
+        else s3.appendChild(el('p', 'muted', 'Заметки пишутся на странице предмета, в блоке «Мои заметки».'));
+        prof.appendChild(s3);
+        if (P.recent.length) { var s4 = section('Недавно смотрел'); s4.appendChild(chips(P.recent)); prof.appendChild(s4); }
       }
-      var s1 = section('Изучено', P.done.length + ' из ' + ptotal); s1.appendChild(progress(ptotal));
-      if (P.done.length) { var u1 = el('ul', 'mylist'); P.done.forEach(function (s) { u1.appendChild(item(s, null, 'Снять отметку', function () { api.toggle('done', s); })); }); s1.appendChild(u1); }
-      s1.appendChild(el('p', 'muted', 'Это твои личные пометки для планирования, а не оценки и не зачёты.'));
-      prof.appendChild(s1);
-      var s2 = section('Избранное', P.fav.length);
-      if (P.fav.length) { var u2 = el('ul', 'mylist'); P.fav.forEach(function (s) { u2.appendChild(item(s, null, 'Убрать', function () { api.toggle('fav', s); })); }); s2.appendChild(u2); }
-      else s2.appendChild(el('p', 'muted', 'Пока ничего. Звёздочка «Избранное» есть на странице каждого предмета.'));
-      prof.appendChild(s2);
-      var keys = Object.keys(P.notes);
-      var s3 = section('Заметки', keys.length);
-      if (keys.length) { var u3 = el('ul', 'mylist'); keys.forEach(function (s) { u3.appendChild(item(s, el('p', 'mytext', P.notes[s]), 'Удалить заметку', function () { if (confirm('Удалить заметку к предмету «' + nm(s) + '»?')) api.note(s, ''); })); }); s3.appendChild(u3); }
-      else s3.appendChild(el('p', 'muted', 'Заметки пишутся на странице предмета, в блоке «Мои заметки».'));
-      prof.appendChild(s3);
-      if (P.recent.length) { var s4 = section('Недавно смотрел'); s4.appendChild(chips(P.recent)); prof.appendChild(s4); }
-      var s5 = section('Очистить'); s5.appendChild(el('p', '', 'Удалит избранное, отметки, заметки и историю просмотров из этого браузера. Отменить нельзя.'));
-      var cb = el('button', 'btn-o mydanger', 'Очистить мой план'); cb.type = 'button';
-      cb.addEventListener('click', function () { if (confirm('Удалить избранное, отметки «изучил», заметки и историю просмотров из этого браузера? Это нельзя отменить.')) { api.clear(); var h = document.querySelector('main h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus(); } } });
-      s5.appendChild(cb); prof.appendChild(s5);
-      if (had) { var hh = prof.querySelector('h2'); if (hh) { hh.setAttribute('tabindex', '-1'); hh.focus({ preventScroll: true }); } }
+      // перенос на другое устройство: файл с данными
+      var s6 = section('Перенести на другое устройство', null, 'mydata');
+      s6.appendChild(el('p', '', 'Сохрани файл с личным планом и открой его на другом устройстве кнопкой «Загрузить из файла». Файл остаётся у тебя: на сервер ничего не отправляется.'));
+      var row = el('p', 'hlinks2'), ex = el('button', 'btn-o', 'Сохранить в файл'); ex.type = 'button'; ex.disabled = api.empty();
+      ex.addEventListener('click', function () {
+        var blob = new Blob([api.exportText()], { type: 'application/json' }), url = URL.createObjectURL(blob), a = el('a');
+        a.href = url; a.download = 'teachmap-moy-plan-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000); msg.textContent = 'Файл сохранён в загрузки.';
+      });
+      var fi = el('input'); fi.type = 'file'; fi.accept = '.json,application/json'; fi.id = 'myfile'; fi.className = 'vh'; fi.tabIndex = -1; fi.setAttribute('aria-label', 'Файл личного плана TeachMap'); fi.setAttribute('aria-hidden', 'true');   // выбор файла открывает кнопка «Загрузить из файла»
+      var im = el('button', 'btn-o', 'Загрузить из файла'); im.type = 'button'; im.addEventListener('click', function () { fi.click(); });
+      fi.addEventListener('change', function () {
+        var f = fi.files && fi.files[0]; if (!f) return;
+        if (f.size > 1e6) { msg.textContent = 'Файл слишком большой: это не файл личного плана TeachMap.'; fi.value = ''; return; }
+        var r = new FileReader();
+        r.onload = function () {
+          fi.value = '';
+          try {
+            api.checkText(String(r.result));                 // сначала проверяем файл, потом спрашиваем о замене
+            if (!api.empty() && !confirm('Заменить текущий личный план данными из файла? Текущие отметки, заметки и избранное будут удалены.')) return;
+            var n = api.importText(String(r.result)); focusAfter = 'mydata'; msg.textContent = 'Загружено записей: ' + n + '.';
+          }
+          catch (err) { msg.textContent = err.message === 'newer' ? 'Файл сохранён более новой версией сайта: обнови страницу и попробуй снова.' : err.message === 'save' ? 'Не удалось сохранить: браузер не даёт записывать данные.' : 'Не получилось прочитать файл: это не файл личного плана TeachMap или он повреждён.'; }
+        };
+        r.onerror = function () { msg.textContent = 'Не получилось прочитать файл.'; };
+        r.readAsText(f);
+      });
+      row.appendChild(ex); row.appendChild(im); s6.appendChild(row); s6.appendChild(fi); s6.appendChild(msg); prof.appendChild(s6);
+      if (!api.empty()) {
+        var s5 = section('Очистить'); s5.appendChild(el('p', '', 'Удалит статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера. Отменить нельзя: если нужно, сначала сохрани файл.'));
+        var cb = el('button', 'btn-o mydanger', 'Очистить мой план'); cb.type = 'button';
+        cb.addEventListener('click', function () { if (confirm('Удалить статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера? Это нельзя отменить.')) { api.clear(); var h = document.querySelector('main h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus(); } } });
+        s5.appendChild(cb); prof.appendChild(s5);
+      }
+      if (focusAfter) { var fa = document.getElementById(focusAfter); focusAfter = null; if (fa) { if (fa.tagName !== 'SELECT') { var fh = fa.querySelector('h2'); fh.setAttribute('tabindex', '-1'); fh.focus({ preventScroll: true }); } else fa.focus({ preventScroll: true }); } }
+      else if (had) { var hh = prof.querySelector('h2'); if (hh) { hh.setAttribute('tabindex', '-1'); hh.focus({ preventScroll: true }); } }
     };
     drawProfile(); api.on(drawProfile);
   }

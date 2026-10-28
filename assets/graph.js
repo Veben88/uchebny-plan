@@ -191,9 +191,15 @@
     f.appendChild(el('p', 'gwhat', j[1]));
     f.appendChild(group('Ключевые предметы', j[2].slice().sort(byPlan).map(function (s) { return item(s, 'ключевой', 'key', ''); }), ''));
     f.appendChild(group('Нужны для ключевых', j[3].slice().sort(byPlan).map(function (s) { return item(s, 'нужен', 'need', ''); }), 'Таких предметов не отмечено.'));
-    f.appendChild(acts([['Маршрут по семестрам', 'jobs.html#job-' + i, 'btn-s'], ['Показать на пути студента', 'index.html#path=' + i, 'btn-o']]));
+    var ac = acts([['Маршрут по семестрам', 'jobs.html#job-' + i, 'btn-s'], ['Показать на пути студента', 'index.html#path=' + i, 'btn-o']]);
+    if (TM) {                                                  // «Интересная профессия»: кнопку оживляет profile.js
+      var fb = el('button', 'mybtn my-job'); fb.type = 'button'; fb.dataset.job = i; fb.dataset.title = j[0]; fb.hidden = true;
+      var fi = el('span', 'myi', '★'); fi.setAttribute('aria-hidden', 'true'); fb.appendChild(fi); fb.appendChild(document.createTextNode('Интересная профессия'));
+      ac.insertBefore(fb, ac.firstChild);
+    }
+    f.appendChild(ac);
     f.appendChild(el('p', 'muted gtip', 'Ключевые предметы — оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.'));
-    show(f); pick.value = ''; jobSel.value = String(i); setHash('job=' + i); after(opt);
+    show(f); if (TM && TM.jobButtons) TM.jobButtons(); pick.value = ''; jobSel.value = String(i); setHash('job=' + i); after(opt);
     say('Путь к профессии «' + j[0] + '»: ключевых предметов ' + j[2].length + ', нужных для них ' + j[3].length + '.');
   }
   function after(opt) {
@@ -207,8 +213,59 @@
     sel = null; cv.classList.remove('gsel', 'tm-gsel');
     Object.keys(nodes).forEach(function (id) { nodes[id].classList.remove.apply(nodes[id].classList, ROLES); });
     edges.forEach(function (p) { p.classList.remove('on'); });
+    idle(); pick.value = ''; jobSel.value = ''; setHash(mine ? 'mine' : ''); filt(); say('Выбор снят.');
+  }
+  function idle() {                                          // панель без выбора: подсказка или сводка «Мой маршрут»
+    if (mine) { showMine(); return; }
     var f = document.createDocumentFragment(); f.appendChild(el('p', 'muted', 'Выбери предмет на карте или в списке: появится, на что он опирается, к чему ведёт и с какими профессиями связан.'));
-    show(f); pick.value = ''; jobSel.value = ''; setHash(''); filt(); say('Выбор снят.');
+    show(f);
+  }
+
+  // ---------- «Мой маршрут»: личные статусы, избранное и интересные профессии из «Моего плана» (profile.js) ----------
+  // Пройдено и «Изучаю» — по статусам; «в планах» — избранные предметы и путь к интересным профессиям (ключевые и нужные для них).
+  // Это личные пометки для планирования, а не оценки и не официальная успеваемость.
+  var TM = window.TMProfile && window.TMProfile.available ? window.TMProfile : null, mineB = $('gmine'), mine = false, MCL = ['m-done', 'm-doing', 'm-plan'], mineN = {};
+  function paintMine() {
+    var pl = {}, n = { done: 0, doing: 0, plan: 0 }, now = TM ? TM.sem() : 0;
+    if (TM) {
+      TM.data().fav.forEach(function (s) { pl[s] = 1; });
+      TM.data().jobs.forEach(function (k) { var j = D.j[k]; if (j) j[2].concat(j[3]).forEach(function (s) { pl[s] = 1; }); });
+    }
+    Object.keys(nodes).forEach(function (id) {
+      var a = nodes[id], c = ''; a.classList.remove.apply(a.classList, MCL);
+      if (!mine) return;
+      if (/^job-/.test(id)) c = TM.hasJob(+id.slice(4)) ? 'm-plan' : '';
+      else { var st = TM.status(id); c = st ? 'm-' + st : pl[id] ? 'm-plan' : ''; if (c) n[c.slice(2)]++; }
+      if (c) a.classList.add(c);
+    });
+    [].forEach.call(cv.querySelectorAll('.gch'), function (h) { h.classList.toggle('mnow', mine && +h.getAttribute('data-c') === now); });
+    cv.classList.toggle('gmine', mine); mineN = n;
+  }
+  function showMine() {
+    var n = mineN, now = TM.sem(), f = document.createDocumentFragment();
+    f.appendChild(head('По личному плану', 'Мой маршрут', 'Пройдено: ' + n.done + ' · изучаю: ' + n.doing + ' · в планах: ' + n.plan + (now ? ' · сейчас ' + now + ' семестр' : '')));
+    var ul = el('ul', 'glegend');
+    [['m-done', 'Пройдено', 'по твоим статусам'], ['m-doing', 'Изучаю', 'по твоим статусам'], ['m-plan', 'В планах', 'избранные предметы и путь к интересным профессиям']].forEach(function (x) {
+      var li = el('li'); li.appendChild(el('span', 'gsw ' + x[0])); li.appendChild(el('b', '', x[1])); li.appendChild(el('small', '', ' — ' + x[2])); ul.appendChild(li);
+    });
+    f.appendChild(ul);
+    if (!n.done && !n.doing && !n.plan) f.appendChild(el('p', 'gwhat', 'Пока нет отметок. Статус «Изучаю» или «Пройдено» ставится на странице предмета, интересные профессии отмечаются на карте профессий.'));
+    var d = el('div', 'hlinks2'), a = el('a', 'btn-s', 'Мой план'); a.href = 'profile.html'; d.appendChild(a);
+    var b = el('a', 'btn-o', 'Карта профессий'); b.href = 'jobs.html'; d.appendChild(b); f.appendChild(d);
+    f.appendChild(el('p', 'muted gtip', 'Личные пометки хранятся только в этом браузере. Это не оценки, не зачёты и не официальная успеваемость. Выбери предмет, чтобы увидеть его связи; маршрут останется подсвеченным.'));
+    show(f);
+  }
+  function setMine(on) {
+    if (!TM) return;
+    mine = on; mineB.setAttribute('aria-pressed', on ? 'true' : 'false'); paintMine();
+    if (!sel) { idle(); setHash(on ? 'mine' : ''); }
+    if (on && !RM) { cv.classList.remove('tm-gmine'); void cv.offsetWidth; cv.classList.add('tm-gmine'); setTimeout(function () { cv.classList.remove('tm-gmine'); }, 1200); }
+    say(on ? 'Мой маршрут: пройдено ' + mineN.done + ', изучаю ' + mineN.doing + ', в планах ' + mineN.plan + '.' : 'Мой маршрут выключен.');
+  }
+  if (TM) {
+    mineB.hidden = false;
+    mineB.addEventListener('click', function () { setMine(!mine); });
+    TM.on(function () { if (mine) { paintMine(); if (!sel) showMine(); } });
   }
   var sayT;
   function say(t) { clearTimeout(sayT); sayT = setTimeout(function () { live.textContent = t; }, 60); }
@@ -276,6 +333,7 @@
     var h = location.hash.slice(1), m;
     if ((m = h.match(/^node=([\w-]+)$/)) && N[m[1]]) selectNode(m[1], { pan: true, anim: !first });
     else if ((m = h.match(/^job=(\d+)$/)) && D.j[+m[1]]) { selectJob(+m[1]); if (ready) fit(!first); }
+    else if (h === 'mine' && TM) { if (sel) clear(); if (!mine) setMine(true); }
     else if (!first && sel) clear();
   }
   window.addEventListener('hashchange', function () { fromHash(false); });

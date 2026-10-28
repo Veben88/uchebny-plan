@@ -169,7 +169,7 @@ def home_page(cards):
 <p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
 <section class="wrap" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2><div class="sems" role="group" aria-label="Семестр">{pills}</div>
-<div class="tools"><input id="q" type="search" placeholder="Предмет, тема, профессия или код компетенции" aria-label="Поиск по предметам, темам, профессиям и кодам компетенций"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Изученные</button><label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
+<div class="tools"><input id="q" type="search" placeholder="Предмет, тема, профессия или код компетенции" aria-label="Поиск по предметам, темам, профессиям и кодам компетенций"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="doing" data-v="1" aria-pressed="false" hidden>• Изучаю</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Пройдено</button><label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
 <p class="cntrow"><span id="count" class="muted" aria-live="polite"></span><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p><p class="muted jobnote" id="jobnote" hidden>Показан путь к профессии: <b>ключевые</b> предметы и те, что <b>нужны для ключевых</b>. Это оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.</p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]], jk, ja) for i in order)}</div>
 <div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
@@ -398,7 +398,8 @@ def jobs_page():
                  f'<ol class="route">{cols}</ol>'
                  + (f'<p class="lkh" style="margin-top:14px">Ключевые предметы формируют компетенции</p><div class="ks">{comps}</div>' if comps else "")
                  + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
-                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></article>')
+                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a>'
+                 f'<button type="button" class="mybtn my-job" data-job="{k}" data-title="{E(j[1])}" aria-pressed="false" hidden><span class="myi" aria-hidden="true">★</span>Интересная профессия</button></div></article>')
     toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS))
     body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
 <p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
@@ -451,7 +452,7 @@ def edge_d(P, a, b):
 def map_page(cards):
     by, cols, nb, P, W, H, edges = graph_model()
     lab = lambda s: ("По выбору: " if by[s]["type"] == "По выбору" else "") + clean(by[s]["name"])
-    heads = "".join(f'<span class="gch" style="left:{GPAD + (c - 1) * GCW}px">{c} семестр</span>' for c in range(1, 9)) + f'<span class="gch gchj" style="left:{GPAD + 8 * GCW}px">Профессии</span>'
+    heads = "".join(f'<span class="gch" data-c="{c}" style="left:{GPAD + (c - 1) * GCW}px">{c} семестр</span>' for c in range(1, 9)) + f'<span class="gch gchj" style="left:{GPAD + 8 * GCW}px">Профессии</span>'
     nodes = ""
     for c in range(1, 9):
         for k, s in enumerate(cols[c]):
@@ -481,7 +482,7 @@ def map_page(cards):
              f'<div class="gfrow" role="group" aria-label="Показывать семестры"><span class="gfl">Семестры</span>{sems}</div>'
              f'<div class="gfrow" role="group" aria-label="Показывать разделы плана"><span class="gfl">Разделы</span>{grs}</div>'
              f'<div class="gfrow" role="group" aria-label="Показывать связи"><span class="gfl">Связи</span>{tys}<button type="button" class="pill" id="giso" aria-pressed="false">Скрыть предметы без связей ({n_iso})</button></div>'
-             f'<div class="gfrow"><label class="sortl">Профессия <select id="gjob">{jopt}</select></label><button type="button" class="btn-o" id="greset" hidden>Сбросить фильтры</button></div></div></details>'
+             f'<div class="gfrow"><label class="sortl">Профессия <select id="gjob">{jopt}</select></label><button type="button" class="pill gmine-b" id="gmine" aria-pressed="false" hidden>Мой маршрут</button><button type="button" class="btn-o" id="greset" hidden>Сбросить фильтры</button></div></div></details>'
              f'<p class="muted gcount" id="gcount" aria-live="polite"></p></div>')
     view = (f'<div class="gview" id="gview" tabindex="-1" role="group" aria-label="Граф связей: {len(by)} предметов и {len(JOBS)} профессий. Выбор предмета показывает его связи в панели рядом.">'
             f'<div class="gcanvas" id="gcanvas" style="width:{W}px;height:{H}px">{heads}<svg class="gedges" width="{W}" height="{H}" viewBox="0 0 {W} {H}" aria-hidden="true"><defs>{marks}</defs>{paths}</svg>{nodes}</div>'
@@ -545,12 +546,13 @@ def path_page(cards):
 
 def profile_page():
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"])] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    jn = json.dumps([j[1] for j in JOBS], ensure_ascii=False).replace("</", "<\\/")
     body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Мой план</h1>
-<p class="lead">Избранные предметы, отметки «изучил», заметки и недавно просмотренное — без регистрации.</p></section></div></div><div class="wrap">
-<section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. На другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере. На сервер ничего не отправляется.</p></section>
+<p class="lead">Статусы предметов, избранное, интересные профессии, текущий семестр и заметки — без регистрации.</p></section></div></div><div class="wrap">
+<section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. Сами на другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере; перенести их можно файлом (блок «Перенести на другое устройство» внизу). На сервер ничего не отправляется. Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.</p></section>
 <noscript><p class="panel">Для личного плана нужен включённый JavaScript.</p></noscript>
-<div id="profile" data-total="{len(items)}"></div></div></main><script type="application/json" id="pnames">{names}</script>'''
-    return page("Мой план · TeachMap", "Избранные предметы, отметки и заметки: хранятся только в вашем браузере", body)
+<div id="profile" data-total="{len(items)}"></div></div></main><script type="application/json" id="pnames">{names}</script><script type="application/json" id="pjobs">{jn}</script>'''
+    return page("Мой план · TeachMap", "Статусы предметов, избранное, профессии и заметки: хранятся только в вашем браузере", body)
 def build():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json")); minify_assets(OUT/"assets")

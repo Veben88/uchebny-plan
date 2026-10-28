@@ -58,7 +58,7 @@
   function saveUrl() {
     var p = new URLSearchParams();
     if (q.value.trim()) p.set('q', q.value.trim());
-    ['sem', 'group', 'kr', 'lab', 'fav', 'done', 'job'].forEach(function (k) { if (F[k]) p.set(k, F[k]); });
+    ['sem', 'group', 'kr', 'lab', 'fav', 'doing', 'done', 'job'].forEach(function (k) { if (F[k]) p.set(k, F[k]); });
     if (sortSel.value) p.set('sort', sortSel.value);
     var s = p.toString();
     try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch (e) {}
@@ -68,7 +68,7 @@
     cards.forEach(function (c) {
       var ok = words.every(function (w) { return c.dataset.text.indexOf(w) >= 0; }) && (!F.sem || c.dataset.sems.indexOf(' ' + F.sem + ' ') >= 0) &&
                (!F.group || c.dataset.group === F.group) && (!F.kr || c.dataset.kr === '1') && (!F.lab || c.dataset.lab === '1') &&
-               (!F.fav || c.dataset.fav === '1') && (!F.done || c.dataset.done === '1') &&   // отметки ставит profile.js
+               (!F.fav || c.dataset.fav === '1') && (!F.done || c.dataset.done === '1') && (!F.doing || c.dataset.doing === '1') &&   // отметки ставит profile.js
                (!F.job || !!jobRole(c));
       var jr = c.querySelector('.jr'), role = F.job ? jobRole(c) : '';
       if (jr) { jr.hidden = !role; jr.textContent = role === 'key' ? 'ключевой' : role === 'need' ? 'нужен для ключевых' : ''; jr.className = 'chip jr' + (role ? ' ' + role : ''); }
@@ -112,7 +112,7 @@
   reset.addEventListener('click', clearAll);
   document.getElementById('reset2').addEventListener('click', clearAll);
   var p = new URLSearchParams(location.search);
-  ['group', 'sem', 'kr', 'lab', 'fav', 'done'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); });
+  ['group', 'sem', 'kr', 'lab', 'fav', 'doing', 'done'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); });
   if (p.get('job') && jobSel.querySelector('option[value="' + p.get('job').replace(/\D/g, '') + '"]')) F.job = p.get('job').replace(/\D/g, '');
   if (p.get('q')) q.value = p.get('q');
   if (p.get('sort') && SORTS[p.get('sort')]) { sortSel.value = p.get('sort'); sortCards(false); }

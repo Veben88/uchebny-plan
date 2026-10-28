@@ -1156,3 +1156,56 @@ html.access .ge{opacity:.6}html.access .gsel .ge{opacity:.12}html.access .gsel .
 #fjob{font:inherit;font-size:14px}
 @media(prefers-reduced-motion:reduce){.chip.jr{animation:none!important}.cmap{transition:none}}
 .sortl{max-width:100%}.sortl select{min-width:0;max-width:100%}   /* длинное название профессии не выталкивает список за край экрана */
+
+/* =====================================================================
+   «МОЙ ПЛАН» v2: статусы предметов, текущий семестр, интересные профессии, «Мой маршрут» на карте
+   Статусы — личные пометки, а не оценки: цвет всегда дублируется подписью или значком.
+   ===================================================================== */
+.myst{display:inline-flex;flex-wrap:wrap;gap:0;border-radius:var(--r-s)}
+.myst .mybtn{border-radius:0;margin-left:-1.5px}
+.myst .mybtn:first-child{border-radius:var(--r-s) 0 0 var(--r-s);margin-left:0}
+.myst .mybtn:last-child{border-radius:0 var(--r-s) var(--r-s) 0}
+.mybtn.my-none[aria-pressed=true]{background:var(--ice);border-color:var(--field);color:var(--ink)}
+.mybtn.my-doing[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff;position:relative;z-index:1}
+.mybtn.my-done[aria-pressed=true]{position:relative;z-index:1}
+.band .mybtn.my-none[aria-pressed=true]{background:rgba(255,255,255,.22);border-color:#fff;color:#fff}
+.band .mybtn.my-doing[aria-pressed=true]{background:#fff;border-color:#fff;color:#22609F}
+.mybtn.my-job[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff}
+.mybtn.my-job[hidden],.my-job[hidden]{display:none}
+.mk-doing{background:var(--btn)}
+.mymarks .mk-doing{box-shadow:0 0 0 2px var(--card)}
+.myprog .bar .s3{background:var(--ch2)}
+.myprivnote{margin-top:6px!important;font-size:13px}
+.mysem{margin:0 0 8px!important;font-family:var(--hd);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--pri)}
+.mysem a{color:var(--link)}
+.mywarn{background:var(--warn-bg)!important;color:var(--warn);border-color:var(--warn)!important}
+.mymsg{margin:10px 0 0!important;font-weight:600;color:var(--pri)}.mymsg:empty{display:none}
+#mysem{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--card);border:1.5px solid var(--field);border-radius:var(--r-s);padding:8px 10px}
+.kchip.mydoing{border-color:var(--btn);box-shadow:inset 3px 0 0 var(--btn)}
+/* путь студента: «Ты здесь» у текущего семестра */
+.mynowk{display:inline-block;margin-right:8px;padding:2px 10px;background:var(--btn);color:#fff;font-family:var(--hd);font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;clip-path:var(--para);vertical-align:2px}
+.station.mynow .node{box-shadow:0 0 0 5px rgba(63,149,218,.35)}
+html.access .mynowk{clip-path:none}
+/* карта: «Мой маршрут» */
+.gmine-b[hidden]{display:none}
+.gfrow .gmine-b[aria-pressed=true]{background:var(--btn);color:#fff;border-color:var(--btn);border-style:solid;text-decoration:none}
+.gmine .gn:not(.m-done):not(.m-doing):not(.m-plan):not([class*=" r-"]){opacity:.4}
+.gn.m-done{background:var(--ok-bg);border-color:var(--ok-s);border-left-color:var(--ok-s)}
+.gn.m-done b{color:var(--ok)}
+.gn.m-doing{background:var(--ice);box-shadow:0 0 0 3px var(--btn),var(--sh-s);z-index:3}
+.gn.m-plan{outline:2px dashed var(--g3);outline-offset:2px;z-index:2}
+.gn.gj.m-plan{outline-color:var(--g3);outline-style:solid;outline-width:3px}
+.gch.mnow{color:#fff;background:var(--btn);padding:2px 8px 4px;border-bottom-color:var(--btn);clip-path:var(--para)}
+.gch.mnow::after{content:" · сейчас"}
+.glegend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px;font-size:14px}
+.glegend li{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.glegend small{color:var(--mut);font-size:12.5px}
+.gsw{width:26px;height:16px;flex:none;border-radius:4px;border:1.5px solid var(--line);background:var(--card)}
+.gsw.m-done{background:var(--ok-bg);border-color:var(--ok-s)}
+.gsw.m-doing{background:var(--ice);border:3px solid var(--btn)}
+.gsw.m-plan{border:2px dashed var(--g3)}
+.tm-gmine .gn.m-done,.tm-gmine .gn.m-doing,.tm-gmine .gn.m-plan{animation:tmHl 320ms steps(11,end) calc(var(--c,0) * 50ms) backwards}
+.tm-gmine .gch.mnow{animation:tmOn 280ms steps(9,end) 200ms backwards}
+@media(prefers-reduced-motion:reduce){.tm-gmine .gn,.tm-gmine .gch{animation:none!important}}
+html.access .gch.mnow{clip-path:none}
+.myitem .mysmall+.mysmall{margin-left:0}   /* несколько кнопок в строке «Мой план» стоят рядом, справа */
