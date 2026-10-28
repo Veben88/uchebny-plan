@@ -6,7 +6,7 @@
   var view = document.getElementById('gview'), cv = document.getElementById('gcanvas'), dataEl = document.getElementById('gd');
   if (!view || !cv || !dataEl) return;
   var D; try { D = JSON.parse(dataEl.textContent); } catch (e) { return; }
-  var N = D.n, RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches,
+  var N = D.n, RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still'),
       NARROW = window.matchMedia ? matchMedia('(max-width: 700px)') : { matches: false };
   var $ = function (id) { return document.getElementById(id); };
   var side = $('gside'), gp = $('gp'), pick = $('gpick'), jobSel = $('gjob'), cnt = $('gcount'), live = $('glive'),

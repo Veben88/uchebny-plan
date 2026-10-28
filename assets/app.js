@@ -16,13 +16,22 @@
       if (same && history.length > 1) { e.preventDefault(); history.back(); }
     });
   });
+  // «Меньше анимаций»: сохраняется в этом браузере; класс tm-still на <html> ставит скрипт в <head> на каждой странице
+  [].forEach.call(document.querySelectorAll('[data-tm-still]'), function (b) {
+    b.setAttribute('aria-pressed', root.classList.contains('tm-still'));
+    b.addEventListener('click', function () {
+      var on = root.classList.toggle('tm-still');
+      try { localStorage.setItem('tm-motion', on ? 'off' : 'on'); } catch (e) {}
+      [].forEach.call(document.querySelectorAll('[data-tm-still]'), function (x) { x.setAttribute('aria-pressed', on); });
+    });
+  });
   var g = document.getElementById('grid'); if (!g) return;
   var cards = [].slice.call(g.querySelectorAll('.card')), q = document.getElementById('q'),
       cnt = document.getElementById('count'), empty = document.getElementById('empty'), F = {};
   // Карточки, которые больше не подходят под фильтр, сначала уходят анимацией (класс tm-leave в style.css),
   // и только потом скрываются; оставшиеся плавно съезжают на освободившиеся места.
   // Счётчик и сообщение «Ничего не нашлось» обновляются сразу. При «уменьшении движения» всё мгновенно, как раньше.
-  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches, LEAVE = 180, first = true;
+  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still'), LEAVE = 180, first = true;
   function slide(change) {                       // сдвиг оставшихся карточек на новые места (приём FLIP)
     var stay = cards.filter(function (c) { return !c.hidden && !c.classList.contains('tm-leave'); }),
         was = stay.map(function (c) { return c.getBoundingClientRect(); });

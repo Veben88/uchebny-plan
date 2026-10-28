@@ -4,7 +4,7 @@
 // При «уменьшении движения» скрипт ничего не анимирует.
 (function () {
   'use strict';
-  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still');
   var root = document.documentElement;
 
   // Перезапуск CSS-анимации: снимаем класс, вызываем перерасчёт стилей, ставим снова.

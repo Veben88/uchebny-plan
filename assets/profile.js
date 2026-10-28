@@ -292,7 +292,7 @@
     var drawHome = function () {
       home.hidden = api.empty(); if (home.hidden) return;
       hb.textContent = '';
-      if (P.sem) { var sp = el('p', 'mysem'); sp.appendChild(document.createTextNode('Сейчас: ')); var sa = el('a', '', P.sem + ' семестр'); sa.href = '#journey'; sa.addEventListener('click', function (e) { var st_ = document.querySelector('.station[data-sem="' + P.sem + '"]'); if (st_) { e.preventDefault(); st_.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); } }); sp.appendChild(sa); hb.appendChild(sp); }
+      if (P.sem) { var sp = el('p', 'mysem'); sp.appendChild(document.createTextNode('Сейчас: ')); var sa = el('a', '', P.sem + ' семестр'); sa.href = '#journey'; sa.addEventListener('click', function (e) { var st_ = document.querySelector('.station[data-sem="' + P.sem + '"]'); if (st_) { e.preventDefault(); st_.scrollIntoView({ behavior: (matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still')) ? 'auto' : 'smooth', block: 'start' }); } }); sp.appendChild(sa); hb.appendChild(sp); }
       var doing = listOf('doing');
       if (doing.length) { hb.appendChild(el('p', 'lkh', 'Изучаю')); hb.appendChild(chips(doing.slice(0, 10), 'mydoing')); }
       if (P.recent.length) { hb.appendChild(el('p', 'lkh', 'Недавно смотрел')); hb.appendChild(chips(P.recent.slice(0, 6))); }

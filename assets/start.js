@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var menu = document.getElementById('stmenu'); if (!menu) return;
-  var root = document.documentElement, RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var root = document.documentElement, RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still');
   var items = [].slice.call(menu.querySelectorAll('.sm-i')), nav = document.getElementById('stnav'), set = document.getElementById('settings'),
       back = document.getElementById('setback'), setLink = menu.querySelector('a[href="#settings"]');
   root.classList.add('st-js');

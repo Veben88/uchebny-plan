@@ -6,7 +6,7 @@
   var box = document.getElementById('cmpout'), dEl = document.getElementById('cmpd'), sa = document.getElementById('cmpa'), sb = document.getElementById('cmpb');
   if (!box || !dEl || !sa || !sb) return;
   var D; try { D = JSON.parse(dEl.textContent); } catch (e) { return; }
-  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still');
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function diff(a, b) { return a.filter(function (x) { return b.indexOf(x) < 0; }); }
   function both(a, b) { return a.filter(function (x) { return b.indexOf(x) >= 0; }); }

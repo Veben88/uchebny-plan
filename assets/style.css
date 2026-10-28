@@ -1529,3 +1529,71 @@ html.access .tabbar a[aria-current]{clip-path:none}
  .sm-s.acc{flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;gap:10px!important;font-size:17px!important;padding:10px 14px!important;color:#fff;background:rgba(14,37,80,.45);border:0;border-left:4px solid #3478C8}
  .sm-s.acc[aria-pressed=true],.sm-s.acc:hover{background:#fff;color:#173B70}
 }
+
+/* =====================================================================
+   ЕДИНАЯ НАВИГАЦИЯ (компьютер, от 701 px) И ПЕРЕХОДЫ
+   Шапка — тёмная плашка со срезанным краем и сдвинутой синей подложкой, как пункты стартового меню.
+   Логотип ведёт на стартовый экран; разделы: Карта · Дисциплины · Профессии · Профиль, справа — Настройки.
+   При переходе между страницами шапка стоит на месте (view-transition-name), косым срезом меняется только сцена.
+   Мобильная версия (до 700 px) не меняется: там своя панель и вкладки.
+   ===================================================================== */
+@media(min-width:701px){
+ .top,.band .top{position:relative;isolation:isolate;z-index:5;flex-wrap:nowrap!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:10px 34px 10px 18px!important;view-transition-name:tm-head}
+ .top::after,.top::before{content:"";position:absolute;inset:0;clip-path:polygon(0 0,100% 0,calc(100% - 24px) 100%,0 100%);pointer-events:none}
+ .top::after{background:#173B70;z-index:-1}
+ .top::before{background:#3478C8;transform:translate(6px,6px);z-index:-2}
+ .bw b,.band .bw b{color:#fff;text-shadow:2px 2px 0 #0E2550}
+ .bw b em,.band .bw b em{color:#DDEBFA}
+ .bw small,.band .bw small{color:#B9D1EE}
+ .brand:focus-visible{outline:2px solid #fff;outline-offset:4px}
+ .menu{flex:1;flex-wrap:nowrap;justify-content:flex-start;gap:4px;margin-left:28px}
+ .menu a,.band .menu a{color:#fff;font-size:16px;padding:9px 16px}
+ .menu a:hover,.band .menu a:hover,.menu a:not([aria-current]):focus-visible{background:transparent;color:#fff}
+ .menu a::before{background:rgba(255,255,255,.15)}
+ .menu a::after{background:#DDEBFA}
+ .menu a[aria-current],.band .menu a[aria-current]{background:#fff;color:#173B70}
+ .menu a:focus-visible{box-shadow:inset 0 0 0 2px #173B70,inset 0 0 0 4px #fff}
+ .menu a.nset{margin-left:auto}
+ .menu a.nset .ni{display:inline-block;margin-right:7px;vertical-align:-2px}
+ .tm-navghost{background:#fff}
+ .tm-navwait .menu a[aria-current],.tm-navwait .band .menu a[aria-current]{color:#173B70}
+}
+@media(min-width:701px) and (max-width:1000px){
+ .bw small{display:none}
+ .menu{margin-left:14px;gap:0}
+ .menu a,.band .menu a{font-size:14px;padding:8px 10px}
+ .menu a.nset .nt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .menu a.nset .ni{margin:0}
+}
+@keyframes tmNavback{to{background-color:#fff}}
+/* шапка неподвижна при переходе: новая сразу встаёт на место старой */
+::view-transition-group(tm-head){animation:none}
+::view-transition-old(tm-head){display:none}
+::view-transition-new(tm-head){animation:none}
+/* подвал: служебные разделы одной строкой */
+.flinks a{white-space:nowrap}
+/* «Меньше анимаций» (настройка сайта): все анимации сразу приходят к конечному виду — ничего не пропадает с экрана */
+.tm-still *,.tm-still *::before,.tm-still *::after{animation-duration:1ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:1ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
+html.tm-still{scroll-behavior:auto!important}
+/* страница «Настройки» */
+main:has(.setwrap) .heroblock{min-height:0!important}main:has(.setwrap) .hero3d{display:none}
+.setsec{max-width:900px}
+.setsec h2{margin-bottom:6px}
+.setlist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.setrow{position:relative;display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;font:inherit;padding:14px 18px;background:var(--card);border:1.5px solid var(--line);border-left:5px solid #3478C8;border-radius:var(--r-s);color:var(--ink);text-decoration:none;cursor:pointer;transition:background var(--m-fast) steps(4,end),border-color var(--m-fast) steps(4,end),translate 60ms ease-out}
+.setrow b{font-family:var(--hd);font-size:19px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--pri)}
+.setrow span{font-size:14px;line-height:1.45;color:var(--mut)}
+.setrow:hover{background:var(--ice);border-color:#3478C8}
+.setrow:active{translate:2px 1px}
+.setrow:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+a.setrow::after{content:"›";position:absolute;right:18px;top:50%;translate:0 -52%;font-size:30px;line-height:1;color:var(--pri)}
+a.setrow{padding-right:50px}
+.settog{padding-right:120px}
+.settog::after{content:"выкл.";position:absolute;right:16px;top:50%;translate:0 -50%;font-family:var(--hd);font-size:14px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:5px 14px;border:1.5px solid var(--field);border-radius:999px;color:var(--mut);background:var(--card)}
+.settog[aria-pressed=true]{border-left-color:var(--btn)}
+.settog[aria-pressed=true]::after{content:"вкл.";background:var(--btn);border-color:var(--btn);color:#fff}
+.setnote{margin-top:10px!important;font-size:13px}
+.sm-s[data-tm-still][aria-pressed=true]::after{content:"вкл.";margin-left:auto;font-size:14px;color:var(--s-acc,#3478C8)}
+@media(max-width:560px){.settog{padding-right:90px}.setrow b{font-size:17px}}
+/* подложка шапки: на узких окнах сдвиг только вниз, чтобы не выходить за край страницы */
+@media(min-width:701px) and (max-width:1219px){.top::before{transform:none;inset:6px 0 -6px 6px}}

@@ -103,19 +103,23 @@ HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><
           '<svg viewBox="0 0 64 64">' + ICON_BODY + '</svg></span></div>')
 
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
+# Разделы верхнего меню (компьютер): логотип ведёт на стартовый экран; путь по семестрам — часть «Карты»,
+# план таблицей и страницы предметов — часть «Дисциплин», служебные страницы — часть «Настроек».
+NAV = (("map", "map.html", "Карта", "FaCompass"), ("cat", "catalog.html", "Дисциплины", "FaBookOpen"), ("jobs", "jobs.html", "Профессии", "FaBriefcase"),
+       ("profile", "profile.html", "Профиль", "FaUserGraduate"), ("settings", "settings.html", "Настройки", "FaCog"))
+NAV_OF = {"home": "map", "map": "map", "cat": "cat", "plan": "cat", "jobs": "jobs", "profile": "profile", "settings": "settings", "road": "settings", "about": "settings", "fb": "settings"}
 def head_nav(depth, active, band=False):
-    b = "../"*depth
-    NAV = (("home","path.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("map","map.html","Карта связей","Карта","FaCompass"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
-    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
-    return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, на главную</span></a>'
-            f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>' + app_bar(depth, active))
+    b = "../"*depth; cur = NAV_OF.get(active, "")
+    links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k == cur else ""}{" class=nset" if k == "settings" else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{t}</span></a>' for k, h, t, i in NAV)
+    return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, стартовый экран</span></a>'
+            f'<nav class="menu" aria-label="Разделы">{links}</nav></header>' + app_bar(depth, active))
 # ---- мобильная версия как приложение: верхняя панель (назад, раздел, поиск, настройки) и нижние вкладки ----
 # На экранах шире 700 px не показываются (style.css), там остаётся обычное верхнее меню.
 APP = {  # раздел: (заголовок панели, куда ведёт «назад» без истории, вкладка)
  "home": ("Путь по семестрам", "map.html", "map"), "map": ("Образовательная карта", "index.html", "map"),
  "cat": ("Дисциплины", "index.html", "cat"), "jobs": ("Профессии", "index.html", "jobs"), "profile": ("Мой план", "index.html", "profile"),
  "plan": ("План таблицей", "catalog.html", "cat"), "road": ("Развитие сайта", "index.html#settings", ""), "about": ("О проекте", "index.html#settings", ""),
- "fb": ("Обратная связь", "index.html#settings", ""), "": ("TeachMap", "index.html", "")}
+ "fb": ("Обратная связь", "index.html#settings", ""), "settings": ("Настройки", "index.html", ""), "": ("TeachMap", "index.html", "")}
 TABS = (("start", "index.html", "Главная", "FaUniversity"), ("map", "map.html", "Карта", "FaCompass"), ("cat", "catalog.html", "Дисциплины", "FaBookOpen"),
         ("jobs", "jobs.html", "Профессии", "FaBriefcase"), ("profile", "profile.html", "Профиль", "FaUserGraduate"))
 def tab_bar(depth, tab):
@@ -130,8 +134,8 @@ def app_bar(depth, active):
             f'<p class="ab-t">{E(title)}</p>{search}<a class="ab-i" href="{b}index.html#settings" aria-label="Настройки">{ic("FaCog")}</a></header>' + tab_bar(depth, tab))
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
-    contact += f'<p><a href="{b}jobs.html">Карта профессий: маршрут к каждой профессии по семестрам</a> · <a href="{b}profile.html">Мой план: статусы и избранное</a> · <a href="{b}plan.html">Учебный план таблицей и CSV</a></p>'
-    if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
+    contact += (f'<p class="flinks"><a href="{b}plan.html">Учебный план таблицей и CSV</a> · <a href="{b}about.html">О проекте</a> · <a href="{b}roadmap.html">Развитие сайта</a>'
+                + (f' · <a href="{b}feedback.html">Обратная связь</a>' if FB_ON else "") + f' · <a href="{b}settings.html">Настройки</a></p>')
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
 def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False, jobs=False, plan=False, start=False, head=""):
@@ -152,7 +156,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8">{head}<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#173B70"><link rel="manifest" href="{b}manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TeachMap"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
-<link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("tm-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
+<link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{if(localStorage.getItem("tm-motion")==="off")document.documentElement.classList.add("tm-still")}}catch(x){{}}try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}var tmS=document.documentElement.classList.contains("tm-still");try{{if(!tmS&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(!tmS&&sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&/tm-lite|tm-still/.test(document.documentElement.className)){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def job_roles():
     """для каталога: профессии, где предмет ключевой, и где он нужен для ключевых (те же данные, что на карте профессий)"""
@@ -664,6 +668,7 @@ def start_page():
     fb = '<li><a class="sm-s" href="feedback.html">Обратная связь</a></li>' if FB_ON else ""
     settings = ('<section class="st-set" id="settings" aria-labelledby="seth"><h2 id="seth" tabindex="-1">Настройки</h2><ul class="sm-sl">'
                 f'<li><button type="button" class="sm-s acc" id="acc" aria-pressed="false"><span class="ni" aria-hidden="true">{ic("FaEye")}</span>Крупный шрифт и высокий контраст</button></li>'
+                '<li><button type="button" class="sm-s" data-tm-still aria-pressed="false">Меньше анимаций</button></li>'
                 '<li><a class="sm-s" href="profile.html">Мои данные: перенос, выгрузка, очистка</a></li>'
                 '<li><a class="sm-s" href="plan.html">Учебный план таблицей и CSV</a></li>'
                 '<li><a class="sm-s" href="about.html">О проекте</a></li><li><a class="sm-s" href="roadmap.html">Развитие сайта</a></li>'
@@ -684,6 +689,21 @@ def start_page():
     head = ('<script>if(/^#(d|route|path)=|^#journey$/.test(location.hash))location.replace("path.html"+location.hash);'
             'document.documentElement.classList.add("st-js");if(location.hash==="#settings")document.documentElement.classList.add("st-setopen")</script>')
     return page("TeachMap: учебный план 27.03.01 «Стандартизация и метрология» ДВФУ простым языком", "Интерактивная карта учебного плана: дисциплины, связи между ними, путь по семестрам и профессии выпускников", body, start=True, head=head)
+def settings_page():
+    """Настройки: отображение и движение (хранятся в этом браузере), мои данные, служебные разделы."""
+    row = lambda h, t, d: f'<li><a class="setrow" href="{h}"><b>{t}</b><span>{d}</span></a></li>'
+    body = head_nav(0, "settings") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Настройки</h1>
+<p class="lead">Как сайт выглядит и двигается на этом устройстве, твои данные и всё о проекте.</p></section></div></div><div class="wrap setwrap">
+<section class="panel setsec" aria-labelledby="set1"><h2 id="set1"><span class="ci">{ic("FaEye")}</span>Отображение и движение</h2><ul class="setlist">
+<li><button type="button" class="setrow settog" id="acc" aria-pressed="false"><b>Крупный шрифт и высокий контраст</b><span>Текст крупнее, рамки и подписи контрастнее, без наклонов и срезов</span></button></li>
+<li><button type="button" class="setrow settog" data-tm-still aria-pressed="false"><b>Меньше анимаций</b><span>Без появлений, срезов и переходов между страницами. Если в системе включено «уменьшение движения», анимаций нет и так</span></button></li></ul>
+<p class="muted setnote">Настройки сохраняются только в этом браузере.</p></section>
+<section class="panel setsec" aria-labelledby="set2"><h2 id="set2"><span class="ci">{ic("FaUserLock")}</span>Мои данные</h2><ul class="setlist">
+{row("profile.html", "Мой план", "Статусы, избранное, заметки; перенос на другое устройство файлом, таблица CSV, очистка")}</ul></section>
+<section class="panel setsec" aria-labelledby="set3"><h2 id="set3"><span class="ci">{ic("FaLightbulb")}</span>О сайте</h2><ul class="setlist">
+{row("plan.html", "Учебный план таблицей", "Все позиции плана, печать в PDF и выгрузка CSV")}{row("about.html", "О проекте", "Откуда данные, кто пишет описания, как считаются оценки")}
+{row("roadmap.html", "Развитие сайта", "Концепция и этапы развития")}{row("feedback.html", "Обратная связь", "Расскажите, что получилось, а что нет") if FB_ON else ""}</ul></section></div></main>'''
+    return page("Настройки · TeachMap", "Крупный шрифт и контраст, меньше анимаций, мои данные и сведения о проекте", body)
 def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"]), [x for x, t, _ in links_of(i["slug"])[0] if t == "need"], i["idx"]] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
@@ -700,7 +720,7 @@ def build():
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
     (OUT/"index.html").write_text(start_page(), encoding="utf-8"); (OUT/"path.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
-    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"map.html").write_text(map_page(cards), encoding="utf-8"); (OUT/"plan.html").write_text(plan_page(cards), encoding="utf-8"); (OUT/"plan.csv").write_text(plan_csv(), encoding="utf-8", newline=""); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
+    (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"map.html").write_text(map_page(cards), encoding="utf-8"); (OUT/"plan.html").write_text(plan_page(cards), encoding="utf-8"); (OUT/"plan.csv").write_text(plan_csv(), encoding="utf-8", newline=""); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"settings.html").write_text(settings_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
     # манифест: сайт можно добавить на главный экран телефона и открывать без адресной строки, как приложение
     (OUT/"manifest.webmanifest").write_text(json.dumps({"name": "TeachMap — учебный план простым языком", "short_name": "TeachMap", "lang": "ru",
