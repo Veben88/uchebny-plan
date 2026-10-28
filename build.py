@@ -165,39 +165,79 @@ def job_roles():
         for s in j[3]: key.setdefault(s, []).append(k)
         for s in need_ancestors(j[3]): anc.setdefault(s, []).append(k)
     return key, anc
+KIND = (("o", "Обязательные", "FaClipboardCheck"), ("v", "По выбору", "FaLayerGroup"), ("f", "Факультативы", "FaLightbulb"))
+def kind_of(it): return "v" if it["type"] == "По выбору" else "f" if it["type"] == "Факультатив" else "o"
+def courses_of(it): return sorted({(x + 1) // 2 for x in sem_list(it["sem"])})
+def course_line(it):
+    """«1 курс · 1 семестр», «1 курс · 1–2 семестры», «2–3 курс · 4, 6 семестры» — из семестров плана"""
+    cs, ss = courses_of(it), sem_list(it["sem"])
+    if not cs: return f'{E(str(it["sem"]))} семестр'
+    c = str(cs[0]) if len(cs) == 1 else f"{cs[0]}–{cs[-1]}"
+    return f'{c} курс · {E(str(it["sem"]))} {"семестр" if len(ss) == 1 else "семестры"}'
 def card_html(it, c, jk=None, ja=None):
+    """строка каталога: миниатюра раздела, название, курс и семестр, нагрузка, метки; данные для фильтров — в data-атрибутах"""
     st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it); s = it["slug"]
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
-    blurb = c["what"] or c["brief"] or "Описание готовится."
-    if len(blurb) > 120: blurb = blurb[:117].rsplit(" ",1)[0] + "…"
     label = ("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"])
     keys, ancs = (jk or {}).get(s, []), (ja or {}).get(s, [])
     comps = sorted({x for r in RP.get(s, []) for x in (r.get("competencies") or [])})
+    kd = kind_of(it); kname = {"o": "Обязательная", "v": "По выбору", "f": "Факультатив"}[kd]
     # поиск: текст карточки, профессии, для которых предмет ключевой, и коды компетенций по рабочей программе
     hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]+" "+" ".join(JOBS[k][1] for k in keys)+" "+" ".join(comps)).lower().replace("ё","е"))
-    return (f'<article class="card" data-slug="{s}" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " data-ze="{it["ze"] or 0}" data-name="{E(clean(it["name"]).lower().replace("ё","е"))}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" '
+    return (f'<article class="card crow" data-slug="{s}" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " data-courses=" {" ".join(map(str, courses_of(it)))} " data-kind="{kd}" data-ze="{it["ze"] or 0}" data-name="{E(clean(it["name"]).lower().replace("ё","е"))}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" '
             f'data-jk=" {" ".join(map(str, keys))} " data-ja=" {" ".join(map(str, ancs))} " data-text="{hay}">'
-            f'<span class="gi g-{g}" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span>'
-            f'<div class="row"><div class="ze"><b>{ze_num(it)}</b><span>з.е.</span></div><div><div class="sem">{E(str(it["sem"]))} сем. · {n(it["hours"])} ч</div><h3><a class="cl" href="d/{s}.html">{E(label)}</a></h3></div></div>'
-            f'<p>{E(blurb)}</p><div class="chips">{ch}<span class="chip jr" hidden></span></div><div class="cfoot"><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span>'
-            f'<a class="cmap" href="map.html#node={s}" aria-label="{E(label)} на карте связей">На карте</a></div></article>')
+            f'<span class="cth g-{g}" aria-hidden="true"></span>'
+            f'<div class="cbody"><h3><a class="cl" href="d/{s}.html">{E(label)}</a></h3><p class="cmeta">{course_line(it)}</p><p class="cmeta">{ze_num(it)} з.е. · {n(it["hours"])} ч</p>'
+            f'<div class="chips"><span class="chip cg">{E(GKEYS[g])}</span><span class="chip ck k-{kd}">{kname}</span>{ch}<span class="chip jr" hidden></span></div></div>'
+            f'<div class="cside"><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><a class="cmap" href="map.html#node={s}" aria-label="{E(label)} на карте связей">На карте</a></div>'
+            f'<span class="cgo" aria-hidden="true">›</span></article>')
 SORT = lambda x: (start_sem(x["sem"]) or 99, gi(x), x["idx"])
+def cat_preview_data(cards):
+    """данные панели предпросмотра каталога: что это, формы контроля, контактные часы, связи и профессии (имена — из строк списка)"""
+    out = {}
+    for it in items:
+        s = it["slug"]; c = cards[s]; up, down, _ = links_of(s)
+        w = c["what"] or c["brief"] or ""
+        out[s] = {"w": cut(w, 300) if len(w) > 300 else w, "k": it["controls"] or "", "c": it["contact"], "st": c["status"] if c["status"] in STATUS else "готовится",
+                  "up": [[a, t] for a, t, _ in up], "dn": [[a, t] for a, t, _ in down], "j": [k for k, j in enumerate(JOBS) if s in j[3]]}
+    return json.dumps(out, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 def home_page(cards):
+    """«Дисциплины» (catalog.html): экран выбора как в игровом меню — слева фильтры со счётчиками, в центре список,
+    справа (на широком экране) предпросмотр предмета под курсором. Адрес хранит состояние: ?q=&course=&kind=&sem=&group=&kr=&lab=&fav=&doing=&done=&job=&sort="""
     order = sorted(items, key=SORT); n_ready = sum(1 for c in cards.values() if c["what"])
     jk, ja = job_roles()
     jopt = '<option value="">любая</option>' + "".join(f'<option value="{k}">{E(j[1])}</option>' for k, j in enumerate(JOBS))
-    tiles = "".join(f'<button type="button" class="tile" data-f="group" data-v="{g}" aria-pressed="false"><span class="big" aria-hidden="true">{ic(GROUPS[g][1])}</span><b>{g}</b><span>{GROUPS[g][2]}</span><em>{sum(1 for i in items if group_of(i["type"])==g)}</em></button>' for g in GKEYS)
-    sems = sorted({s for i in items for s in sem_list(i["sem"])})
-    pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{s}" aria-pressed="false">{s} семестр<small>{sum(1 for i in items if s in sem_list(i["sem"]))}</small></button>' for s in sems)
-    survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
-    body = head_nav(0, "cat") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Что тебя ждёт на «Стандартизации и метрологии»</h1>
-<p class="lead">Учебный план ДВФУ простым языком: что изучают, зачем это нужно в профессии, насколько большая нагрузка и что говорят студенты.</p>{survey}
-<p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-<div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
-<section class="wrap" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2><div class="sems" role="group" aria-label="Семестр">{pills}</div>
-<div class="tools"><input id="q" type="search" placeholder="Предмет, тема, профессия или код компетенции" aria-label="Поиск по предметам, темам, профессиям и кодам компетенций"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="doing" data-v="1" aria-pressed="false" hidden>• Изучаю</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Пройдено</button><label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
-<p class="cntrow"><span id="count" class="muted" aria-live="polite"></span><a class="btn-o" href="plan.html">План таблицей и CSV</a><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p><p class="muted jobnote" id="jobnote" hidden>Показан путь к профессии: <b>ключевые</b> предметы и те, что <b>нужны для ключевых</b>. Это оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.</p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]], jk, ja) for i in order)}</div>
-<div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
+    def cf(f, v, icon, text, num, cls=""):
+        return (f'<li><button type="button" class="cf{cls}" data-f="{f}" data-v="{v}" aria-pressed="false"><span class="cfi" aria-hidden="true">{icon}</span>'
+                f'<span class="cft">{text}</span><b class="cfn" data-n>{num}</b></button></li>')
+    ncourse = lambda k: sum(1 for i in items if k in courses_of(i))
+    side = ('<nav class="catside" id="catside" aria-label="Фильтры дисциплин"><ul class="cfl">'
+            f'<li><button type="button" class="cf cfall" data-f="all" data-v="" aria-pressed="true"><span class="cfi" aria-hidden="true">{ic("FaLayerGroup")}</span><span class="cft">Все</span><b class="cfn" data-n>{len(items)}</b></button></li>'
+            + "".join(cf("course", k, f'<i class="cfnum">{k}</i>', f"{k} курс", ncourse(k)) for k in range(1, 5))
+            + '</ul><ul class="cfl">' + "".join(cf("kind", k, ic(i_), t, sum(1 for i in items if kind_of(i) == k)) for k, t, i_ in KIND)
+            + '</ul><p class="cfh">Разделы плана</p><ul class="cfl">' + "".join(cf("group", g, ic(GROUPS[g][1]), g, sum(1 for i in items if group_of(i["type"]) == g), f" g-{n_}") for n_, g in enumerate(GKEYS))
+            + '</ul><p class="cfh cfmy" hidden>Мои отметки</p><ul class="cfl">'
+            + cf("fav", "1", "★", "Избранное", "", " mypill") + cf("doing", "1", "•", "Изучаю", "", " mypill") + cf("done", "1", "✓", "Пройдено", "", " mypill")
+            + '</ul></nav>')
+    sems = sorted({x for i in items for x in sem_list(i["sem"])})
+    pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{x}" aria-pressed="false">{x}<small>сем.</small></button>' for x in sems)
+    survey = f' <a href="{E(SURVEY_URL)}">Пройти опрос студентов</a>' if SURVEY_URL else ""
+    head = (f'<div class="cathead"><div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="index.html">TeachMap</a> › Дисциплины</nav><h1>Дисциплины</h1>'
+            f'<p class="lead">Учебный план 27.03.01 «Стандартизация и метрология» простым языком: {len(items)} позиций плана, описания готовы для {n_ready}. '
+            f'У остальных пока только нагрузка из плана.{survey}</p>'
+            f'<div class="catq"><input id="q" type="search" placeholder="Предмет, тема, профессия или код компетенции" aria-label="Поиск по предметам, темам, профессиям и кодам компетенций"></div></div></div>')
+    tools = (f'<div class="ctools"><div class="sems" role="group" aria-label="Семестр">{pills}</div>'
+             '<div class="tools"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button>'
+             f'<label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label>'
+             '<button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div></div>')
+    lst = (f'<section class="catlist" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2>{tools}'
+           f'<p class="cntrow"><span id="count" class="muted" aria-live="polite"></span><a class="btn-o" href="plan.html">План таблицей и CSV</a><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p>'
+           '<p class="muted jobnote" id="jobnote" hidden>Показан путь к профессии: <b>ключевые</b> предметы и те, что <b>нужны для ключевых</b>. Это оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.</p>'
+           f'<div class="grid clist" id="grid">{"".join(card_html(i, cards[i["slug"]], jk, ja) for i in order)}</div>'
+           '<div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section>')
+    prev = ('<aside class="cprev" id="cprev" aria-label="Выбранный предмет" hidden><div id="cpv"></div></aside>'
+            f'<script type="application/json" id="cpd">{cat_preview_data(cards)}</script>')
+    body = head_nav(0, "cat") + f'<main id="main" class="catpage">{head}<div class="wrap catgrid">{side}{lst}{prev}</div></main>'
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
 LINK_T = {"need": ("нужен", "Без этого предмета трудно начать"), "helps": ("помогает", "Полезная опора")}
 COMP = {"УК": "универсальные", "ОПК": "общепрофессиональные", "ПК": "профессиональные"}
@@ -253,24 +293,69 @@ def task_panel(c, slug):
     ans = f'<details class="ans"><summary>Что это показывает</summary><p>{E(c["answer"])}</p></details>' if c["answer"] else ""
     return (f'<section class="panel"><h2><span class="ci">{ic("FaChalkboardTeacher")}</span>Попробуй сам</h2><p>{E(c["example"])}</p>'
             f'<div class="task" data-task="{E(slug)}"></div>{ans}{note}</section>')
+def disc_art(slug, g):
+    """иллюстрация шапки предмета: свои грани, осколки света и созвездие (как фон карты), значок раздела плана; у каждого предмета свой узор"""
+    import random
+    rnd = random.Random(int(hashlib.md5(slug.encode()).hexdigest()[:8], 16))
+    W, H, C, R = 600, 360, 5, 3
+    pts = [[(c * W / C + (rnd.uniform(-40, 40) if 0 < c < C else 0), r * H / R + (rnd.uniform(-30, 30) if 0 < r < R else 0)) for c in range(C + 1)] for r in range(R + 1)]
+    out = []
+    for r in range(R):
+        for c in range(C):
+            a, b, d, e = pts[r][c], pts[r][c + 1], pts[r + 1][c], pts[r + 1][c + 1]
+            for t in ((a, b, e), (a, e, d)) if (r + c) % 2 else ((a, b, d), (b, e, d)):
+                cls, op = ("f1", rnd.uniform(.04, .16)) if rnd.random() < .5 else ("f0", rnd.uniform(.06, .24))
+                out.append(f'<path class="{cls}" d="M{" ".join(f"{x:.0f},{y:.0f}" for x, y in t)}Z" opacity="{op:.2f}"/>')
+    stars = [(rnd.uniform(20, W - 20), rnd.uniform(20, H - 20)) for _ in range(12)]
+    lines = " ".join(f"M{stars[i][0]:.0f},{stars[i][1]:.0f}L{stars[i + 1][0]:.0f},{stars[i + 1][1]:.0f}" for i in range(0, len(stars) - 1, 2))
+    dots = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{2.6 if n % 4 == 0 else 1.6}"/>' for n, (x, y) in enumerate(stars))
+    return (f'<div class="dart g-{g}" aria-hidden="true"><svg viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid slice"><g>{"".join(out)}</g>'
+            f'<path class="dl" d="M600,0 L330,360 H420 L600,110Z" opacity=".12"/><path class="ln" d="{lines}"/><g class="st">{dots}</g></svg><span class="dicon">{ic(GROUPS[GKEYS[g]][1])}</span></div>')
 def disc_page(it, c, order, k):
-    st = c["status"] if c["status"] in STATUS else "готовится"; name = clean(it["name"]); g = gi(it)
+    """страница предмета: шапка как в референсе (крошки, название, курс и семестр, нагрузка, описание, «Мой статус» и «Избранное»,
+    своя иллюстрация со срезом) и вкладки. Без скрипта все разделы идут подряд; вкладки строит app.js из секций .dtab."""
+    st = c["status"] if c["status"] in STATUS else "готовится"; name = clean(it["name"]); g = gi(it); s = it["slug"]
     def panel(icon, t, v): return f'<section class="panel"><h2><span class="ci">{ic(icon)}</span>{t}</h2><p>{E(v)}</p></section>' if v else ""
-    what = panel("FaBookOpen","Что это", c["what"] or c["brief"]) or '<section class="panel"><h2><span class="ci">'+ic("FaBookOpen")+'</span>Что это</h2><p class="muted">Описание этой дисциплины готовится.</p></section>'
-    why = panel("FaLightbulb","Зачем нужно в профессии", c["why"])
-    row = f'<div class="two">{what}{why}</div>' if why else what
     def panel_ul(icon, t, items): return f'<section class="panel"><h2><span class="ci">{ic(icon)}</span>{t}</h2><ul class="bl">' + "".join(f"<li>{E(x)}</li>" for x in items) + "</ul></section>" if items else ""
-    extra_top = panel_ul("FaStar", "Чему научишься", blist(c["learn"])) + panel_ul("FaBookOpen", "Темы курса", tlist(c["themes"])) + panel("FaChalkboardTeacher", "Что делаешь на занятиях", c["acts"])
-    extra_bot = panel_ul("FaTools", "Инструменты и оборудование", blist(c["tools"])) + panel("FaClipboardCheck", "Как проверяют", c["assess"])
+    lead = c["what"] or c["brief"]
+    kd = kind_of(it); kname = {"o": "Обязательная", "v": "По выбору", "f": "Факультатив"}[kd]
+    cs = courses_of(it); cq = f'<a href="../catalog.html?course={cs[0]}">{cs[0]} курс</a> › ' if len(cs) == 1 else ""
+    # «О дисциплине»: зачем, чему научишься, совет студента; справа — коротко о связях и профессиях; внизу оценки и отзыв
+    up, down, by = links_of(s)
+    rel = up + down
+    side_l = "".join(f'<li><a href="{x}.html">{E(clean(by[x]["name"]))}</a><span class="lkt {t}">{LINK_T[t][0]}</span></li>' for x, t, _ in rel[:5])
+    js = [(kk, j) for kk, j in enumerate(JOBS) if s in j[3]]
+    side = ('<aside class="dside">'
+            + (f'<section class="panel dsum"><h2><span class="ci">{ic("FaCompass")}</span>Связанные дисциплины</h2><ul class="dsl">{side_l}</ul>'
+               + (f'<p class="muted">и ещё {len(rel) - 5}</p>' if len(rel) > 5 else "") + '<p><a class="dmore" href="#t-links">Все связи и маршрут →</a></p></section>' if rel else "")
+            + (f'<section class="panel dsum"><h2><span class="ci">{ic("FaUserGraduate")}</span>Ключевой для профессий</h2><div class="ks">'
+               + "".join(f'<a class="kchip" href="../jobs.html#job-{kk}">{E(j[1])}</a>' for kk, j in js) + '</div></section>' if js else "")
+            + '</aside>')
+    about_main = panel("FaLightbulb", "Зачем нужно в профессии", c["why"]) + panel_ul("FaStar", "Чему научишься", blist(c["learn"])) + panel("FaUsers", "Совет студента", c["tip"])
+    if not about_main.strip():
+        about_main = f'<section class="panel"><h2><span class="ci">{ic("FaBookOpen")}</span>О дисциплине</h2><p class="muted">Подробное описание этой дисциплины готовится. Пока есть нагрузка и формы контроля из учебного плана и связи с другими предметами.</p></section>'
+    fb = f'<section class="panel" id="fb" data-slug="{s}"></section>' if FEEDBACK_URL else ""
+    about = (f'<div class="dgrid"><div class="dcol">{about_main}</div>{side}</div>'
+             f'<section class="panel" id="ratings" data-slug="{s}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(s)}</section>{fb}')
+    topics = (panel_ul("FaBookOpen", "Темы курса", tlist(c["themes"])) + panel("FaChalkboardTeacher", "Что делаешь на занятиях", c["acts"])
+              + panel_ul("FaTools", "Инструменты и оборудование", blist(c["tools"])) + panel("FaClipboardCheck", "Как проверяют", c["assess"]) + task_panel(c, s))
+    comp = jobs_panel(s) + rp_panel(it)
+    load = (f'<section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p>'
+            f'<p class="hlinks2"><a class="btn-o" href="../plan.html#cmp={s},{order[k+1]["slug"] if k+1 < len(order) else order[k-1]["slug"]}">Сравнить с другой дисциплиной</a><a class="btn-o" href="../plan.html">Весь план таблицей</a></p></section>')
+    notes = (f'<section class="panel" id="mynotes" hidden><h2><span class="ci">{ic("FaCommentDots")}</span>Мои заметки</h2><label class="vh" for="mynote">Заметка к предмету</label><textarea id="mynote" class="mynote" rows="4" maxlength="2000" placeholder="Например: что повторить перед экзаменом, вопросы преподавателю"></textarea>'
+             '<p class="muted mystat" aria-live="polite">Заметка хранится только в этом браузере и никуда не отправляется.</p></section>')
+    tabs = [("about", "О дисциплине", about), ("topics", "Темы и занятия", topics), ("links", "Связанные дисциплины", links_panel(s)),
+            ("comp", "Компетенции и профессии", comp), ("load", "Нагрузка", load), ("notes", "Мои заметки", notes)]
+    tabs_html = "".join(f'<section class="dtab" id="t-{tid}" data-tab="{tt}" aria-label="{tt}">{body}</section>' for tid, tt, body in tabs if body.strip())
     prev = f'<a href="{order[k-1]["slug"]}.html">← {E(cut(order[k-1]["name"]))}</a>' if k else "<span></span>"
     nxt = f'<a href="{order[k+1]["slug"]}.html">{E(cut(order[k+1]["name"]))} →</a>' if k+1 < len(order) else ""
-    body = f'''<div class="band">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="../catalog.html">Все дисциплины</a> › {E(str(it["sem"]))} семестр</nav>
-<h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1><p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><div class="mybar" id="mybar" data-slug="{it["slug"]}"></div></div></div>
-<main id="main" class="wrap">{row}{extra_top}{task_panel(c, it["slug"])}{panel("FaUsers","Совет студента", c["tip"])}{links_panel(it["slug"])}{jobs_panel(it["slug"])}
-<section class="panel"><h2><span class="ci">{ic("FaChartBar")}</span>Нагрузка по плану</h2>{load_bar(it)}<p>Контактных часов: <b>{n(it["contact"])}</b> из {n(it["hours"])}. Формы контроля: <b>{E(it["controls"] or "—")}</b> <span class="muted">(Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа)</span></p><p class="hlinks2"><a class="btn-o" href="../plan.html#cmp={it["slug"]},{order[k+1]["slug"] if k+1 < len(order) else order[k-1]["slug"]}">Сравнить с другой дисциплиной</a><a class="btn-o" href="../plan.html">Весь план таблицей</a></p></section>
-{extra_bot}{rp_panel(it)}<section class="panel" id="mynotes" hidden><h2><span class="ci">{ic("FaCommentDots")}</span>Мои заметки</h2><label class="vh" for="mynote">Заметка к предмету</label><textarea id="mynote" class="mynote" rows="4" maxlength="2000" placeholder="Например: что повторить перед экзаменом, вопросы преподавателю"></textarea><p class="muted mystat" aria-live="polite">Заметка хранится только в этом браузере и никуда не отправляется.</p></section><section class="panel" id="ratings" data-slug="{it["slug"]}"><h2><span class="ci">{ic("FaStar")}</span>Оценки студентов</h2>{rating_block(it["slug"])}</section>
-{f'<section class="panel" id="fb" data-slug="{it["slug"]}"></section>' if FEEDBACK_URL else ""}
-{f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={it["slug"]}">Сообщить об ошибке</a></p>' if FB_ON else ""}
+    body = f'''<div class="band dband">{head_nav(1,"cat")}<div class="wrap"><nav class="crumbs" aria-label="Путь"><a class="dback" href="../catalog.html" aria-label="К списку дисциплин">‹</a><a href="../catalog.html">Дисциплины</a> › {cq}<span aria-current="page">{E(cut(name, 60))}</span></nav>
+<div class="dhero"><div class="dhtext"><p class="dkick">{E(GKEYS[g])} · {kname}</p><h1>{E(("По выбору: " if it["type"]=="По выбору" else "")+name)}</h1>
+<p class="dmeta">{course_line(it)}</p><p class="dmeta">{ze_num(it)} з.е. · {n(it["hours"])} ч</p>
+<p class="dlead{"" if lead else " muted"}">{E(lead) if lead else "Описание этой дисциплины готовится."}</p>
+<p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><div class="mybar" id="mybar" data-slug="{s}"></div></div>{disc_art(s, g)}</div></div></div>
+<main id="main" class="wrap dmain"><div class="dtabs" id="dtabs" role="tablist" aria-label="Разделы страницы предмета" hidden></div>{tabs_html}
+{f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={s}">Сообщить об ошибке</a></p>' if FB_ON else ""}
 <nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
     return page(f"{name}: что изучают и какая нагрузка · TeachMap", c["what"] or c["brief"] or name, body, 1, live=True)
 # числа берутся из данных при сборке, чтобы не расходиться с сайтом
