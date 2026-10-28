@@ -38,7 +38,10 @@
   }
   // Поиск: каждое слово запроса должно встретиться в тексте карточки (порядок не важен), ё и е не различаются.
   // Семестр: карточка подходит, если дисциплина идёт в этом семестре, а не только начинается в нём («1–2» видна и во 2-м).
-  var sortSel = document.getElementById('sort'), reset = document.getElementById('reset'), grid = g;
+  var sortSel = document.getElementById('sort'), reset = document.getElementById('reset'), grid = g,
+      jobSel = document.getElementById('fjob'), jobMap = document.getElementById('jobmap'), jobNote = document.getElementById('jobnote');
+  // Профессия: виден путь к ней — ключевые предметы (data-jk) и те, без которых их трудно начать (data-ja); роль подписана на карточке.
+  function jobRole(c) { var k = ' ' + F.job + ' '; return c.dataset.jk.indexOf(k) >= 0 ? 'key' : c.dataset.ja.indexOf(k) >= 0 ? 'need' : ''; }
   cards.forEach(function (c, i) { c._ord = i; });
   var SORTS = {
     '': function (a, b) { return a._ord - b._ord; },
@@ -55,7 +58,7 @@
   function saveUrl() {
     var p = new URLSearchParams();
     if (q.value.trim()) p.set('q', q.value.trim());
-    ['sem', 'group', 'kr', 'lab', 'fav', 'done'].forEach(function (k) { if (F[k]) p.set(k, F[k]); });
+    ['sem', 'group', 'kr', 'lab', 'fav', 'done', 'job'].forEach(function (k) { if (F[k]) p.set(k, F[k]); });
     if (sortSel.value) p.set('sort', sortSel.value);
     var s = p.toString();
     try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch (e) {}
@@ -65,7 +68,10 @@
     cards.forEach(function (c) {
       var ok = words.every(function (w) { return c.dataset.text.indexOf(w) >= 0; }) && (!F.sem || c.dataset.sems.indexOf(' ' + F.sem + ' ') >= 0) &&
                (!F.group || c.dataset.group === F.group) && (!F.kr || c.dataset.kr === '1') && (!F.lab || c.dataset.lab === '1') &&
-               (!F.fav || c.dataset.fav === '1') && (!F.done || c.dataset.done === '1');   // отметки ставит profile.js
+               (!F.fav || c.dataset.fav === '1') && (!F.done || c.dataset.done === '1') &&   // отметки ставит profile.js
+               (!F.job || !!jobRole(c));
+      var jr = c.querySelector('.jr'), role = F.job ? jobRole(c) : '';
+      if (jr) { jr.hidden = !role; jr.textContent = role === 'key' ? 'ключевой' : role === 'need' ? 'нужен для ключевых' : ''; jr.className = 'chip jr' + (role ? ' ' + role : ''); }
       if (ok) n++;
       if (instant) { c.hidden = !ok; return; }
       if (ok) { if (c._out) { c._out = false; c.classList.remove('tm-leave'); } else if (c.hidden) show.push(c); }
@@ -77,6 +83,7 @@
     cnt.textContent = 'Показано: ' + n + ' из ' + cards.length; empty.hidden = n > 0;
     [].forEach.call(document.querySelectorAll('[data-f]'), function (b) { b.setAttribute('aria-pressed', F[b.dataset.f] === b.dataset.v); });
     reset.hidden = !(words.length || Object.keys(F).length || sortSel.value);
+    jobSel.value = F.job || ''; jobMap.hidden = jobNote.hidden = !F.job; if (F.job) jobMap.href = 'map.html#job=' + F.job;
     saveUrl();
   }
   function clearAll() {
@@ -93,11 +100,20 @@
     });
   });
   q.addEventListener('input', run);
+  // нажатие по любому месту карточки — как по ссылке на названии; ссылки внутри карточки и выделение текста работают как обычно
+  grid.addEventListener('click', function (e) {
+    var c = e.target.closest('.card'); if (!c || e.target.closest('a') || e.button) return;
+    var sel = window.getSelection && String(window.getSelection()); if (sel) return;
+    var a = c.querySelector('.cl'); if (!a) return;
+    if (e.ctrlKey || e.metaKey || e.shiftKey) window.open(a.href, '_blank', 'noopener'); else a.click();
+  });
+  jobSel.addEventListener('change', function () { if (jobSel.value) F.job = jobSel.value; else delete F.job; run(); });
   sortSel.addEventListener('change', function () { sortCards(true); run(); });
   reset.addEventListener('click', clearAll);
   document.getElementById('reset2').addEventListener('click', clearAll);
   var p = new URLSearchParams(location.search);
   ['group', 'sem', 'kr', 'lab', 'fav', 'done'].forEach(function (k) { if (p.get(k)) F[k] = p.get(k); });
+  if (p.get('job') && jobSel.querySelector('option[value="' + p.get('job').replace(/\D/g, '') + '"]')) F.job = p.get('job').replace(/\D/g, '');
   if (p.get('q')) q.value = p.get('q');
   if (p.get('sort') && SORTS[p.get('sort')]) { sortSel.value = p.get('sort'); sortCards(false); }
   run();

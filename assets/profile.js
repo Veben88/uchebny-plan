@@ -81,7 +81,7 @@
   // ---------- метки на карточках каталога, пути студента и узлах карты связей ----------
   function slugOf(c) { if (c.dataset.slug) return c.dataset.slug; var m = (c.getAttribute('href') || '').match(/d\/([\w-]+)\.html/); return m && m[1]; }
   function mark() {
-    [].forEach.call(document.querySelectorAll('a.card, a.dc, a.gn'), function (c) {
+    [].forEach.call(document.querySelectorAll('.card, a.dc, a.gn'), function (c) {
       var s = slugOf(c); if (!s) return;
       var f = api.has('fav', s), d = api.has('done', s);
       c.dataset.fav = f ? '1' : '0'; c.dataset.done = d ? '1' : '0';

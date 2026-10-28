@@ -820,8 +820,8 @@ html:active-view-transition-type(back)::view-transition-new(root){animation-name
  .card:hover h3,.dc:hover b{translate:5px 0}
  .card:hover .gi,.dc:hover .dci{rotate:-14deg}
 }
-.card:focus-visible::before,.dc:focus-visible::before{transform:scaleY(1)}
-.card:focus-visible h3,.dc:focus-visible b{translate:5px 0}
+.card:has(.cl:focus-visible)::before,.dc:focus-visible::before{transform:scaleY(1)}
+.card:has(.cl:focus-visible) h3,.dc:focus-visible b{translate:5px 0}
 .card:active,.dc:active{translate:3px 3px;box-shadow:var(--sh-s);transition-duration:60ms}
 .card.tm-enter{animation:tmEnter 300ms steps(10,end) calc(var(--k,0) * 20ms) backwards}
 #empty:not([hidden]){animation:tmEnter 300ms steps(10,end)}
@@ -1134,3 +1134,25 @@ html.access .ge{opacity:.6}html.access .gsel .ge{opacity:.12}html.access .gsel .
 @media(prefers-reduced-motion:reduce){.gcanvas.gmove,.ge,.gn,.gn.ghide,.gtabs a,.gzoom button{transition:none!important}.gcanvas *,#gp *{animation:none!important}}
 .tm-lite .gcanvas.tm-gin .gn,.tm-lite .gcanvas.tm-gin .gch,.tm-lite .tm-gsel .gn{animation-delay:0ms!important}
 @media(max-width:360px){.menu .ns{font-size:10px;letter-spacing:0}}   /* семь пунктов нижней панели на самых узких экранах */
+
+/* каталог: карточка — блок со ссылкой на названии; нажатие по любому месту карточки ведёт туда же (app.js), кнопка «На карте» — отдельная ссылка */
+.card h3 .cl{color:inherit;text-decoration:none}
+.card{cursor:pointer}
+@supports selector(:has(a)){.card .cl:focus-visible{outline:none}.card:has(.cl:focus-visible){outline:3px solid var(--focus);outline-offset:2px}}
+.cfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cmap{position:relative;z-index:2;display:inline-flex;align-items:center;gap:6px;font-family:var(--hd);font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--link);text-decoration:none;padding:4px 10px;border:1.5px solid var(--field);border-radius:var(--r-s);background:var(--card);transition:background var(--m-fast),color var(--m-fast),translate 60ms ease-out}
+.cmap::before{content:"";flex:none;width:13px;height:13px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg viewBox=%220 0 496 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M225.38 233.37c-12.5 12.5-12.5 32.76 0 45.25 12.49 12.5 32.76 12.5 45.25 0 12.5-12.5 12.5-32.76 0-45.25-12.5-12.49-32.76-12.49-45.25 0zM248 8C111.03 8 0 119.03 0 256s111.03 248 248 248 248-111.03 248-248S384.97 8 248 8zm126.14 148.05L308.17 300.4a31.938 31.938 0 0 1-15.77 15.77l-144.34 65.97c-16.65 7.61-33.81-9.55-26.2-26.2l65.98-144.35a31.938 31.938 0 0 1 15.77-15.77l144.34-65.97c16.65-7.6 33.8 9.55 26.19 26.2z%22%3E%3C/path%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg viewBox=%220 0 496 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M225.38 233.37c-12.5 12.5-12.5 32.76 0 45.25 12.49 12.5 32.76 12.5 45.25 0 12.5-12.5 12.5-32.76 0-45.25-12.5-12.49-32.76-12.49-45.25 0zM248 8C111.03 8 0 119.03 0 256s111.03 248 248 248 248-111.03 248-248S384.97 8 248 8zm126.14 148.05L308.17 300.4a31.938 31.938 0 0 1-15.77 15.77l-144.34 65.97c-16.65 7.61-33.81-9.55-26.2-26.2l65.98-144.35a31.938 31.938 0 0 1 15.77-15.77l144.34-65.97c16.65-7.6 33.8 9.55 26.19 26.2z%22%3E%3C/path%3E%3C/svg%3E") center/contain no-repeat}   /* значок компаса один раз в стилях, а не в каждой из 74 карточек */
+.cmap:hover{background:var(--ice);color:var(--pri);border-color:var(--acc)}
+.cmap:active{translate:1px 1px}
+.cmap:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.chip.jr{font-family:var(--hd);text-transform:uppercase;letter-spacing:.04em}
+.chip.jr.key{background:var(--btn);border-color:var(--btn);color:#fff}
+.chip.jr.need{background:var(--ice);border-color:var(--acc);color:var(--pri)}
+.chip.jr:not([hidden]){animation:tmOn 280ms steps(9,end)}
+.cntrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 6px}
+.cntrow #count{margin:0}
+.cntrow .btn-o[hidden],.jobnote[hidden]{display:none}
+.jobnote{margin:0 0 12px!important;font-size:13.5px;max-width:90ch}
+#fjob{font:inherit;font-size:14px}
+@media(prefers-reduced-motion:reduce){.chip.jr{animation:none!important}.cmap{transition:none}}
+.sortl{max-width:100%}.sortl select{min-width:0;max-width:100%}   /* длинное название профессии не выталкивает список за край экрана */

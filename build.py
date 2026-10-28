@@ -132,20 +132,34 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("tm-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
-def card_html(it, c):
-    st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it)
+def job_roles():
+    """для каталога: профессии, где предмет ключевой, и где он нужен для ключевых (те же данные, что на карте профессий)"""
+    key, anc = {}, {}
+    for k, j in enumerate(JOBS):
+        for s in j[3]: key.setdefault(s, []).append(k)
+        for s in need_ancestors(j[3]): anc.setdefault(s, []).append(k)
+    return key, anc
+def card_html(it, c, jk=None, ja=None):
+    st = c["status"] if c["status"] in STATUS else "готовится"; g = gi(it); s = it["slug"]
     ch = "".join(f'<span class="chip{" hot" if h else ""}">{t}</span>' for t,h in chips(it))
     blurb = c["what"] or c["brief"] or "Описание готовится."
     if len(blurb) > 120: blurb = blurb[:117].rsplit(" ",1)[0] + "…"
     label = ("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"])
-    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]).lower().replace("ё","е"))
-    return (f'<a class="card" href="d/{it["slug"]}.html" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " data-ze="{it["ze"] or 0}" data-name="{E(clean(it["name"]).lower().replace("ё","е"))}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" data-text="{hay}">'
+    keys, ancs = (jk or {}).get(s, []), (ja or {}).get(s, [])
+    comps = sorted({x for r in RP.get(s, []) for x in (r.get("competencies") or [])})
+    # поиск: текст карточки, профессии, для которых предмет ключевой, и коды компетенций по рабочей программе
+    hay = E((it["name"]+" "+c["what"]+" "+c["brief"]+" "+c["learn"]+" "+c["themes"]+" "+c["tools"]+" "+" ".join(JOBS[k][1] for k in keys)+" "+" ".join(comps)).lower().replace("ё","е"))
+    return (f'<article class="card" data-slug="{s}" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " data-ze="{it["ze"] or 0}" data-name="{E(clean(it["name"]).lower().replace("ё","е"))}" data-group="{GKEYS[g]}" data-kr="{1 if re.search("К[РП]",it["controls"] or "") else 0}" data-lab="{1 if it["lab"] else 0}" '
+            f'data-jk=" {" ".join(map(str, keys))} " data-ja=" {" ".join(map(str, ancs))} " data-text="{hay}">'
             f'<span class="gi g-{g}" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span>'
-            f'<div class="row"><div class="ze"><b>{ze_num(it)}</b><span>з.е.</span></div><div><div class="sem">{E(str(it["sem"]))} сем. · {n(it["hours"])} ч</div><h3>{E(label)}</h3></div></div>'
-            f'<p>{E(blurb)}</p><div class="chips">{ch}</div><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span></a>')
+            f'<div class="row"><div class="ze"><b>{ze_num(it)}</b><span>з.е.</span></div><div><div class="sem">{E(str(it["sem"]))} сем. · {n(it["hours"])} ч</div><h3><a class="cl" href="d/{s}.html">{E(label)}</a></h3></div></div>'
+            f'<p>{E(blurb)}</p><div class="chips">{ch}<span class="chip jr" hidden></span></div><div class="cfoot"><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span>'
+            f'<a class="cmap" href="map.html#node={s}" aria-label="{E(label)} на карте связей">На карте</a></div></article>')
 SORT = lambda x: (start_sem(x["sem"]) or 99, gi(x), x["idx"])
 def home_page(cards):
     order = sorted(items, key=SORT); n_ready = sum(1 for c in cards.values() if c["what"])
+    jk, ja = job_roles()
+    jopt = '<option value="">любая</option>' + "".join(f'<option value="{k}">{E(j[1])}</option>' for k, j in enumerate(JOBS))
     tiles = "".join(f'<button type="button" class="tile" data-f="group" data-v="{g}" aria-pressed="false"><span class="big" aria-hidden="true">{ic(GROUPS[g][1])}</span><b>{g}</b><span>{GROUPS[g][2]}</span><em>{sum(1 for i in items if group_of(i["type"])==g)}</em></button>' for g in GKEYS)
     sems = sorted({s for i in items for s in sem_list(i["sem"])})
     pills = "".join(f'<button type="button" class="pill" data-f="sem" data-v="{s}" aria-pressed="false">{s} семестр<small>{sum(1 for i in items if s in sem_list(i["sem"]))}</small></button>' for s in sems)
@@ -155,8 +169,8 @@ def home_page(cards):
 <p class="muted">{len(items)} позиций плана, описания готовы для {n_ready}. У остальных карточек пока только нагрузка из плана.</p><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="tiles" role="group" aria-label="Раздел плана">{tiles}</div></section></div></div>
 <section class="wrap" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2><div class="sems" role="group" aria-label="Семестр">{pills}</div>
-<div class="tools"><input id="q" type="search" placeholder="Найти предмет, например «метрология»" aria-label="Поиск по предметам"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Изученные</button><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
-<p id="count" class="muted" aria-live="polite"></p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]]) for i in order)}</div>
+<div class="tools"><input id="q" type="search" placeholder="Предмет, тема, профессия или код компетенции" aria-label="Поиск по предметам, темам, профессиям и кодам компетенций"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button><button type="button" class="pill mypill" data-f="fav" data-v="1" aria-pressed="false" hidden>★ Избранное</button><button type="button" class="pill mypill" data-f="done" data-v="1" aria-pressed="false" hidden>✓ Изученные</button><label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label><button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div>
+<p class="cntrow"><span id="count" class="muted" aria-live="polite"></span><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p><p class="muted jobnote" id="jobnote" hidden>Показан путь к профессии: <b>ключевые</b> предметы и те, что <b>нужны для ключевых</b>. Это оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.</p><div class="grid" id="grid">{"".join(card_html(i, cards[i["slug"]], jk, ja) for i in order)}</div>
 <div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section></main>'''
     return page("Все дисциплины 27.03.01 Стандартизация и метрология ДВФУ · TeachMap","Понятное описание дисциплин направления 27.03.01 ДВФУ: что изучают, нагрузка и оценки студентов", body)
 LINK_T = {"need": ("нужен", "Без этого предмета трудно начать"), "helps": ("помогает", "Полезная опора")}
