@@ -4,7 +4,7 @@
 Запуск из корня репозитория:  python build.py && python tools/check_site.py
 Проверяет: есть все служебные страницы и страница каждой дисциплины из data/plan.json;
 локальные ссылки и ресурсы ведут на существующие файлы; якоря #… существуют на целевой странице
-(кроме адресов, которые разбирает скрипт: #d=, #path=, #route=, #node=, #job=); нет абсолютных ссылок «/…»,
+(кроме адресов, которые разбирает скрипт: #d=, #path=, #route=, #node=, #job=, #compare=); нет абсолютных ссылок «/…»,
 которые сломались бы на GitHub Pages по адресу /uchebny-plan/; у страниц есть lang="ru",
 заголовок <title> и ровно один <h1>; нет повторяющихся id; встроенный JSON разбирается.
 Код выхода 1, если найдена хотя бы одна ошибка.
@@ -17,7 +17,7 @@ from urllib.parse import urlparse, unquote
 ROOT = Path(__file__).resolve().parent.parent
 SITE = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "site"
 PAGES = ["index", "catalog", "map", "jobs", "profile", "roadmap", "about", "feedback", "404"]
-SCRIPT_HASHES = ("d=", "path=", "route=", "node=", "job=")
+SCRIPT_HASHES = ("d=", "path=", "route=", "node=", "job=", "compare=")
 
 
 class Page(HTMLParser):

@@ -4,6 +4,7 @@
 Запуск из корня репозитория:  python tools/check_data.py
 Ошибки (код выхода 1):
   * связь или профессия ссылается на предмет, которого нет в data/plan.json;
+  * у профессии (data/jobs.json) нет обязательного поля, id повторяется или записан не латиницей, нет иконки;
   * связь предмета с самим собой, повтор одной и той же пары, неизвестный тип, пустое пояснение why;
   * цикл в связях «нужен»: A нужен для B, B — для A (прямо или через цепочку). Для «нужен» цикл бессмыслен:
     нельзя начинать каждый из двух предметов только после другого.
@@ -22,13 +23,6 @@ ACYCLIC = {"need"}
 
 def start_sem(s):
     m = re.search(r"\d", str(s)); return int(m.group()) if m else 0
-
-
-def jobs_slugs():
-    """Профессии пока хранятся в build.py (JOBS): берём их оттуда, не выполняя сборку."""
-    sys.path.insert(0, str(ROOT)); sys.dont_write_bytecode = True
-    import build  # noqa: E402  (модуль только читает данные; сборка запускается лишь при прямом вызове build.py)
-    return [(j[1], j[3]) for j in build.JOBS]
 
 
 def cycles(edges):
@@ -68,10 +62,21 @@ def main():
     for t in ACYCLIC:
         for c in cycles([(l["from"], l["to"]) for l in links if l.get("type") == t]):
             errs.append(f"цикл в связях «{t}»: " + " → ".join(c))
-    for name, slugs in jobs_slugs():
-        for s in slugs:
+    jobs = json.loads((ROOT / "data/jobs.json").read_text(encoding="utf-8"))["jobs"]
+    icons = json.loads((ROOT / "assets/icons.json").read_text(encoding="utf-8"))
+    ids = set()
+    for k, j in enumerate(jobs):
+        name = j.get("title") or f"№{k + 1}"
+        for f in ("id", "icon", "title", "desc", "key", "hh_query", "basis"):
+            if not j.get(f): errs.append(f"профессия «{name}»: нет поля {f}")
+        if not re.fullmatch(r"[a-z][a-z0-9-]{1,30}", j.get("id") or ""): errs.append(f"профессия «{name}»: id «{j.get('id')}» — только латиница, цифры и дефис")
+        if j.get("id") in ids: errs.append(f"профессия «{name}»: повтор id «{j['id']}»")
+        ids.add(j.get("id"))
+        if j.get("icon") and j["icon"] not in icons: errs.append(f"профессия «{name}»: нет иконки {j['icon']} в assets/icons.json")
+        for s in j.get("key") or []:
             if s not in plan: errs.append(f"профессия «{name}»: нет предмета {s} в plan.json")
-    print(f"Связей: {len(links)}, ошибок: {len(errs)}, предупреждений: {len(warns)}")
+        if len(set(j.get("key") or [])) != len(j.get("key") or []): errs.append(f"профессия «{name}»: предмет указан дважды")
+    print(f"Связей: {len(links)}, профессий: {len(jobs)}, ошибок: {len(errs)}, предупреждений: {len(warns)}")
     for e in errs: print("  ОШИБКА " + e)
     for w in warns: print("  внимание: " + w)
     return 1 if errs else 0

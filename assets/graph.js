@@ -229,7 +229,7 @@
     var pl = {}, n = { done: 0, doing: 0, plan: 0 }, now = TM ? TM.sem() : 0;
     if (TM) {
       TM.data().fav.forEach(function (s) { pl[s] = 1; });
-      TM.data().jobs.forEach(function (k) { var j = D.j[k]; if (j) j[2].concat(j[3]).forEach(function (s) { pl[s] = 1; }); });
+      TM.jobIndexes().forEach(function (k) { var j = D.j[k]; if (j) j[2].concat(j[3]).forEach(function (s) { pl[s] = 1; }); });
     }
     Object.keys(nodes).forEach(function (id) {
       var a = nodes[id], c = ''; a.classList.remove.apply(a.classList, MCL);

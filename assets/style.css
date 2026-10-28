@@ -1209,3 +1209,23 @@ html.access .mynowk{clip-path:none}
 @media(prefers-reduced-motion:reduce){.tm-gmine .gn,.tm-gmine .gch{animation:none!important}}
 html.access .gch.mnow{clip-path:none}
 .myitem .mysmall+.mysmall{margin-left:0}   /* несколько кнопок в строке «Мой план» стоят рядом, справа */
+/* карта профессий: сравнение двух профессий (assets/jobs.js) */
+.cmpsel{display:flex;flex-wrap:wrap;gap:10px 18px;margin:6px 0 12px}
+.cmpsum{font-weight:600;margin:0 0 12px!important}
+.cmpgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cmpcol{border:1px solid var(--line);border-top:4px solid var(--acc);border-radius:var(--r-s);padding:12px 14px;background:var(--ice-2);min-width:0}
+.cmpcol.cmpboth{border-top-color:var(--btn);background:var(--card)}
+.cmpcol.cmpb{border-top-color:var(--g3)}
+.cmph{font-size:16px;margin:0 0 6px;color:var(--pri)}
+.cmpcol .lkh{margin:10px 0 6px!important}
+.kchip.cmpkey{background:var(--btn);border-color:var(--btn);color:#fff}
+.kchip.cmpkey.sample{cursor:default;padding:2px 8px;font-size:12px}
+.cmpleg{margin:10px 0 0!important;font-size:13px}
+.cmpnote{margin-top:12px!important;font-size:13px}
+.jcmp{border-style:dashed}
+.jbasis code{font-size:.92em;background:var(--ice);padding:1px 5px;border-radius:4px}
+#cmpout.tm-cmp .cmpsum{animation:tmTick 200ms steps(7,end)}
+#cmpout.tm-cmp .cmpcol{animation:tmReveal 260ms steps(9,end) backwards}
+#cmpout.tm-cmp .cmpcol:nth-child(2){animation-delay:60ms}#cmpout.tm-cmp .cmpcol:nth-child(3){animation-delay:120ms}
+@media(max-width:900px){.cmpgrid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#cmpout *{animation:none!important}}

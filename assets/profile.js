@@ -2,18 +2,23 @@
 // текущий семестр, заметки и недавно просмотренное. Всё хранится только в этом браузере (localStorage) и никуда не отправляется.
 // Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.
 //
-// Хранилище: ключ tm-profile-v2, поле v = 2. Данные прежней версии (ключ tm-profile-v1: fav, done, notes, recent)
-// переносятся автоматически: «изучил» становится статусом «Пройдено». Старый ключ удаляется только после того,
-// как новые данные записаны. Если в браузере данные более новой версии сайта (v > 2), скрипт их не перезаписывает.
+// Хранилище: ключ tm-profile-v2 (имя ключа историческое), версия формата в поле v, сейчас 3.
+//   v1 (ключ tm-profile-v1: fav, done, notes, recent) — переносится автоматически: «изучил» становится статусом «Пройдено»;
+//      старый ключ удаляется только после того, как новые данные записаны;
+//   v2 — интересные профессии хранились номерами по порядку; v3 — постоянными кодами из data/jobs.json
+//      (соответствие номер → код страница передаёт в <meta name="tm-jobs">).
+// Если в браузере данные более новой версии сайта (v больше текущей), скрипт их показывает, но не перезаписывает.
 //
 // Скрипт подключается раньше app.js, path.js и graph.js: каталог фильтрует по меткам, окно карточки и карта показывают статусы.
 (function () {
   'use strict';
-  var KEY = 'tm-profile-v2', OLD = 'tm-profile-v1', VER = 2, MAXR = 12, MAXN = 2000, ST = { doing: 1, done: 1 };
+  var KEY = 'tm-profile-v2', OLD = 'tm-profile-v1', VER = 3, MAXR = 12, MAXN = 2000, ST = { doing: 1, done: 1 };
   var me = document.currentScript, base = '';
   try { base = new URL('..', me.src).href; } catch (e) {}   // корень сайта: скрипт лежит в assets/
   var avail = (function () { try { localStorage.setItem('__tm', '1'); localStorage.removeItem('__tm'); return true; } catch (e) { return false; } })();
-  var locked = false;                                         // данные новой версии сайта: читаем, но не перезаписываем
+  var locked = false;
+  var JIDS = (function () { var m = document.querySelector('meta[name="tm-jobs"]'); return m && m.content ? m.content.split(',') : []; })();
+  function jobId(x) { return typeof x === 'number' || /^\d+$/.test(x) ? JIDS[+x] : (typeof x === 'string' && /^[a-z][a-z0-9-]{1,30}$/.test(x) ? x : null); }                                         // данные новой версии сайта: читаем, но не перезаписываем
 
   function blank() { return { v: VER, sem: 0, status: {}, fav: [], jobs: [], notes: {}, recent: [], titles: {} }; }
   function okSlug(s) { return typeof s === 'string' && /^[\w-]{1,48}$/.test(s); }
@@ -23,12 +28,16 @@
     if (x.format === 'tm-profile' && x.data) x = x.data;      // файл экспорта
     ['fav', 'recent'].forEach(function (k) { if (Array.isArray(x[k])) d[k] = x[k].filter(okSlug).filter(function (s, i, a) { return a.indexOf(s) === i; }); });
     d.recent = d.recent.slice(0, MAXR);
-    if (Array.isArray(x.jobs)) d.jobs = x.jobs.map(Number).filter(function (n, i, a) { return n >= 0 && n < 50 && Math.floor(n) === n && a.indexOf(n) === i; });
+    if (Array.isArray(x.jobs)) d.jobs = x.jobs.map(jobId).filter(function (id, i, a) { return id && a.indexOf(id) === i; });   // v2: номера → коды
     var s = +x.sem; d.sem = s >= 1 && s <= 8 && Math.floor(s) === s ? s : 0;
     if (x.status && typeof x.status === 'object') Object.keys(x.status).forEach(function (k) { if (okSlug(k) && ST[x.status[k]]) d.status[k] = x.status[k]; });
     if (Array.isArray(x.done)) x.done.filter(okSlug).forEach(function (k) { d.status[k] = 'done'; });   // формат v1
     if (x.notes && typeof x.notes === 'object') Object.keys(x.notes).forEach(function (k) { if (okSlug(k) && typeof x.notes[k] === 'string' && x.notes[k].trim()) d.notes[k] = x.notes[k].slice(0, MAXN); });
-    if (x.titles && typeof x.titles === 'object') Object.keys(x.titles).forEach(function (k) { if (okSlug(k) && typeof x.titles[k] === 'string') d.titles[k] = x.titles[k].slice(0, 200); });
+    if (x.titles && typeof x.titles === 'object') Object.keys(x.titles).forEach(function (k) {
+      if (!okSlug(k) || typeof x.titles[k] !== 'string') return;
+      var m = k.match(/^job-(\d+)$/), key = m ? (JIDS[+m[1]] ? 'job-' + JIDS[+m[1]] : null) : k;   // v2: job-<номер> → job-<код>
+      if (key) d.titles[key] = x.titles[k].slice(0, 200);
+    });
     return d;
   }
   var migrated = false;
@@ -36,7 +45,7 @@
     if (!avail) return blank();
     try {
       var raw = localStorage.getItem(KEY);
-      if (raw) { var x = JSON.parse(raw); locked = !!(x && +x.v > VER); return norm(x); }
+      if (raw) { var x = JSON.parse(raw); locked = !!(x && +x.v > VER); if (x && +x.v < VER) migrated = true; return norm(x); }
       var old = localStorage.getItem(OLD);
       if (old) { migrated = true; return norm(JSON.parse(old)); }
     } catch (e) {}
@@ -45,12 +54,12 @@
   var P = load(), subs = [];
   function save() {
     if (!avail || locked) return false;
-    var used = {}; P.fav.concat(Object.keys(P.status), P.recent, Object.keys(P.notes), P.jobs.map(function (k) { return 'job-' + k; })).forEach(function (s) { used[s] = 1; });
+    var used = {}; P.fav.concat(Object.keys(P.status), P.recent, Object.keys(P.notes), P.jobs.map(function (id) { return 'job-' + id; })).forEach(function (s) { used[s] = 1; });
     Object.keys(P.titles).forEach(function (s) { if (!used[s]) delete P.titles[s]; });   // названия храним только для того, что ещё отмечено
     P.v = VER;
     try {
       localStorage.setItem(KEY, JSON.stringify(P));
-      if (migrated) { localStorage.removeItem(OLD); migrated = false; }               // старый ключ — только после успешной записи нового
+      if (migrated) { localStorage.removeItem(OLD); migrated = false; }               // старый ключ v1 — только после успешной записи нового
       return true;
     } catch (e) { return false; }
   }
@@ -81,12 +90,14 @@
       if (n === undefined) return P.sem;
       P.sem = n >= 1 && n <= 8 ? +n : 0; save(); emit(); return P.sem;
     },
-    hasJob: function (k) { return P.jobs.indexOf(+k) >= 0; },
+    // профессии снаружи задаются номером по порядку (как в адресах #job-0), внутри хранятся постоянными кодами
+    hasJob: function (k) { return !!JIDS[+k] && P.jobs.indexOf(JIDS[+k]) >= 0; },
     toggleJob: function (k, t) {
-      k = +k; var i = P.jobs.indexOf(k);
-      if (i >= 0) P.jobs.splice(i, 1); else { P.jobs.push(k); remember('job-' + k, t); }
+      var id = JIDS[+k]; if (!id) return false; var i = P.jobs.indexOf(id);
+      if (i >= 0) P.jobs.splice(i, 1); else { P.jobs.push(id); remember('job-' + id, t); }
       save(); emit(); return i < 0;
     },
+    jobIndexes: function () { return P.jobs.map(function (id) { return JIDS.indexOf(id); }).filter(function (k) { return k >= 0; }); },
     note: function (slug, text, t) {
       if (text === undefined) return P.notes[slug] || '';
       text = String(text).slice(0, MAXN);
@@ -222,7 +233,7 @@
   }
   function jobChips() {
     var w = el('div', 'ks');
-    P.jobs.forEach(function (k) { var a = el('a', 'kchip', P.titles['job-' + k] || ('Профессия ' + (k + 1))); a.href = base + 'jobs.html#job-' + k; w.appendChild(a); });
+    api.jobIndexes().forEach(function (k) { var a = el('a', 'kchip', P.titles['job-' + JIDS[k]] || ('Профессия ' + (k + 1))); a.href = base + 'jobs.html#job-' + k; w.appendChild(a); });
     return w;
   }
   function progress(total) {
@@ -245,7 +256,7 @@
       if (doing.length) { hb.appendChild(el('p', 'lkh', 'Изучаю')); hb.appendChild(chips(doing.slice(0, 10), 'mydoing')); }
       if (P.recent.length) { hb.appendChild(el('p', 'lkh', 'Недавно смотрел')); hb.appendChild(chips(P.recent.slice(0, 6))); }
       if (P.fav.length) { hb.appendChild(el('p', 'lkh', 'Избранное')); hb.appendChild(chips(P.fav.slice(0, 10), 'myfav')); }
-      if (P.jobs.length) { hb.appendChild(el('p', 'lkh', 'Интересные профессии')); hb.appendChild(jobChips()); }
+      if (api.jobIndexes().length) { hb.appendChild(el('p', 'lkh', 'Интересные профессии')); hb.appendChild(jobChips()); }
       if (Object.keys(P.status).length) hb.appendChild(progress(total));
       var p = el('p', 'hlinks2 myopen'), a = el('a', 'btn-o', 'Открыть мой план'); a.href = base + 'profile.html'; p.appendChild(a);
       var m = el('a', 'btn-o', 'Мой маршрут на карте'); m.href = base + 'map.html#mine'; p.appendChild(m); hb.appendChild(p);
@@ -305,16 +316,18 @@
         if (P.fav.length) { var u2 = el('ul', 'mylist'); P.fav.forEach(function (s) { u2.appendChild(item(s, null, [['Убрать', function () { api.toggle('fav', s); }]])); }); s2.appendChild(u2); }
         else s2.appendChild(el('p', 'muted', 'Пока ничего. Звёздочка «Избранное» есть на странице каждого предмета.'));
         prof.appendChild(s2);
-        var sj = section('Интересные профессии', P.jobs.length);
-        if (P.jobs.length) {
+        var JK = api.jobIndexes(), sj = section('Интересные профессии', JK.length);
+        if (JK.length) {
           var uj = el('ul', 'mylist');
-          P.jobs.forEach(function (k) {
-            var li = el('li', 'myitem'), t_ = jobsAll[k] || P.titles['job-' + k] || ('Профессия ' + (k + 1)), a = el('a', '', t_); a.href = base + 'jobs.html#job-' + k; li.appendChild(a);
+          JK.forEach(function (k) {
+            var li = el('li', 'myitem'), t_ = jobsAll[k] || P.titles['job-' + JIDS[k]] || ('Профессия ' + (k + 1)), a = el('a', '', t_); a.href = base + 'jobs.html#job-' + k; li.appendChild(a);
             var m = el('a', 'btn-o mysmall', 'На карте'); m.href = base + 'map.html#job=' + k; m.setAttribute('aria-label', t_ + ' на карте связей'); li.appendChild(m);
             var b = el('button', 'btn-o mysmall', 'Убрать'); b.type = 'button'; b.setAttribute('aria-label', 'Убрать: ' + t_); b.addEventListener('click', function () { api.toggleJob(k); }); li.appendChild(b);
             uj.appendChild(li);
           });
-          sj.appendChild(uj); sj.appendChild(el('p', 'muted', 'Предметы на пути к этим профессиям подсвечиваются как «в планах» в режиме «Мой маршрут» на карте связей.'));
+          sj.appendChild(uj);
+          if (JK.length >= 2) { var cp = el('p', 'hlinks2'), ca = el('a', 'btn-o', 'Сравнить ' + (JK.length > 2 ? 'первые две' : 'эти профессии')); ca.href = base + 'jobs.html#compare=' + JK[0] + ',' + JK[1]; cp.appendChild(ca); sj.appendChild(cp); }
+          sj.appendChild(el('p', 'muted', 'Предметы на пути к этим профессиям подсвечиваются как «в планах» в режиме «Мой маршрут» на карте связей.'));
         } else { var pj = el('p', 'muted'); pj.appendChild(document.createTextNode('Пока ничего. Отметить профессию можно на ')); var aj = el('a', '', 'карте профессий'); aj.href = base + 'jobs.html'; pj.appendChild(aj); pj.appendChild(document.createTextNode('.')); sj.appendChild(pj); }
         prof.appendChild(sj);
         var keys = Object.keys(P.notes);

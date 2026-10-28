@@ -17,7 +17,7 @@ for _d in _RPA["disciplines"]:
     if _s: RP.setdefault(_s, []).append(_d)
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js","graph.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js","graph.js","jobs.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 
 # ---- сжатие ресурсов при сборке (только стандартная библиотека; исходники в assets/ не меняются) ----
 _STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')')
@@ -115,7 +115,7 @@ def footer_html(b=""):
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
-def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False):
+def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False, jobs=False):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
@@ -127,8 +127,9 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
     if form: lj += f'<script src="{b}assets/form.js?v={ASSET_V}" defer></script>'
     if path: lj += f'<script src="{b}assets/path.js?v={ASSET_V}" defer></script>'
     if graph: lj += f'<script src="{b}assets/graph.js?v={ASSET_V}" defer></script>'
+    if jobs: lj += f'<script src="{b}assets/jobs.js?v={ASSET_V}" defer></script>'
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF">{lm}{fm}
+<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("tm-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
@@ -343,13 +344,10 @@ SEM_NOTE = {1:"Фундамент: математика, химия, графи�
  3:"Метрология и статистика: больше расчётов и лабораторных.",4:"Управление качеством и измерения. Летом технологическая практика.",
  5:"Ядро профессии: стандарты, сертификация, статистические методы.",6:"Квалиметрия, эталоны и испытания. Вторая технологическая практика.",
  7:"Точность, проекты, экономика качества. Больше предметов по выбору.",8:"Финиш: практики, госэкзамен и выпускная работа."}
-JOBS = [
- ("FaRulerCombined","Инженер-метролог","Отвечает за точность измерений: выбирает приборы, организует поверку и калибровку, проверяет методики.",["b1-o-19-01-04","b1-o-19-05","b1-o-19-06","b1-v-14","b1-v-17","b1-o-18-02"],"инженер-метролог"),
- ("FaBookOpen","Инженер по стандартизации","Разрабатывает и проверяет стандарты предприятия и техническую документацию, следит за их соответствием требованиям.",["b1-o-19-01-06","b1-o-19-08","b1-o-19-01-02","b1-o-18-10","b1-o-19-01-01"],"инженер по стандартизации"),
- ("FaShieldAlt","Специалист по сертификации","Подтверждает, что продукция и услуги соответствуют требованиям: готовит документы, работает с органами по сертификации и лабораториями.",["b1-o-19-01-07","b1-v-16","b1-v-10","b1-o-19-01-01"],"специалист по сертификации"),
- ("FaChartBar","Инженер по качеству","Строит и поддерживает систему качества, анализирует данные и ищет причины брака на производстве.",["b1-o-19-01-05","b1-v-06","b1-o-19-03","b1-v-11","b1-v-03","b1-o-19-01-08"],"инженер по качеству"),
- ("FaClipboardCheck","Аудитор систем качества","Проверяет, как работает система менеджмента качества в организации, и предлагает улучшения.",["b1-v-15","b1-o-19-01-05","b1-v-05","b1-v-04"],"аудитор систем менеджмента качества"),
- ("FaTools","Инженер-испытатель","Проводит испытания продукции по методикам, обрабатывает результаты и оформляет протоколы.",["b1-v-10","b1-o-19-07","b1-o-19-05","b1-o-19-01-09","b1-o-18-06"],"инженер-испытатель")]
+# профессии и их ключевые предметы — data/jobs.json (оценка команды проекта, см. meta.basis); порядок задаёт номер профессии в адресах
+_JD = jload(ROOT/"data/jobs.json", {"meta": {}, "jobs": []}); JOB_BASIS = _JD["meta"].get("basis", "")
+JOBS = [(j["icon"], j["title"], j["desc"], j["key"], j["hh_query"]) for j in _JD["jobs"]]
+JOB_IDS = [j["id"] for j in _JD["jobs"]]
 def path_data(cards):
     known = {i["slug"] for i in items}
     for j in JOBS:
@@ -400,7 +398,20 @@ def jobs_page():
                  + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
                  f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a>'
                  f'<button type="button" class="mybtn my-job" data-job="{k}" data-title="{E(j[1])}" aria-pressed="false" hidden><span class="myi" aria-hidden="true">★</span>Интересная профессия</button></div></article>')
-    toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS))
+    toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS)) + '<a class="kchip jcmp" href="#compare">Сравнить две профессии</a>'
+    # сравнение: те же данные, что в маршрутах ниже — ключевые предметы, нужные для них и коды компетенций ключевых предметов
+    used = sorted({x for keys, anc in routes for x in keys | anc}, key=lambda x: (start_sem(by[x]["sem"]), by[x]["idx"]))
+    cdata = {"n": {x: [clean(by[x]["name"]), str(by[x]["sem"])] for x in used},
+             "j": [{"t": j[1], "k": [x for x in used if x in keys], "a": [x for x in used if x in anc],
+                    "c": sorted({c for x in keys for r in RP.get(x, []) for c in set(r.get("competencies") or [])}, key=lambda c: (list(COMP).index(c.split("-")[0]) if c.split("-")[0] in COMP else 9, c))}
+                   for j, (keys, anc) in zip(JOBS, routes)]}
+    cdata = json.dumps(cdata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    sel = lambda i, v: f'<select id="{i}">' + "".join(f'<option value="{k}"{" selected" if k == v else ""}>{E(j[1])}</option>' for k, j in enumerate(JOBS)) + '</select>'
+    compare = (f'<section class="panel jcompare" id="compare" aria-labelledby="cmph"><h2 id="cmph"><span class="ci">{ic("FaLayerGroup")}</span>Сравнить две профессии</h2>'
+               f'<div class="cmpsel"><label class="sortl">Первая {sel("cmpa", 0)}</label><label class="sortl">Вторая {sel("cmpb", 1)}</label></div>'
+               '<div id="cmpout" aria-live="polite"><noscript><p class="muted">Для сравнения нужен включённый JavaScript. Маршруты всех профессий — ниже на странице.</p></noscript></div>'
+               '<p class="muted cmpnote">Сравнение построено на тех же данных, что и маршруты ниже: ключевые предметы — оценка команды проекта, «нужные для ключевых» — по логическим связям, '
+               'компетенции — коды из рабочих программ ключевых предметов. Это не требования работодателей и не профессиональный стандарт.</p></section>')
     body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
 <p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
 <p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="index.html">Путь студента</a></p></section></div></div>
@@ -408,10 +419,11 @@ def jobs_page():
 <section class="panel jbasis"><h2><span class="ci">{ic("FaClipboardCheck")}</span>На чём основана карта</h2><ul class="bl">
 <li><span class="rch key sample">ключевой предмет</span> — оценка команды проекта по задачам профессии; это не официальный перечень и не гарантия трудоустройства.</li>
 <li><span class="rch sample">нужен для ключевого</span> — предметы, без которых ключевые трудно начать, по согласованным логическим связям (не официальные пререквизиты).</li>
-<li>Компетенции — коды индикаторов из рабочих программ ключевых предметов; «×2» значит, что компетенцию формируют два ключевых предмета.</li></ul></section>
+<li>Компетенции — коды индикаторов из рабочих программ ключевых предметов; «×2» значит, что компетенцию формируют два ключевых предмета.</li>
+<li>Профессии и их ключевые предметы хранятся в файле <code>data/jobs.json</code> с пометкой «оценка команды проекта». Предложить правку можно через <a href="feedback.html">обратную связь</a>.</li></ul></section>
 <section class="panel"><h2><span class="ci">{ic("FaLayerGroup")}</span>Общая основа</h2><p>Эти предметы входят в маршрут к четырём и более профессиям из шести.</p><div class="ks" style="margin-top:10px">{"".join(f'<a class="kchip" href="d/{s}.html">{E(clean(by[s]["name"]))}</a>' for s in base)}</div></section>
-{arts}</div></main>'''
-    return page("Карта профессий: предметы, которые ведут к профессии · TeachMap", "Шесть профессий выпускников 27.03.01 ДВФУ и маршрут к каждой по семестрам: ключевые предметы, опоры и компетенции", body)
+{compare}{arts}</div></main><script type="application/json" id="cmpd">{cdata}</script>'''
+    return page("Карта профессий: предметы, которые ведут к профессии · TeachMap", "Шесть профессий выпускников 27.03.01 ДВФУ и маршрут к каждой по семестрам: ключевые предметы, опоры, компетенции и сравнение двух профессий", body, jobs=True)
 # ---- карта связей (map.html): раскладка считается здесь, при сборке; браузер только показывает, подсвечивает и масштабирует ----
 GNW, GNH, GCW, GRH, GTOP, GPAD = 168, 54, 206, 64, 46, 18   # узел: ширина, высота; шаг столбца и строки; место под подписи семестров; поля
 GT = {"need": "нужен", "helps": "помогает", "job": "ведёт к профессии"}
