@@ -225,7 +225,7 @@
   function chips(list, cls) {
     var w = el('div', 'ks');
     list.forEach(function (s) {
-      var a = el('a', 'kchip' + (cls ? ' ' + cls : ''), P.titles[s] || s); a.href = base + 'd/' + s + '.html';
+      var a = el('a', 'kchip' + (cls ? ' ' + cls : ''), P.titles[s] || (INFO[s] && INFO[s].n) || s); a.href = base + 'd/' + s + '.html';
       if (document.getElementById('pd')) a.setAttribute('data-slug', s);   // на пути студента откроется окно карточки
       w.appendChild(a);
     });
@@ -245,6 +245,47 @@
     p.appendChild(b); p.appendChild(el('p', 'muted myprivnote', 'Личные пометки для планирования, а не оценки и не зачёты.'));
     return p;
   }
+  // ---------- «что изучать дальше»: подсказка по связям «нужен» и текущему семестру (не требование плана) ----------
+  function planInfo() {                                       // данные страницы: «Мой план» (#pnames) или путь студента (#pd)
+    var out = {}, x;
+    try { x = JSON.parse(document.getElementById('pnames').textContent); Object.keys(x).forEach(function (s) { out[s] = { n: x[s][0], sem: x[s][1], need: x[s][2] || [], idx: x[s][3] || '' }; }); return out; } catch (e) {}
+    try { x = JSON.parse(document.getElementById('pd').textContent).items; Object.keys(x).forEach(function (s) { out[s] = { n: x[s].n, sem: String(x[s].sem), need: (x[s].up || []).filter(function (u) { return u[1] === 'need'; }).map(function (u) { return u[0]; }), idx: x[s].code || '' }; }); } catch (e) {}
+    return out;
+  }
+  function semList(t) {
+    var r = []; String(t).split(',').forEach(function (p) { var m = p.match(/(\d+)\s*[–-]\s*(\d+)/); if (m) { for (var i = +m[1]; i <= +m[2]; i++) r.push(i); } else if (/^\s*\d+\s*$/.test(p)) r.push(+p); });
+    return r;
+  }
+  function nextSteps(I) {
+    var res = [], seen = {};
+    Object.keys(I).forEach(function (s) {
+      var nd = I[s].need; if (P.status[s] || !nd.length) return;
+      if (nd.every(function (x) { return P.status[x] === 'done'; })) { res.push({ s: s, why: 'Опоры пройдены: ' + nd.map(function (x) { return I[x] ? I[x].n : x; }).join(', ') + '.' }); seen[s] = 1; }
+    });
+    if (P.sem) Object.keys(I).forEach(function (s) {
+      if (P.status[s] || seen[s] || semList(I[s].sem).indexOf(P.sem) < 0) return;
+      var miss = I[s].need.filter(function (x) { return P.status[x] !== 'done'; });
+      res.push({ s: s, why: 'Идёт в твоём семестре.' + (miss.length ? ' Ещё не отмечены как пройденные опоры: ' + miss.map(function (x) { return I[x] ? I[x].n : x; }).join(', ') + '.' : '') });
+    });
+    return res.sort(function (a, b) { return (semList(I[a.s].sem)[0] || 9) - (semList(I[b.s].sem)[0] || 9); });
+  }
+  api.nextSteps = function () { return nextSteps(planInfo()); };
+  function csvCell(v) { v = String(v == null ? '' : v); return /[";\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function personalCsv(I) {                                   // для Excel: «;» и UTF-8 с BOM
+    var LB = { done: 'Пройдено', doing: 'Изучаю' }, rows = [['Код', 'Дисциплина', 'Семестры', 'Мой статус', 'Избранное', 'Заметка']], keys = {};
+    Object.keys(P.status).concat(P.fav, Object.keys(P.notes)).forEach(function (s) { keys[s] = 1; });
+    Object.keys(keys).sort(function (a, b) { return (I[a] ? semList(I[a].sem)[0] : 99) - (I[b] ? semList(I[b].sem)[0] : 99); }).forEach(function (s) {
+      rows.push([I[s] ? I[s].idx : '', I[s] ? I[s].n : (P.titles[s] || s), I[s] ? I[s].sem : '', LB[P.status[s]] || 'Не начато', P.fav.indexOf(s) >= 0 ? 'да' : '', P.notes[s] || '']);
+    });
+    return '\ufeff' + rows.map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n') + '\r\n';
+  }
+  function download(text, name, type) {
+    var blob = new Blob([text], { type: type }), url = URL.createObjectURL(blob), a = el('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  var INFO = planInfo();
+  var NEXTNOTE = 'Подсказка по логическим связям «нужен» и твоему семестру, а не требование учебного плана.';
+
   var home = document.getElementById('mine');
   if (home && avail) {
     var hb = document.getElementById('minebody'), total = +home.dataset.total || 74;
@@ -257,6 +298,8 @@
       if (P.recent.length) { hb.appendChild(el('p', 'lkh', 'Недавно смотрел')); hb.appendChild(chips(P.recent.slice(0, 6))); }
       if (P.fav.length) { hb.appendChild(el('p', 'lkh', 'Избранное')); hb.appendChild(chips(P.fav.slice(0, 10), 'myfav')); }
       if (api.jobIndexes().length) { hb.appendChild(el('p', 'lkh', 'Интересные профессии')); hb.appendChild(jobChips()); }
+      var nx = api.nextSteps();
+      if (nx.length) { hb.appendChild(el('p', 'lkh', 'Можно браться')); hb.appendChild(chips(nx.slice(0, 5).map(function (r) { return r.s; }))); }
       if (Object.keys(P.status).length) hb.appendChild(progress(total));
       var p = el('p', 'hlinks2 myopen'), a = el('a', 'btn-o', 'Открыть мой план'); a.href = base + 'profile.html'; p.appendChild(a);
       var m = el('a', 'btn-o', 'Мой маршрут на карте'); m.href = base + 'map.html#mine'; p.appendChild(m); hb.appendChild(p);
@@ -302,6 +345,22 @@
         var s1 = section('Прогресс'); s1.appendChild(progress(ptotal));
         var ma = el('p', 'hlinks2'), mal = el('a', 'btn-s', 'Мой маршрут на карте связей'); mal.href = base + 'map.html#mine'; ma.appendChild(mal); s1.appendChild(ma);
         prof.appendChild(s1);
+        var NX = nextSteps(INFO);
+        if (NX.length || P.sem) {
+          var sn = section('Что изучать дальше', NX.length || null);
+          if (NX.length) {
+            var un = el('ul', 'mynext');
+            NX.slice(0, 12).forEach(function (r) {
+              var li = el('li'), a = el('a', '', nm(r.s)); a.href = base + 'd/' + r.s + '.html'; li.appendChild(a);
+              if (sem(r.s)) li.appendChild(el('span', 'muted', sem(r.s)));
+              var b = el('button', 'btn-o mysmall', 'Изучаю'); b.type = 'button'; b.setAttribute('aria-label', 'Отметить «Изучаю»: ' + nm(r.s)); b.addEventListener('click', function () { api.setStatus(r.s, 'doing'); }); li.appendChild(b);
+              li.appendChild(el('small', '', r.why)); un.appendChild(li);
+            });
+            sn.appendChild(un);
+            if (NX.length > 12) sn.appendChild(el('p', 'muted', 'И ещё ' + (NX.length - 12) + '.'));
+          } else sn.appendChild(el('p', 'muted', 'Пока подсказать нечего: отметь пройденные предметы — появятся те, для которых опоры уже пройдены.'));
+          sn.appendChild(el('p', 'muted', NEXTNOTE)); prof.appendChild(sn);
+        }
         [['doing', 'Изучаю', 'Пока ничего. Статус «Изучаю» ставится на странице предмета.'], ['done', 'Пройдено', 'Пока ничего. Статус «Пройдено» ставится на странице предмета.']].forEach(function (d) {
           var L = listOf(d[0]), s = section(d[1], L.length);
           if (L.length) {
@@ -338,14 +397,10 @@
         if (P.recent.length) { var s4 = section('Недавно смотрел'); s4.appendChild(chips(P.recent)); prof.appendChild(s4); }
       }
       // перенос на другое устройство: файл с данными
-      var s6 = section('Перенести на другое устройство', null, 'mydata');
-      s6.appendChild(el('p', '', 'Сохрани файл с личным планом и открой его на другом устройстве кнопкой «Загрузить из файла». Файл остаётся у тебя: на сервер ничего не отправляется.'));
+      var s6 = section('Перенести и выгрузить', null, 'mydata');
+      s6.appendChild(el('p', '', 'Сохрани файл с личным планом и открой его на другом устройстве кнопкой «Загрузить из файла». Таблица CSV — для просмотра в Excel или Google Таблицах (обратно не загружается). Файлы остаются у тебя: на сервер ничего не отправляется.'));
       var row = el('p', 'hlinks2'), ex = el('button', 'btn-o', 'Сохранить в файл'); ex.type = 'button'; ex.disabled = api.empty();
-      ex.addEventListener('click', function () {
-        var blob = new Blob([api.exportText()], { type: 'application/json' }), url = URL.createObjectURL(blob), a = el('a');
-        a.href = url; a.download = 'teachmap-moy-plan-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 1000); msg.textContent = 'Файл сохранён в загрузки.';
-      });
+      ex.addEventListener('click', function () { download(api.exportText(), 'teachmap-moy-plan-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json'); msg.textContent = 'Файл сохранён в загрузки.'; });
       var fi = el('input'); fi.type = 'file'; fi.accept = '.json,application/json'; fi.id = 'myfile'; fi.className = 'vh'; fi.tabIndex = -1; fi.setAttribute('aria-label', 'Файл личного плана TeachMap'); fi.setAttribute('aria-hidden', 'true');   // выбор файла открывает кнопка «Загрузить из файла»
       var im = el('button', 'btn-o', 'Загрузить из файла'); im.type = 'button'; im.addEventListener('click', function () { fi.click(); });
       fi.addEventListener('change', function () {
@@ -364,7 +419,9 @@
         r.onerror = function () { msg.textContent = 'Не получилось прочитать файл.'; };
         r.readAsText(f);
       });
-      row.appendChild(ex); row.appendChild(im); s6.appendChild(row); s6.appendChild(fi); s6.appendChild(msg); prof.appendChild(s6);
+      var cs = el('button', 'btn-o', 'Таблица для Excel (CSV)'); cs.type = 'button'; cs.disabled = api.empty();
+      cs.addEventListener('click', function () { download(personalCsv(INFO), 'teachmap-moy-progress-' + new Date().toISOString().slice(0, 10) + '.csv', 'text/csv;charset=utf-8'); msg.textContent = 'Таблица сохранена в загрузки. Для переноса на другое устройство используй файл JSON («Сохранить в файл»).'; });
+      row.appendChild(ex); row.appendChild(im); row.appendChild(cs); s6.appendChild(row); s6.appendChild(fi); s6.appendChild(msg); prof.appendChild(s6);
       if (!api.empty()) {
         var s5 = section('Очистить'); s5.appendChild(el('p', '', 'Удалит статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера. Отменить нельзя: если нужно, сначала сохрани файл.'));
         var cb = el('button', 'btn-o mydanger', 'Очистить мой план'); cb.type = 'button';

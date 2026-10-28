@@ -1229,3 +1229,54 @@ html.access .gch.mnow{clip-path:none}
 #cmpout.tm-cmp .cmpcol:nth-child(2){animation-delay:60ms}#cmpout.tm-cmp .cmpcol:nth-child(3){animation-delay:120ms}
 @media(max-width:900px){.cmpgrid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){#cmpout *{animation:none!important}}
+
+/* =====================================================================
+   ПЛАН ТАБЛИЦЕЙ (plan.html, assets/plan.js) и печать
+   ===================================================================== */
+.pnote{margin:4px 0 12px!important;font-size:13.5px;max-width:90ch}
+.ptable{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--sh-s);margin-bottom:12px}
+.ptable table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}
+.ptable th,.ptable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ptable thead th{position:sticky;top:0;background:var(--ice);font-family:var(--hd);font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:12.5px;color:var(--pri);z-index:1}
+.ptable tbody th{font-weight:600}
+.ptable tbody th a{color:var(--link)}
+.ptable .pn{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ptable tr.psem th{background:var(--ice-2);font-family:var(--hd);font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--pri);padding-top:12px}
+.ptable tbody tr:not(.psem):hover{background:var(--ice-2)}
+.pctab{min-width:560px!important;table-layout:fixed}
+.pctab thead th:first-child,.pctab tbody th{width:24%}
+.pctab td .ks{gap:6px}
+.kchip.pcsame{background:var(--btn);border-color:var(--btn);color:#fff}
+.pcsum{margin:4px 0 0!important}
+.pcmp{margin-top:16px}
+[data-print][hidden]{display:none!important}
+#pcout.tm-cmp .ptable{animation:tmReveal 260ms steps(9,end) backwards}
+@media(prefers-reduced-motion:reduce){#pcout *{animation:none!important}}
+/* следующий шаг в «Моём плане» */
+.mynext{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:10px}
+.mynext li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.mynext li>a{font-weight:700;color:var(--link)}
+.mynext small{flex:1 0 100%;color:var(--mut);font-size:13px}
+/* печать: только содержимое, без меню, обложки, кнопок и анимаций */
+@media print{
+ @page{margin:14mm 12mm}
+ html,body{background:#fff!important;color:#000!important}
+ .top,.menu,.skip,.hero3d,.hlinks,.hlinks2,.gtabs,.dots,.line,.mybar,#mine,.hlpill,footer .wrap>p:last-child,.pcmp,[data-print],.tools,.sems,.cntrow,.jobnote,.fberr,.pager,.gtools,.gzoom,.ghint{display:none!important}
+ .heroblock,.band{background:none!important;box-shadow:none!important;margin:0!important;padding:0!important;min-height:0!important}
+ .heroblock::before,.heroblock::after,.band::before,.band::after{display:none!important}
+ .hero h1,.heroblock .hero h1,.band h1{color:#000!important;-webkit-text-fill-color:#000!important;text-shadow:none!important;transform:none!important;font-size:20pt}
+ .hero .lead{color:#000!important;font-size:11pt}
+ *{animation:none!important;transition:none!important}
+ .ptable{overflow:visible;border:0;box-shadow:none}
+ .ptable table{min-width:0;font-size:9pt}
+ .ptable th,.ptable td{padding:3px 5px;border-bottom:.5pt solid #999}
+ .ptable thead{display:table-header-group}
+ .ptable thead th{position:static;background:#eee!important;color:#000}
+ .ptable tr{break-inside:avoid}
+ .ptable tbody th a{color:#000;text-decoration:none}
+ .panel{box-shadow:none!important;border:.5pt solid #999!important;break-inside:avoid}
+ a{color:#000}
+ footer{background:none!important;color:#000!important;font-size:9pt;border:0!important;margin-top:8mm!important;padding:0!important}
+ footer p:has(a){display:none!important}
+ footer *{color:#000!important}
+}
