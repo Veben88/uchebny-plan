@@ -9,6 +9,13 @@
       try { localStorage.setItem('access', on ? '1' : '0'); } catch (e) {}
     });
   }
+  // мобильная панель: «назад» — по истории, если пришли с этого же сайта; иначе ссылка ведёт в родительский раздел
+  [].forEach.call(document.querySelectorAll('[data-back]'), function (a) {
+    a.addEventListener('click', function (e) {
+      var same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (x) {}
+      if (same && history.length > 1) { e.preventDefault(); history.back(); }
+    });
+  });
   var g = document.getElementById('grid'); if (!g) return;
   var cards = [].slice.call(g.querySelectorAll('.card')), q = document.getElementById('q'),
       cnt = document.getElementById('count'), empty = document.getElementById('empty'), F = {};

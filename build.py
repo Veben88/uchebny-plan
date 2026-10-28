@@ -108,7 +108,26 @@ def head_nav(depth, active, band=False):
     NAV = (("home","path.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("map","map.html","Карта связей","Карта","FaCompass"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
     links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, на главную</span></a>'
-            f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
+            f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>' + app_bar(depth, active))
+# ---- мобильная версия как приложение: верхняя панель (назад, раздел, поиск, настройки) и нижние вкладки ----
+# На экранах шире 700 px не показываются (style.css), там остаётся обычное верхнее меню.
+APP = {  # раздел: (заголовок панели, куда ведёт «назад» без истории, вкладка)
+ "home": ("Путь по семестрам", "map.html", "map"), "map": ("Образовательная карта", "index.html", "map"),
+ "cat": ("Дисциплины", "index.html", "cat"), "jobs": ("Профессии", "index.html", "jobs"), "profile": ("Мой план", "index.html", "profile"),
+ "plan": ("План таблицей", "catalog.html", "cat"), "road": ("Развитие сайта", "index.html#settings", ""), "about": ("О проекте", "index.html#settings", ""),
+ "fb": ("Обратная связь", "index.html#settings", ""), "": ("TeachMap", "index.html", "")}
+TABS = (("start", "index.html", "Главная", "FaUniversity"), ("map", "map.html", "Карта", "FaCompass"), ("cat", "catalog.html", "Дисциплины", "FaBookOpen"),
+        ("jobs", "jobs.html", "Профессии", "FaBriefcase"), ("profile", "profile.html", "Профиль", "FaUserGraduate"))
+def tab_bar(depth, tab):
+    b = "../" * depth
+    return ('<nav class="tabbar" aria-label="Разделы приложения">' + "".join(
+        f'<a href="{b}{h}"{" aria-current=page" if k == tab else ""}><span class="ti" aria-hidden="true">{ic(i)}</span><span class="tt">{t}</span></a>' for k, h, t, i in TABS) + '</nav>')
+def app_bar(depth, active):
+    b = "../" * depth; title, up, tab = APP.get(active, APP[""])
+    if depth and active == "cat": title, up = "Дисциплина", "catalog.html"     # страница предмета: «назад» к списку
+    search = "" if active == "cat" and not depth else f'<a class="ab-i" href="{b}catalog.html" aria-label="Найти предмет">{ic("FaSearch")}</a>'
+    return (f'<header class="appbar"><a class="ab-back" href="{b}{up}" data-back aria-label="Назад"><span aria-hidden="true">‹</span></a>'
+            f'<p class="ab-t">{E(title)}</p>{search}<a class="ab-i" href="{b}index.html#settings" aria-label="Настройки">{ic("FaCog")}</a></header>' + tab_bar(depth, tab))
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
     contact += f'<p><a href="{b}jobs.html">Карта профессий: маршрут к каждой профессии по семестрам</a> · <a href="{b}profile.html">Мой план: статусы и избранное</a> · <a href="{b}plan.html">Учебный план таблицей и CSV</a></p>'
@@ -130,8 +149,8 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
     if jobs: lj += f'<script src="{b}assets/jobs.js?v={ASSET_V}" defer></script>'
     if plan: lj += f'<script src="{b}assets/plan.js?v={ASSET_V}" defer></script>'
     if start: lj += f'<script src="{b}assets/start.js?v={ASSET_V}" defer></script>'
-    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8">{head}<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
+    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8">{head}<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#173B70"><link rel="manifest" href="{b}manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TeachMap"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("tm-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
@@ -414,7 +433,7 @@ def jobs_page():
                '<div id="cmpout" aria-live="polite"><noscript><p class="muted">Для сравнения нужен включённый JavaScript. Маршруты всех профессий — ниже на странице.</p></noscript></div>'
                '<p class="muted cmpnote">Сравнение построено на тех же данных, что и маршруты ниже: ключевые предметы — оценка команды проекта, «нужные для ключевых» — по логическим связям, '
                'компетенции — коды из рабочих программ ключевых предметов. Это не требования работодателей и не профессиональный стандарт.</p></section>')
-    body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
+    body = head_nav(0, "jobs") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
 <p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
 <p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="path.html">Путь студента</a></p></section></div></div>
 <div class="wrap"><nav class="ks jtoc" aria-label="Профессии">{toc}</nav>
@@ -591,7 +610,7 @@ def plan_page(cards):
                      "cp": sorted({c for r in RP.get(sl, []) for c in (r.get("competencies") or [])}, key=order_c), "w": cut(cards[sl]["what"] or cards[sl]["brief"], 200)}
     cdata = json.dumps(cdata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     opts = lambda v: "".join(f'<option value="{it["slug"]}"{" selected" if it["slug"] == v else ""}>{E(it["idx"])} · {E(clean(it["name"]))}</option>' for it in order)
-    body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Учебный план таблицей</h1>
+    body = head_nav(0, "plan") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Учебный план таблицей</h1>
 <p class="lead">Все {len(items)} позиций плана на одной странице: семестры, зачётные единицы, часы и формы контроля. Всего по плану {meta.get("total_ze", 240)} з.е.</p>
 <p class="hlinks"><a class="btn" href="plan.csv" download>Скачать таблицу (CSV) {ic("FaArrowRight")}</a><button type="button" class="btn-o" data-print hidden>Распечатать или сохранить в PDF</button><a class="btn-o" href="#cmp">Сравнить две дисциплины</a></p></section></div></div>
 <div class="wrap"><p class="muted pnote">Источник: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}. Часы — всего за дисциплину по плану, у предметов на несколько семестров указан их диапазон. Таблица справочная и не заменяет официальный документ.</p>
@@ -659,7 +678,7 @@ def start_page():
 <nav class="st-menu" id="stnav" aria-label="Главное меню"><ol id="stmenu">{lis}</ol></nav>{settings}
 <form class="st-find" action="catalog.html" role="search"><label class="vh" for="stq">Найти предмет</label><input id="stq" name="q" type="search" placeholder="Найти предмет, например «метрология»"><button type="submit" aria-label="Найти">{ic("FaSearch")}</button></form></div>
 <aside class="st-stat" aria-labelledby="stath"><h2 class="vh" id="stath">Программа и мой прогресс</h2><p class="st-sk">Программа</p>{facts}
-<div class="st-me" id="stme" hidden></div><p class="st-note">Справочный студенческий проект, не официальный сайт ДВФУ. Данные плана сверены {E(meta["checked"])}.</p></aside></div></main>'''
+<div class="st-me" id="stme" hidden></div><p class="st-note">Справочный студенческий проект, не официальный сайт ДВФУ. Данные плана сверены {E(meta["checked"])}.</p></aside></div></main>{tab_bar(0, "start")}'''
     # старые ссылки на путь студента (index.html#d=…, #route=…, #path=…, #journey) ведут на path.html — до отрисовки страницы
     # st-js ставится до отрисовки: подменю «Настройки» скрыто сразу, без сдвига экрана, когда скрипт загрузится позже
     head = ('<script>if(/^#(d|route|path)=|^#journey$/.test(location.hash))location.replace("path.html"+location.hash);'
@@ -669,7 +688,7 @@ def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"]), [x for x, t, _ in links_of(i["slug"])[0] if t == "need"], i["idx"]] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     jn = json.dumps([j[1] for j in JOBS], ensure_ascii=False).replace("</", "<\\/")
-    body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Мой план</h1>
+    body = head_nav(0, "profile") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Мой план</h1>
 <p class="lead">Статусы предметов, избранное, интересные профессии, текущий семестр и заметки — без регистрации.</p></section></div></div><div class="wrap">
 <section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. Сами на другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере; перенести их можно файлом (блок «Перенести и выгрузить» внизу). На сервер ничего не отправляется. Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.</p></section>
 <noscript><p class="panel">Для личного плана нужен включённый JavaScript.</p></noscript>
@@ -683,6 +702,12 @@ def build():
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
     (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"map.html").write_text(map_page(cards), encoding="utf-8"); (OUT/"plan.html").write_text(plan_page(cards), encoding="utf-8"); (OUT/"plan.csv").write_text(plan_csv(), encoding="utf-8", newline=""); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")
+    # манифест: сайт можно добавить на главный экран телефона и открывать без адресной строки, как приложение
+    (OUT/"manifest.webmanifest").write_text(json.dumps({"name": "TeachMap — учебный план простым языком", "short_name": "TeachMap", "lang": "ru",
+        "description": "Учебный план 27.03.01 ДВФУ: дисциплины, связи, путь по семестрам и профессии", "start_url": "./index.html", "scope": "./",
+        "display": "standalone", "orientation": "portrait", "background_color": "#0E2550", "theme_color": "#173B70",
+        "icons": [{"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png"},
+                  {"src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}, ensure_ascii=False, indent=1), encoding="utf-8")
     (OUT/".nojekyll").write_text("")
     print(f"Готово: {len(items)} страниц дисциплин, {sum(1 for c in cards.values() if c['what'])} с текстами. Папка: {OUT}")
 if __name__ == "__main__": build()
