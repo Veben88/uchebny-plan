@@ -32,7 +32,7 @@
     var dir = 'fwd', k = links.indexOf(a), from = curIndex();
     if (k >= 0) {
       if (from >= 0 && k !== from) { dir = k > from ? 'fwd' : 'back'; save('tmNav', JSON.stringify({ from: from, to: k, t: Date.now() })); }
-    } else if (a.closest('.crumbs') || (a.closest('.pager') && a === a.parentNode.firstElementChild) || a.classList.contains('brand')) dir = 'back';
+    } else if (a.closest('.crumbs') || (a.closest('.pager') && a === a.parentNode.firstElementChild) || a.classList.contains('brand') || a.classList.contains('gback')) dir = 'back';
     save('tmDir', dir);
   });
 

@@ -156,7 +156,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8">{head}<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#173B70"><link rel="manifest" href="{b}manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TeachMap"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
-<link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{if(localStorage.getItem("tm-motion")==="off")document.documentElement.classList.add("tm-still")}}catch(x){{}}try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}var tmS=document.documentElement.classList.contains("tm-still");try{{if(!tmS&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(!tmS&&sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&/tm-lite|tm-still/.test(document.documentElement.className)){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
+<link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>document.documentElement.classList.add("tm-js");try{{if(localStorage.getItem("tm-motion")==="off")document.documentElement.classList.add("tm-still")}}catch(x){{}}try{{if(sessionStorage.getItem("tmFocus")){{sessionStorage.removeItem("tmFocus");document.documentElement.classList.add("tm-focus");addEventListener("load",function(){{setTimeout(function(){{document.documentElement.classList.remove("tm-focus")}},900)}})}}}}catch(x){{}}try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}var tmS=document.documentElement.classList.contains("tm-still");try{{if(!tmS&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(!tmS&&sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&/tm-lite|tm-still/.test(document.documentElement.className)){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
 <a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def job_roles():
     """для каталога: профессии, где предмет ключевой, и где он нужен для ключевых (те же данные, что на карте профессий)"""
@@ -486,6 +486,48 @@ def edge_d(P, a, b):
         dx = max(36, (x2 - sx) * 0.42)
         return f"M{sx},{sy} C{sx + dx:.0f},{sy} {x2 - dx:.0f},{ey} {x2},{ey}"
     return f"M{sx},{sy} C{sx + 30},{sy} {sx + 30},{ey} {sx},{ey}"   # в том же семестре: дуга справа
+GCR = 22   # круглый узел на тёмном экране карты: центр круга — (x + GCR, y + GNH/2)
+def edge_dc(P, a, b):
+    """Линия «как в референсе»: от центра круга к центру круга; конец не доходит до круга на его радиус (место для стрелки)."""
+    (x1, y1), (x2, y2) = P[a], P[b]; sx, sy, ex, ey = x1 + GCR, y1 + GNH // 2, x2 + GCR, y2 + GNH // 2
+    if x2 > x1:
+        dx = max(40, (ex - sx) * 0.42)
+        return f"M{sx + GCR},{sy} C{sx + dx:.0f},{sy} {ex - dx:.0f},{ey} {ex - GCR - 2},{ey}"
+    side = -1 if ey > sy else 1                      # тот же столбец: дуга слева от кругов
+    return f"M{sx - GCR},{sy} C{sx - 70},{sy} {sx - 70},{ey} {ex - GCR - 2},{ey + side * 4}"
+def map_bg():
+    """Фон экрана карты: собственная «кристаллическая» сцена — треугольные грани поверх градиента,
+    крупные осколки света и созвездие из точек и тонких линий. Случайность с постоянным зерном: сборка всегда одинаковая."""
+    import random
+    rnd = random.Random(27031)
+    W, H, C, R = 1600, 900, 8, 5
+    pts = [[(c * W / C + (rnd.uniform(-70, 70) if 0 < c < C else 0), r * H / R + (rnd.uniform(-60, 60) if 0 < r < R else 0)) for c in range(C + 1)] for r in range(R + 1)]
+    tri = []
+    for r in range(R):
+        for c in range(C):
+            a, b, d, e = pts[r][c], pts[r][c + 1], pts[r + 1][c], pts[r + 1][c + 1]
+            tri += [(a, b, e), (a, e, d)] if (r + c) % 2 else [(a, b, d), (b, e, d)]
+    def P(t): return " ".join(f"{x:.0f},{y:.0f}" for x, y in t)
+    faces = []
+    for t in tri:
+        cx, cy = sum(x for x, _ in t) / 3 / W, sum(y for _, y in t) / 3 / H
+        light = 0.55 * cx + 0.45 * cy                       # светлее к низу и вправо, как в сцене референса
+        if rnd.random() < 0.35 + 0.4 * light: faces.append(f'<path class="gf1" d="M{P(t)}Z" opacity="{rnd.uniform(.03, .05 + .1 * light):.2f}"/>')
+        else: faces.append(f'<path class="gf0" d="M{P(t)}Z" opacity="{rnd.uniform(.05, .22 - .12 * light):.2f}"/>')
+    shards = ('<path class="gf1" d="M1080,0 L1010,330 L1160,0Z" opacity=".10"/><path class="gf1" d="M1600,120 L980,900 H1240 L1600,420Z" opacity=".08"/>'
+              '<path class="gf1" d="M640,900 L860,420 L940,900Z" opacity=".07"/><path class="gf0" d="M0,0 H520 L0,460Z" opacity=".18"/>')
+    stars = [(rnd.uniform(30, W - 30), rnd.uniform(40, H - 30)) for _ in range(46)]
+    seen, lines = set(), []
+    for i, (x, y) in enumerate(stars):
+        near = sorted(range(len(stars)), key=lambda j: (stars[j][0] - x) ** 2 + (stars[j][1] - y) ** 2)[1:3]
+        for j in near:
+            k2 = (min(i, j), max(i, j))
+            if k2 in seen: continue
+            seen.add(k2); lines.append(f'M{x:.0f},{y:.0f}L{stars[j][0]:.0f},{stars[j][1]:.0f}')
+    GSB = ' class="gsb"'
+    dots = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{(3.2 if n % 7 == 0 else rnd.uniform(1.4, 2.4)):.1f}"{GSB if n % 7 == 0 else ""}/>' for n, (x, y) in enumerate(stars))
+    return (f'<div class="gbg" aria-hidden="true"><svg viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid slice">'
+            f'<g class="gbg-f">{"".join(faces)}{shards}</g><path class="gbg-l" d="{" ".join(lines)}"/><g class="gbg-s">{dots}</g></svg></div>')
 def map_page(cards):
     by, cols, nb, P, W, H, edges = graph_model()
     lab = lambda s: ("По выбору: " if by[s]["type"] == "По выбору" else "") + clean(by[s]["name"])
@@ -495,13 +537,13 @@ def map_page(cards):
         for k, s in enumerate(cols[c]):
             it = by[s]; g = gi(it); x, y = P[s]
             nodes += (f'<a class="gn c-{g}" href="d/{s}.html" data-id="{s}" data-g="{g}" data-l="{1 if nb.get(s) else 0}" data-sems=" {" ".join(map(str, sem_list(it["sem"])))} " '
-                      f'style="left:{x}px;top:{y}px;--c:{c - 1};--r:{min(k, 12)}" title="{E(lab(s))}"><b>{E(cut(lab(s), 50))}</b><small>{E(str(it["sem"]))} сем. · {ze_num(it)} з.е.</small></a>')
+                      f'style="left:{x}px;top:{y}px;--c:{c - 1};--r:{min(k, 12)}" title="{E(lab(s))}"><span class="gni" aria-hidden="true"></span><b>{E(cut(lab(s), 50))}</b><small>{E(str(it["sem"]))} сем. · {ze_num(it)} з.е.</small></a>')
     for k, j in enumerate(JOBS):
         x, y = P[f"job-{k}"]
         nodes += (f'<a class="gn gj" href="jobs.html#job-{k}" data-id="job-{k}" data-l="1" style="left:{x}px;top:{y}px;--c:8;--r:{k}">'
                   f'<span class="gji" aria-hidden="true">{ic(j[0])}</span><b>{E(j[1])}</b><small>профессия</small></a>')
     marks = "".join(f'<marker id="ga-{t}" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="gm {t}" d="M0,0L10,5L0,10z"/></marker>' for t in GT)
-    paths = "".join(f'<path class="ge {t}" data-f="{a}" data-t="{b}" d="{edge_d(P, a, b)}" marker-end="url(#ga-{t})"/>' for a, b, t, _ in edges)
+    paths = "".join(f'<path class="ge {t}" data-f="{a}" data-t="{b}" d="{edge_d(P, a, b)}" data-dc="{edge_dc(P, a, b)}" marker-end="url(#ga-{t})"/>' for a, b, t, _ in edges)
     pick = '<option value="">Выбери предмет из списка</option>' + "".join(
         f'<optgroup label="{c} семестр">' + "".join(f'<option value="{s}">{E(lab(s))}</option>' for s in sorted(cols[c], key=lambda s: by[s]["idx"])) + '</optgroup>' for c in range(1, 9))
     jopt = '<option value="">Путь к профессии…</option>' + "".join(f'<option value="{k}">{E(j[1])}</option>' for k, j in enumerate(JOBS))
@@ -515,23 +557,40 @@ def map_page(cards):
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта связей между предметами</h1>'
             '<p class="lead">Все предметы плана на одной схеме: на что опирается каждый, к чему ведёт и какие предметы нужны для профессии. Выбери предмет на карте или в списке.</p>'
             f'<nav class="gtabs" aria-label="Режимы образовательной карты"><a href="path.html#journey">{ic("FaMapMarkedAlt")}Учебный план</a><a href="map.html" aria-current="page">{ic("FaCompass")}Граф связей</a><a href="jobs.html">{ic("FaUserGraduate")}Путь к профессии</a></nav></section></div></div>')
-    tools = (f'<div class="gtools"><details class="gfil" open><summary>Фильтры</summary><div class="gfrows">'
-             f'<div class="gfrow" role="group" aria-label="Показывать семестры"><span class="gfl">Семестры</span>{sems}</div>'
+    courses = "".join(f'<button type="button" class="pill gcb" data-course="{k}" aria-pressed="{"true" if k == 0 else "false"}">{"Все" if k == 0 else f"{k} курс"}</button>' for k in range(0, 5))
+    tools = (f'<div class="gtools" id="gtools"><div class="gcourse" role="group" aria-label="Курс и семестры"><span class="gfl">Курс</span>{courses}<span class="gfl gfl2">Семестры</span><span class="gsems">{sems}</span></div>'
+             f'<details class="gfil" open><summary>Фильтры</summary><div class="gfrows">'
              f'<div class="gfrow" role="group" aria-label="Показывать разделы плана"><span class="gfl">Разделы</span>{grs}</div>'
              f'<div class="gfrow" role="group" aria-label="Показывать связи"><span class="gfl">Связи</span>{tys}<button type="button" class="pill" id="giso" aria-pressed="false">Скрыть предметы без связей ({n_iso})</button></div>'
              f'<div class="gfrow"><label class="sortl">Профессия <select id="gjob">{jopt}</select></label><button type="button" class="pill gmine-b" id="gmine" aria-pressed="false" hidden>Мой маршрут</button><button type="button" class="btn-o" id="greset" hidden>Сбросить фильтры</button></div></div></details>'
              f'<p class="muted gcount" id="gcount" aria-live="polite"></p></div>')
     view = (f'<div class="gview" id="gview" tabindex="-1" role="group" aria-label="Граф связей: {len(by)} предметов и {len(JOBS)} профессий. Выбор предмета показывает его связи в панели рядом.">'
-            f'<div class="gcanvas" id="gcanvas" style="width:{W}px;height:{H}px">{heads}<svg class="gedges" width="{W}" height="{H}" viewBox="0 0 {W} {H}" aria-hidden="true"><defs>{marks}</defs>{paths}</svg>{nodes}</div>'
-            f'<div class="gzoom" role="group" aria-label="Масштаб"><button type="button" data-z="in" aria-label="Крупнее">+</button><button type="button" data-z="out" aria-label="Мельче">−</button><button type="button" data-z="fit">Вся карта</button></div>'
-            '<p class="ghint" aria-hidden="true">Перетаскивай карту · Ctrl + колесо или щипок — масштаб</p></div>')
+            f'<div class="gcanvas" id="gcanvas" style="width:{W}px;height:{H}px">{heads}<svg class="gedges" width="{W}" height="{H}" viewBox="0 0 {W} {H}" aria-hidden="true"><defs>{marks}</defs>{paths}</svg><svg class="gorbit" width="{W}" height="{H}" viewBox="0 0 {W} {H}" aria-hidden="true"></svg>{nodes}</div>'
+            f'<div class="gzoom" role="group" aria-label="Масштаб"><button type="button" data-z="out" aria-label="Мельче">−</button><span class="gzv" id="gzv" aria-hidden="true">100%</span><button type="button" data-z="in" aria-label="Крупнее">+</button></div>'
+            f'<button type="button" class="gcomp" data-z="fit" aria-label="Вся карта" title="Вся карта">{ic("FaCompass")}</button>'
+            f'<p class="ghint" aria-hidden="true"><span>{ic("FaSearch")}Ctrl + колесо — масштаб</span><span>{ic("FaArrowRight")}Перетаскивай — перемещение</span><span>{ic("FaSyncAlt")}Esc — сброс выбора</span></p>'
+            '<details class="glegd"><summary>Типы связей</summary><ul>'
+            + "".join(f'<li><svg class="gls" viewBox="0 0 30 10" aria-hidden="true"><path class="ge {t}" d="M1,5H29"/></svg>{d}</li>' for t, d in (("need", "нужен: без него трудно начать"), ("helps", "помогает: полезная опора"), ("job", "ведёт к профессии")))
+            + '<li><span class="glsw self"></span>выбранный</li><li><span class="glsw need"></span>опора</li><li><span class="glsw down"></span>продолжение</li></ul>'
+            '<p>Связи — логические предположения команды, не официальные требования плана.</p></details></div>')
+    jfly = "".join(f'<li><button type="button" class="gjp" data-jobpick="{k}" aria-pressed="false"><span aria-hidden="true">{ic(j[0])}</span>{E(j[1])}</button></li>' for k, j in enumerate(JOBS))
+    bg = map_bg()
+    rail = (f'<nav class="grail" aria-label="Режимы образовательной карты">'
+            f'<button type="button" class="grm" data-mode="graph" aria-pressed="true">{ic("FaCompass")}<span>Граф связей</span></button>'
+            f'<a class="grm" href="path.html#journey">{ic("FaBookOpen")}<span>Путь по семестрам</span></a>'
+            f'<button type="button" class="grm" data-mode="mine" aria-pressed="false" hidden>{ic("FaUserGraduate")}<span>Мой маршрут</span></button>'
+            f'<button type="button" class="grm" data-mode="job" aria-pressed="false" aria-expanded="false" aria-controls="gjobfly">{ic("FaBriefcase")}<span>Маршрут к профессии</span></button>'
+            f'<div class="gjobfly" id="gjobfly" hidden><p class="gjft">Маршрут к профессии</p><ul>{jfly}</ul></div></nav>')
     side = (f'<aside class="panel gside" id="gside" aria-labelledby="gsideh"><h2 class="vh" id="gsideh">Выбранный предмет</h2><label class="gpickl" for="gpick">Предмет</label><select id="gpick">{pick}</select>'
             '<button type="button" class="btn-s gfull" id="gfull" aria-expanded="false" aria-controls="gmain">Показать всю карту</button>'
             '<div id="gp"><p class="muted">Выбери предмет на карте или в списке: появится, на что он опирается, к чему ведёт и с какими профессиями связан.</p></div></aside>')
     legend = ('<p class="muted gnote"><b>Как читать карту.</b> Сплошная стрелка «нужен»: без этого предмета трудно начать следующий. Пунктир «помогает»: полезная опора, но начать можно и без неё. '
               'Точки «ведёт к профессии»: ключевые предметы направления. Связи составлены командой проекта по содержанию предметов и согласованы автором: это логические предположения, '
               'а не официальные требования учебного плана; связи с профессиями — оценка команды, не гарантия трудоустройства. Тот же план списком — в <a href="catalog.html">каталоге</a> и на <a href="path.html#journey">пути по семестрам</a>.</p>')
-    body = (head_nav(0, "map") + f'<main id="main">{hero}<div class="wrap"><div class="gwrap"><div class="gmain" id="gmain">{tools}{view}</div>{side}</div>{legend}</div></main>'
+    body = (head_nav(0, "map") + f'<main id="main">{hero}<div class="wrap"><div class="gwrap gscreen">{bg}{rail}<div class="gmain" id="gmain"><div class="gbar"><a class="gback" href="index.html" aria-label="На стартовый экран" title="На стартовый экран"><span aria-hidden="true">‹</span></a><span class="gbl" aria-hidden="true">{LOGO_SVG}TeachMap</span><span class="gbt" aria-hidden="true">Образовательная карта</span><span class="gbsp"></span>'
+            f'<button type="button" class="gbi" id="gsearch" aria-label="Найти предмет" title="Найти предмет">{ic("FaSearch")}</button>'
+            f'<button type="button" class="gbi" id="gfiltb" aria-expanded="false" aria-controls="gtools" aria-label="Курс, семестры и фильтры" title="Курс, семестры и фильтры">{ic("FaLayerGroup")}</button>'
+            f'<button type="button" class="gbi gfav" id="gfav" aria-pressed="false" disabled aria-label="В избранное" title="Выбери предмет, чтобы добавить его в избранное">{ic("FaStar")}</button></div>{tools}{view}</div>{side}</div>{legend}</div></main>'
             f'<p class="vh" id="glive" aria-live="polite"></p><script type="application/json" id="gd">{data}</script>')
     return page("Карта связей между предметами 27.03.01 · TeachMap", "Граф учебного плана: на что опирается каждый предмет, к чему ведёт и какие предметы нужны для профессии", body, graph=True)
 def job_chip(sl):

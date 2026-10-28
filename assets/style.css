@@ -1597,3 +1597,424 @@ a.setrow{padding-right:50px}
 @media(max-width:560px){.settog{padding-right:90px}.setrow b{font-size:17px}}
 /* подложка шапки: на узких окнах сдвиг только вниз, чтобы не выходить за край страницы */
 @media(min-width:701px) and (max-width:1219px){.top::before{transform:none;inset:6px 0 -6px 6px}}
+
+/* =====================================================================
+   ОБРАЗОВАТЕЛЬНАЯ КАРТА — ЭКРАН ИССЛЕДОВАНИЯ (компьютер, от 701 px)
+   Тёмное поле графа на всю высоту окна; слева панель режимов, сверху курс и семестры,
+   справа панель выбранного предмета поверх поля, внизу сворачиваемая легенда.
+   Мобильная карта (до 700 px) прежняя: панель режимов, ряд курсов и легенда поля там скрыты.
+   ===================================================================== */
+.grail,.glegd{display:none}
+@media(max-width:700px){.gcourse .gcb,.gcourse .gfl:first-child{display:none}.gcourse{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-bottom:8px}}
+@media(min-width:701px){
+ main:has(.gscreen) .heroblock{min-height:0!important}
+ main:has(.gscreen) .heroblock .hero{padding:16px 0 18px!important}
+ main:has(.gscreen) .heroblock .lead,main:has(.gscreen) .heroblock .gtabs,main:has(.gscreen) .hero3d{display:none!important}
+ main:has(.gscreen) .heroblock h1{font-size:30px!important;margin:0!important}
+ .gscreen{--gsH:max(560px,calc(100vh - 210px));position:relative;display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;gap:0!important;margin-top:12px;background:#0E2550;color:#fff;clip-path:polygon(0 0,100% 0,100% calc(100% - 26px),calc(100% - 26px) 100%,0 100%);min-height:var(--gsH)}
+ /* панель режимов */
+ .grail{display:flex;flex-direction:column;gap:6px;padding:12px 8px;background:#173B70;position:relative;z-index:6}
+ .grm{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;color:#DDEBFA;background:transparent;border:0;font:inherit;font-family:var(--hd);font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;line-height:1.15;text-align:center;text-decoration:none;cursor:pointer;clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);transition:background 100ms steps(3,end),color 100ms steps(3,end)}
+ .grm svg{width:20px;height:20px}
+ .grm:hover{background:rgba(255,255,255,.12);color:#fff}
+ .grm[aria-pressed=true]{background:#fff;color:#173B70}
+ .grm:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+ .grm[hidden]{display:none}
+ .gjobfly{position:absolute;left:calc(100% + 6px);top:96px;width:300px;background:#fff;color:var(--ink);box-shadow:8px 8px 0 #3478C8,var(--sh-pop);padding:12px;z-index:9}
+ .gjobfly[hidden]{display:none}
+ .gjft{margin:0 0 8px!important;font-family:var(--hd);font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#173B70}
+ .gjobfly ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+ .gjp{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;font-weight:700;font-size:14.5px;color:#173B70;background:var(--ice-2);border:0;border-left:4px solid #3478C8;padding:9px 12px;cursor:pointer}
+ .gjp:hover,.gjp:focus-visible{background:#DDEBFA;outline:none}
+ .gjp[aria-pressed=true]{background:#173B70;color:#fff}
+ .gjp svg{width:16px;height:16px;flex:none}
+ /* поле графа */
+ .gscreen .gmain{position:relative;display:flex;flex-direction:column;min-width:0}
+ .gscreen .gtools{position:relative;z-index:7;margin:0;padding:10px 14px 8px;background:#122F5C;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+ .gscreen .gcourse{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+ .gscreen .gfl{flex:none;color:#B9D1EE}
+ .gscreen .gfl2{margin-left:10px}
+ .gscreen .gsems{display:inline-flex;gap:4px}
+ .gscreen .gcourse .pill{padding:5px 12px!important;font-size:13px!important;background:transparent!important;color:#DDEBFA!important;border:1.5px solid rgba(221,235,250,.35)!important;text-decoration:none!important;border-radius:0!important;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+ .gscreen .gcourse .pill[aria-pressed=true]{background:#fff!important;color:#173B70!important;border-color:#fff!important}
+ .gscreen .gcourse .gfp{min-width:32px}
+ .gscreen .gcourse .gfp[aria-pressed=false]{opacity:.55;text-decoration:line-through!important}
+ .gscreen .gfil{position:relative}
+ .gscreen .gfil>summary{color:#fff;border:1.5px solid rgba(221,235,250,.35);padding:5px 14px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+ .gscreen .gfil[open]>summary{background:#fff;color:#173B70}
+ .gscreen .gfil .gfrows{position:absolute;left:0;top:calc(100% + 8px);width:min(640px,70vw);background:#fff;color:var(--ink);padding:14px 16px;box-shadow:8px 8px 0 #3478C8,var(--sh-pop);z-index:9}
+ .gscreen .gfil .gfrows .gfl{color:var(--mut)}
+ .gscreen .gcount{margin:0!important;color:#B9D1EE;font-size:13px;flex:1 1 auto;text-align:right}
+ .gscreen .gview{flex:1;height:auto;min-height:calc(var(--gsH) - 56px);border:0;border-radius:0;box-shadow:none;background-color:#0E2550;background-image:radial-gradient(rgba(221,235,250,.16) 1px,transparent 1.3px);background-size:24px 24px}
+ .gscreen .gch{color:#DDEBFA;border-bottom-color:#3478C8}
+ .gscreen .gchj{border-bottom-color:#7FE0E6}
+ .gscreen .gn{background:#173B70;border-color:rgba(221,235,250,.22);color:#fff;box-shadow:none}
+ .gscreen .gn.c-0{--gc:#8FC1F0}.gscreen .gn.c-1{--gc:#D2EBFF}.gscreen .gn.c-2{--gc:#9AABC8}.gscreen .gn.c-3{--gc:#7FE0E6}
+ .gscreen .gn small{color:#B9D1EE}
+ @media(hover:hover){.gscreen .gn:hover{border-color:#DDEBFA;box-shadow:0 0 0 2px rgba(221,235,250,.35)}}
+ .gscreen .gn.gj{background:#0E2550;border-color:#7FE0E6;border-left-color:#7FE0E6}
+ .gscreen .ge.need{stroke:#A8DBFF}.gscreen .ge.helps{stroke:#DDEBFA}.gscreen .ge.job{stroke:#7FE0E6}
+ .gscreen .gm.need{fill:#A8DBFF}.gscreen .gm.helps{fill:#DDEBFA}.gscreen .gm.job{fill:#7FE0E6}
+ .gscreen .ge{opacity:.22}.gscreen .gsel .ge{opacity:.05}.gscreen .gsel .ge.on{opacity:1}
+ .gscreen .gn.r-self{background:#fff;border-color:#fff;color:#173B70;box-shadow:0 0 0 4px #3478C8,0 0 0 8px rgba(255,255,255,.18)}
+ .gscreen .gn.r-self small{color:#33507A}
+ .gscreen .gn.gj.r-self{background:#7FE0E6;border-color:#7FE0E6;color:#0E2550}
+ .gscreen .gn.r-need,.gscreen .gn.r-key{box-shadow:0 0 0 3px #A8DBFF}
+ .gscreen .gn.r-key{background:#24589C}
+ .gscreen .gn.r-help{outline-color:#DDEBFA}
+ .gscreen .gn.r-down,.gscreen .gn.r-job{box-shadow:0 0 0 3px #7FE0E6}
+ .gscreen .gsel .gn:not([class*=" r-"]){opacity:.3}
+ .gscreen .gn.m-done{background:#1F5E4A;border-color:#7DD3A4;border-left-color:#7DD3A4}.gscreen .gn.m-done b{color:#fff}
+ .gscreen .gn.m-doing{background:#24589C;box-shadow:0 0 0 3px #fff}
+ .gscreen .gn.m-plan{outline-color:#7FE0E6}
+ .gscreen .gzoom button{background:#173B70;color:#fff;border-color:rgba(221,235,250,.45)}
+ .gscreen .gzoom button:hover{background:#24589C}
+ .gscreen .ghint{background:rgba(14,37,80,.85);color:#B9D1EE}
+ /* легенда поля */
+ .gscreen .glegd{display:block;position:absolute;left:12px;bottom:12px;z-index:8;max-width:300px;background:rgba(18,47,92,.94);color:#DDEBFA;border-left:4px solid #3478C8;font-size:12.5px}
+ .gscreen .glegd summary{cursor:pointer;padding:6px 12px;font-family:var(--hd);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+ .gscreen .glegd ul{list-style:none;margin:0;padding:0 12px 4px;display:grid;gap:5px}
+ .gscreen .glegd li{display:flex;align-items:center;gap:8px}
+ .gscreen .glegd p{margin:6px 12px 10px;color:#B9D1EE;font-size:11.5px}
+ .gscreen .glegd .gls .ge{opacity:1}
+ .glsw{width:22px;height:12px;flex:none;border-radius:3px;background:#173B70;border:1.5px solid rgba(221,235,250,.4)}
+ .glsw.self{background:#fff;border-color:#fff}.glsw.need{box-shadow:0 0 0 2px #A8DBFF}.glsw.down{box-shadow:0 0 0 2px #7FE0E6}
+ .gscreen .ghint{left:auto;right:12px;bottom:12px}
+ /* панель выбранного: поверх поля справа, выезжает срезом */
+ .gscreen .gside{position:absolute!important;right:14px;top:66px;bottom:16px;width:340px;max-height:none!important;overflow:auto;z-index:8;margin:0!important;border:0!important;border-radius:0!important;box-shadow:8px 8px 0 #3478C8,var(--sh-pop)!important;clip-path:none}
+ .gscreen .gview .gzoom{right:368px}
+ .tm-motion .gscreen #gp.tm-gp{animation:tmPanel 260ms steps(9,end)}
+}
+@media(min-width:701px) and (max-width:1060px){
+ .gscreen .gside{position:relative!important;right:auto;top:auto;bottom:auto;width:auto;grid-column:1/-1}
+ .gscreen .gview .gzoom{right:10px}
+}
+/* переход «узел → страница предмета»: узел карты раскрывается в шапку предмета */
+.tm-focus .band{view-transition-name:tm-focus}
+::view-transition-group(tm-focus){animation-duration:320ms;animation-timing-function:steps(10,end)}
+::view-transition-old(tm-focus),::view-transition-new(tm-focus){height:100%;object-fit:cover}
+@media(min-width:1061px){
+ .gscreen{grid-template-columns:76px minmax(0,1fr) 340px!important}
+ .gscreen .gside{position:relative!important;right:auto;top:auto;bottom:auto;width:auto;grid-column:3;grid-row:1;box-shadow:none!important;border-left:4px solid #3478C8!important;max-height:var(--gsH)!important}
+ .gscreen .gview .gzoom{right:10px}
+}
+.gscreen .gside{color:var(--ink)}
+@media(min-width:701px){.gscreen .gcount{flex-basis:100%;text-align:left}}
+@media(min-width:701px){.gscreen .grail{z-index:10}}   /* выпадающий список профессий — поверх строки инструментов */
+@media(min-width:701px){
+ .gscreen .gtools{z-index:9}
+ .gscreen .gcourse{display:contents}
+ .gscreen .gfil{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+ .gscreen .gfil>summary{font-size:14px;letter-spacing:.06em;list-style:none}
+ .gscreen .gfil>summary::-webkit-details-marker{display:none}
+ .gscreen .gfil>summary::before{content:"▾ "}
+ .gscreen .gfil>summary:focus-visible{outline:2px solid #fff;outline-offset:2px}
+}
+@media(min-width:701px){.gscreen .gfrows .sortl,.gscreen #gmine{display:none!important}}   /* профессия и «Мой маршрут» — на панели режимов */
+@media(max-width:700px){
+ .gcourse{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;margin:0 0 6px!important;padding-bottom:2px}
+ .gcourse::-webkit-scrollbar{display:none}
+ .gsems{display:inline-flex;gap:6px;flex:none}
+ .gview{height:calc(72vh - 52px)!important}   /* ряд семестров над картой: поле не уходит под нижние вкладки */
+}
+@media(min-width:701px){.gscreen .gfil>summary{background:#122F5C}}
+@media(min-width:701px){.gscreen .glegd summary{color:#DDEBFA}.gscreen .glegd summary:focus-visible{outline:2px solid #fff;outline-offset:-2px}}
+
+/* значки разделов плана в круглых узлах карты (один раз в стилях, а не в каждом из 74 узлов) */
+.gn.c-0 .gni::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M160 288h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56v-64h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56V96h-56c-4.42 0-8-3.58-8-8V72c0-4.42 3.58-8 8-8h56V32c0-17.67-14.33-32-32-32H32C14.33 0 0 14.33 0 32v448c0 2.77.91 5.24 1.57 7.8L160 329.38V288zm320 64h-32v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-41.37L24.2 510.43c2.56.66 5.04 1.57 7.8 1.57h448c17.67 0 32-14.33 32-32v-96c0-17.67-14.33-32-32-32z%22%3E%3C/path%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M160 288h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56v-64h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56V96h-56c-4.42 0-8-3.58-8-8V72c0-4.42 3.58-8 8-8h56V32c0-17.67-14.33-32-32-32H32C14.33 0 0 14.33 0 32v448c0 2.77.91 5.24 1.57 7.8L160 329.38V288zm320 64h-32v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-41.37L24.2 510.43c2.56.66 5.04 1.57 7.8 1.57h448c17.67 0 32-14.33 32-32v-96c0-17.67-14.33-32-32-32z%22%3E%3C/path%3E%3C/svg%3E")}
+.gn.c-1 .gni::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z%22%3E%3C/path%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z%22%3E%3C/path%3E%3C/svg%3E")}
+.gn.c-2 .gni::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 576 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M542.22 32.05c-54.8 3.11-163.72 14.43-230.96 55.59-4.64 2.84-7.27 7.89-7.27 13.17v363.87c0 11.55 12.63 18.85 23.28 13.49 69.18-34.82 169.23-44.32 218.7-46.92 16.89-.89 30.02-14.43 30.02-30.66V62.75c.01-17.71-15.35-31.74-33.77-30.7zM264.73 87.64C197.5 46.48 88.58 35.17 33.78 32.05 15.36 31.01 0 45.04 0 62.75V400.6c0 16.24 13.13 29.78 30.02 30.66 49.49 2.6 149.59 12.11 218.77 46.95 10.62 5.35 23.21-1.94 23.21-13.46V100.63c0-5.29-2.62-10.14-7.27-12.99z%22%3E%3C/path%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 576 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M542.22 32.05c-54.8 3.11-163.72 14.43-230.96 55.59-4.64 2.84-7.27 7.89-7.27 13.17v363.87c0 11.55 12.63 18.85 23.28 13.49 69.18-34.82 169.23-44.32 218.7-46.92 16.89-.89 30.02-14.43 30.02-30.66V62.75c.01-17.71-15.35-31.74-33.77-30.7zM264.73 87.64C197.5 46.48 88.58 35.17 33.78 32.05 15.36 31.01 0 45.04 0 62.75V400.6c0 16.24 13.13 29.78 30.02 30.66 49.49 2.6 149.59 12.11 218.77 46.95 10.62 5.35 23.21-1.94 23.21-13.46V100.63c0-5.29-2.62-10.14-7.27-12.99z%22%3E%3C/path%3E%3C/svg%3E")}
+.gn.c-3 .gni::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z%22%3E%3C/path%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M320 336c0 8.84-7.16 16-16 16h-96c-8.84 0-16-7.16-16-16v-48H0v144c0 25.6 22.4 48 48 48h416c25.6 0 48-22.4 48-48V288H320v48zm144-208h-80V80c0-25.6-22.4-48-48-48H176c-25.6 0-48 22.4-48 48v48H48c-25.6 0-48 22.4-48 48v80h512v-80c0-25.6-22.4-48-48-48zm-144 0H192V96h128v32z%22%3E%3C/path%3E%3C/svg%3E")}
+
+/* =====================================================================
+   КАРТА: КРУГЛЫЕ УЗЛЫ И «ОРБИТА» (компьютер, тёмный экран)
+   Узел — круг со значком раздела плана и подписью рядом; линии соединяют центры кругов.
+   При выборе предмет переезжает в центр, связанные с ним — по дуге вокруг (graph.js: orbit).
+   ===================================================================== */
+@media(min-width:701px){
+ .gscreen .gn{background:transparent!important;border:0!important;box-shadow:none!important;outline:0!important;padding:0 4px 0 54px!important;overflow:visible;gap:1px;transition:transform 380ms steps(12,end),opacity var(--m-fast) steps(5,end)}
+ .gscreen .gn .gni,.gscreen .gn.gj .gji{position:absolute;left:0;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;background:#173B70;border:2px solid var(--gc,#8FC1F0);display:grid;place-items:center;font-size:16px;color:#DDEBFA;transition:box-shadow 140ms steps(5,end),background 140ms steps(5,end),border-color 140ms steps(5,end)}
+ .gscreen .gn .gni::before{content:"";width:18px;height:18px;background:#DDEBFA;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+ .gscreen .gn.gj .gji{border-color:#7FE0E6;background:#0E2550}
+ .gscreen .gn b{font-size:12.5px;color:#fff;text-shadow:0 0 4px #0E2550,0 0 8px #0E2550,0 1px 0 #0E2550}
+ .gscreen .gn small{text-shadow:0 0 4px #0E2550}
+ .gscreen .gn.gj{padding-left:54px!important}
+ @media(hover:hover){.gscreen .gn:hover .gni,.gscreen .gn.gj:hover .gji{box-shadow:0 0 0 4px rgba(168,219,255,.28)}}
+ .gscreen .gn:focus-visible{outline:0!important}
+ .gscreen .gn:focus-visible .gni,.gscreen .gn.gj:focus-visible .gji{box-shadow:0 0 0 3px #0E2550,0 0 0 6px #fff}
+ /* роли при выборе — на круге */
+ .gscreen .gn.r-self .gni,.gscreen .gn.gj.r-self .gji{background:#fff;border-color:#fff;box-shadow:0 0 0 6px rgba(52,120,200,.6),0 0 26px 8px rgba(168,219,255,.5)}
+ .gscreen .gn.r-self .gni::before{background:#173B70}
+ .gscreen .gn.gj.r-self .gji{color:#173B70}
+ .gscreen .gn.r-self b{font-size:14px}
+ .gscreen .gn.r-self small{color:#DDEBFA}
+ .gscreen .gn.r-need .gni,.gscreen .gn.r-key .gni{border-color:#A8DBFF;box-shadow:0 0 0 4px rgba(168,219,255,.3)}
+ .gscreen .gn.r-key .gni{background:#24589C}
+ .gscreen .gn.r-help .gni{border-style:dashed;border-color:#DDEBFA}
+ .gscreen .gn.r-down .gni,.gscreen .gn.r-job .gni,.gscreen .gn.r-job .gji{border-color:#7FE0E6;box-shadow:0 0 0 4px rgba(127,224,230,.28)}
+ .gscreen .gn.m-done .gni{background:#1F5E4A;border-color:#7DD3A4}
+ .gscreen .gn.m-doing .gni{border:3px solid #fff}
+ .gscreen .gn.m-plan .gni,.gscreen .gn.gj.m-plan .gji{outline:2px dashed #7FE0E6;outline-offset:3px}
+ .gscreen .gn.m-done,.gscreen .gn.m-doing,.gscreen .gn.m-plan{background:transparent!important;box-shadow:none!important}
+ .gscreen .gn .mymarks{left:28px;right:auto;top:-4px}
+ /* подпись слева от круга (левая дуга орбиты) */
+ .gscreen .gn.gl{padding:0 54px 0 4px!important;text-align:right;align-items:flex-end}
+ .gscreen .gn.gl .gni,.gscreen .gn.gj.gl .gji{left:auto;right:0}
+ .gscreen .gn.gl .mymarks{left:auto;right:28px}
+ /* орбита: статичные линии и остальные узлы уходят в тень */
+ .gscreen .gorbit{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+ .gscreen .gorb .gedges{opacity:0;transition:opacity 160ms steps(5,end)}
+ .gscreen .gorb .gn:not([class*=" r-"]){opacity:.08;pointer-events:none}
+ .gscreen .gorb .gch{opacity:.25}
+ .gscreen .gorbit .ge{opacity:1;stroke-width:2.6}
+ .gscreen .gorbit .ge.need{filter:drop-shadow(0 0 3px rgba(168,219,255,.7))}
+ .gscreen .gorbit .ge.job{filter:drop-shadow(0 0 3px rgba(127,224,230,.7))}
+ .tm-gsel .gorbit .ge.need{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:rtdraw 420ms steps(14,end) calc(var(--i,0) * 35ms + 300ms) forwards}
+ .tm-gsel .gorbit .ge:not(.need){animation:tmFade 300ms steps(8,end) calc(var(--i,0) * 35ms + 360ms) backwards}
+ .gscreen .gsmall .gn b{font-size:13px}
+ .gorbt{white-space:nowrap}
+}
+@media(prefers-reduced-motion:reduce){.gscreen .gn,.gscreen .gn .gni{transition:none!important}}
+@media(min-width:701px){
+ /* центр орбиты: название на плашке над кругом (сверху линий нет), подробности — в панели справа */
+ .gscreen .gorb .gn.r-self{padding:0!important}
+ .gscreen .gorb .gn.r-self small{display:none}
+ .gscreen .gorb .gn.r-self b{position:absolute;left:22px;bottom:calc(50% + 34px);transform:translateX(-50%);width:max-content;max-width:240px;text-align:center;padding:6px 12px;background:#0E2550;border:1.5px solid #3478C8;box-shadow:4px 4px 0 #3478C8;font-size:14px;text-shadow:none;-webkit-line-clamp:3}
+}
+@media(min-width:701px){.gscreen .glsw{width:14px;height:14px;border-radius:50%}}
+
+/* =====================================================================
+   КАРТА КАК В РЕФЕРЕНСЕ (компьютер): отдельный тёмный экран на всю высоту окна
+   — фон из косых «осколков» света и силуэта города (собственный SVG), заголовок экрана сверху;
+   — слева узкая панель режимов из квадратных значков с подсказкой при наведении и фокусе;
+   — справа сверху «Типы связей», под ними тёмная карточка выбранного предмета;
+   — снизу слева масштаб «− 100% +» и «Вся карта», по центру подсказки управления.
+   Синяя обложка страницы на компьютере скрыта визуально (заголовок h1 остаётся для чтения с экрана).
+   ===================================================================== */
+.gbg,.gbar{display:none}
+@media(min-width:701px){
+ main:has(.gscreen) .heroblock{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0!important;padding:0!important;min-height:0!important}
+ main:has(.gscreen)>.wrap{max-width:none;padding-left:14px;padding-right:14px}
+ .gscreen{--gsH:max(600px,calc(100vh - 112px));position:relative;isolation:isolate;display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;height:var(--gsH);min-height:0;margin-top:12px;background:linear-gradient(135deg,#0B1E45 0%,#132F63 45%,#1D4A8E 100%);clip-path:polygon(0 0,100% 0,100% calc(100% - 28px),calc(100% - 28px) 100%,0 100%);overflow:hidden}
+ /* фон сцены */
+ .gbg{display:block;position:absolute;inset:0;z-index:0;pointer-events:none}
+ .gbg svg{position:absolute;right:0;bottom:0;width:100%;height:100%}
+ .gbg-ray path{fill:#fff;opacity:.06}
+ .gbg-city rect{fill:#081838;opacity:.75}
+ .gscreen::before{content:"";position:absolute;left:30%;top:-20%;width:34%;height:160%;background:linear-gradient(180deg,rgba(221,235,250,.07),rgba(221,235,250,0));transform:skewX(-28deg);z-index:0;pointer-events:none}
+ .gscreen .gmain{z-index:1;height:var(--gsH);min-height:0}
+ /* заголовок экрана */
+ .gbar{display:flex;align-items:center;gap:22px;height:52px;padding:0 18px;border-bottom:1px solid rgba(221,235,250,.14);color:#fff;flex:none}
+ .gbl{display:inline-flex;align-items:center;gap:8px;font-family:var(--hd);font-size:19px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+ .gbl .tmlogo{width:26px;height:26px}
+ .gbt{font-size:15px;font-weight:600;color:#DDEBFA}
+ /* строка инструментов: прозрачная, компактная */
+ .gscreen .gtools{background:transparent!important;padding:8px 18px 6px!important;flex:none}
+ .gscreen .gcount{flex:1 1 auto!important;text-align:right!important;font-size:12.5px}
+ /* поле графа: фон сцены виден сквозь */
+ .gscreen .gview{flex:1;min-height:0!important;height:auto!important;background-color:transparent!important;background-image:radial-gradient(rgba(221,235,250,.12) 1px,transparent 1.3px)!important}
+ /* панель режимов: квадратные значки */
+ .gscreen .grail{background:rgba(23,59,112,.9);padding:10px 8px;gap:8px;z-index:10;border-right:1px solid rgba(221,235,250,.12)}
+ .gscreen .grm{position:relative;width:48px;height:48px;padding:0;justify-content:center;clip-path:none;border-radius:10px;border:1px solid rgba(221,235,250,.18)}
+ .gscreen .grm svg{width:20px;height:20px}
+ .gscreen .grm>span{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);white-space:nowrap;padding:6px 10px;background:#fff;color:#173B70;font-size:12.5px;box-shadow:4px 4px 0 #3478C8;opacity:0;pointer-events:none;transition:opacity 100ms steps(3,end);z-index:12}
+ .gscreen .grm:hover>span,.gscreen .grm:focus-visible>span{opacity:1}
+ .gscreen .grm[aria-pressed=true]{background:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(52,120,200,.7)}
+ .gscreen .gjobfly{top:70px}
+ /* «Типы связей» — справа сверху */
+ .gscreen .glegd{left:auto!important;right:16px;top:12px;bottom:auto!important;width:300px;max-width:none;background:rgba(11,30,69,.9)!important;border:1px solid rgba(221,235,250,.22)!important;border-left:4px solid #3478C8!important}
+ .gscreen .glegd summary{font-size:13px}
+ .gscreen .glegd ul{grid-template-columns:1fr 1fr;column-gap:10px}
+ .gscreen .glegd li:nth-child(-n+3){grid-column:1/-1}
+ /* карточка выбранного предмета: тёмная, под легендой справа */
+ .gscreen .gside{position:absolute!important;right:30px!important;top:244px!important;bottom:auto!important;left:auto!important;width:300px!important;grid-column:auto!important;max-height:calc(var(--gsH) - 320px)!important;overflow:auto;z-index:9;padding:14px 16px!important;background:rgba(11,30,69,.94)!important;color:#fff!important;border:1px solid rgba(221,235,250,.22)!important;border-left:4px solid #3478C8!important;box-shadow:6px 6px 0 rgba(52,120,200,.55)!important;scrollbar-color:#3478C8 transparent;scrollbar-width:thin}
+ .gscreen .gside .gpickl,.gscreen .gside .gk,.gscreen .gside .gmeta,.gscreen .gside .lkh,.gscreen .gside .glist small,.gscreen .gside .muted,.gscreen .gside .glegend small{color:#B9D1EE!important}
+ .gscreen .gside .gh3{color:#fff;font-size:18px}
+ .gscreen .gside .gwhat,.gscreen .gside .glegend b{color:#DDEBFA}
+ .gscreen .gside #gpick{background:#0E2550;color:#fff;border-color:rgba(221,235,250,.35);font-size:13.5px;margin-bottom:10px}
+ .gscreen .gside .gnb{color:#A8DBFF}.gscreen .gside .gnb b{font-size:13.5px}
+ .gscreen .gside .gnb:hover b{color:#fff}
+ .gscreen .gside .lkt.need{background:#3478C8;color:#fff}
+ .gscreen .gside .lkt.helps{background:rgba(221,235,250,.16);color:#DDEBFA}
+ .gscreen .gside .lkt.key{background:rgba(221,235,250,.12);color:#fff;box-shadow:inset 0 0 0 1.5px #A8DBFF}
+ .gscreen .gside .kchip{background:transparent;color:#fff;border-color:rgba(221,235,250,.4)}
+ .gscreen .gside .kchip:hover{background:rgba(221,235,250,.14)}
+ .gscreen .gside .btn-s{background:#fff;color:#173B70}
+ .gscreen .gside .btn-o{background:transparent;color:#fff;border-color:rgba(221,235,250,.5)}
+ .gscreen .gside .btn-o:hover{background:rgba(221,235,250,.12)}
+ .gscreen .gside .mybtn{background:transparent;color:#fff;border-color:rgba(221,235,250,.5)}
+ .gscreen .gside .mybtn[aria-pressed=true]{background:#fff;color:#173B70;border-color:#fff}
+ .gscreen .gside .hlinks2{gap:8px}
+ .gscreen .gside .btn-s,.gscreen .gside .btn-o{font-size:12px;padding:8px 12px}
+ .gscreen .gside :focus-visible{outline-color:#fff!important}
+ .gscreen .gsw{background:#173B70}
+ /* управление снизу */
+ .gscreen .gview .gzoom{left:16px!important;right:auto!important;top:auto!important;bottom:16px;gap:0;align-items:center;background:rgba(11,30,69,.92);border:1px solid rgba(221,235,250,.25);border-radius:999px;padding:3px}
+ .gscreen .gzoom button{border:0!important;background:transparent!important;border-radius:999px;min-width:36px;height:34px;color:#fff;box-shadow:none}
+ .gscreen .gzoom button:hover{background:rgba(221,235,250,.14)!important}
+ .gscreen .gzv{min-width:52px;text-align:center;font-family:var(--hd);font-size:14px;color:#DDEBFA}
+ .gscreen .gzfit{margin-left:6px;border-left:1px solid rgba(221,235,250,.25)!important;border-radius:0 999px 999px 0!important;padding:0 14px!important;font-size:13px!important}
+ .gscreen .gview .ghint{left:50%!important;right:auto!important;bottom:16px!important;transform:translateX(-50%);display:flex;gap:18px;padding:8px 16px;border-radius:999px;background:rgba(11,30,69,.88);border:1px solid rgba(221,235,250,.2);color:#B9D1EE;font-size:12.5px;white-space:nowrap}
+ .gscreen .ghint span{display:inline-flex;align-items:center;gap:6px}
+ .gscreen .ghint svg{width:12px;height:12px}
+ .gscreen .gview.gused .ghint{opacity:.85}
+ .gscreen .glegd,.gscreen .gside{transition:none}
+}
+@media(min-width:701px) and (max-width:1180px){
+ .gscreen .gview .ghint{display:none}
+ .gscreen .gside{width:270px!important}
+ .gscreen .glegd{width:270px}
+}
+@media(min-width:701px){
+ .gbl{display:none}
+ .gbt{font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-shadow:2px 2px 0 #0B1E45}
+ .gbar::after{content:"граф связей между предметами";font-size:13px;color:#B9D1EE;margin-left:-8px}
+ .gbg-city rect{opacity:.42}
+ .gscreen .glegd{font-size:12px}
+ .gscreen .glegd ul{gap:4px}
+ .gscreen .glegd p{margin:4px 12px 8px;font-size:11px}
+ .gscreen .gside{top:var(--side-top,326px)!important;max-height:var(--side-max,calc(var(--gsH) - 400px))!important;min-height:120px}
+}
+
+/* =====================================================================
+   КАРТА: ЭКРАН ЦЕЛИКОМ, КАК ВО ВТОРОМ РЕФЕРЕНСЕ (компьютер, от 701 px)
+   — шапка сайта скрыта: у экрана своя строка со стрелкой «‹» на стартовый экран,
+     логотипом, названием и значками «Найти предмет», «Курс, семестры и фильтры», «В избранное»;
+   — панель режимов — плавающая карточка слева, «Типы связей» — справа сверху;
+   — у выбранного узла — компактная карточка (название, курс и семестр, нагрузка, «Подробнее», «Открыть страницу»);
+   — «Подробнее» и поиск выдвигают панель справа, фильтры — выпадающая панель под кнопкой в шапке;
+   — масштаб «− 100% +» слева снизу, «Вся карта» (компас) справа снизу.
+   Классы .gd-open / .gf-open / .gcarded ставит graph.js, .tm-js — скрипт в <head> до отрисовки (панели скрыты без сдвига вёрстки);
+   без скрипта — простая прокручиваемая схема со ссылками.
+   ===================================================================== */
+.gcomp{position:absolute;right:10px;top:10px;z-index:8;width:38px;height:38px;display:grid;place-items:center;padding:0;color:var(--pri);background:var(--card);border:1px solid var(--field);border-radius:var(--r-s);box-shadow:var(--sh-s);cursor:pointer}
+.gcomp svg{width:18px;height:18px}
+.gview:not(.gjs) .gcomp{display:none}
+.gview .gzoom{right:56px}
+.gzv{align-self:center;min-width:44px;text-align:center;font-family:var(--hd);font-size:13px;color:var(--mut)}
+.gcard[hidden]{display:none!important}
+@media print{.gcomp,.gcard,.gbar{display:none!important}}
+@media(min-width:701px){
+ body:has(.gscreen) .top{display:none!important}
+ main:has(.gscreen)>.wrap{padding:0!important;max-width:none!important}
+ main:has(.gscreen) .gnote{max-width:1100px;margin:18px auto 0;padding:0 24px}
+ .gscreen{--gsH:max(560px,100vh);height:var(--gsH);margin:0!important;clip-path:none!important;grid-template-columns:minmax(0,1fr)!important}
+ .gscreen .gmain{grid-column:1/-1}
+ /* шапка экрана */
+ .gbar{height:58px;gap:14px;padding:0 18px 0 14px;background:rgba(8,24,56,.55);border-bottom:1px solid rgba(221,235,250,.16);position:relative;z-index:11}
+ .gbar::after{display:none}
+ .gback{flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:1px solid rgba(221,235,250,.28);color:#fff;text-decoration:none;font-size:30px;line-height:1;padding-bottom:4px;transition:background 100ms steps(3,end)}
+ .gback:hover{background:rgba(221,235,250,.14)}
+ .gback:focus-visible,.gbi:focus-visible{outline:2px solid #fff;outline-offset:2px}
+ .gbl{display:inline-flex!important;font-size:18px;padding-right:14px;border-right:1px solid rgba(221,235,250,.25)}
+ .gbl .tmlogo{width:24px;height:24px}
+ .gbt{font-size:19px}
+ .gbsp{flex:1}
+ .gbi{flex:none;width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:10px;border:1px solid rgba(221,235,250,.28);background:transparent;color:#fff;cursor:pointer;transition:background 100ms steps(3,end)}
+ .gbi svg{width:17px;height:17px}
+ .gbi:hover:not(:disabled){background:rgba(221,235,250,.14)}
+ .gbi:disabled{opacity:.4;cursor:default}
+ .gbi[hidden]{display:none}
+ .gbi[aria-expanded=true],.gbi[aria-pressed=true],.gbi[aria-expanded=true]:hover:not(:disabled),.gbi[aria-pressed=true]:hover:not(:disabled){background:#fff;border-color:#fff;color:#173B70}
+ html:not(.tm-js) .gscreen .gbi{display:none}
+ /* панель режимов — плавающая карточка */
+ .gscreen .grail{position:absolute;left:16px;top:74px;padding:8px;gap:8px;border-radius:14px;background:rgba(11,30,69,.92);border:1px solid rgba(221,235,250,.22);box-shadow:5px 5px 0 rgba(52,120,200,.45)}
+ .gscreen .gjobfly{top:0;left:calc(100% + 10px)}
+ /* «Типы связей» */
+ .gscreen .glegd{top:16px!important}
+ /* поле */
+ .gscreen .gview{background-image:radial-gradient(rgba(221,235,250,.1) 1px,transparent 1.3px)!important}
+ .gscreen .gfull{display:none!important}
+ /* фильтры — выпадающая панель под кнопкой в шапке */
+ .tm-js .gscreen .gtools{position:absolute;right:18px;top:66px;width:min(600px,calc(100% - 140px));display:none;flex-direction:column;align-items:stretch;gap:10px;padding:14px 16px 12px!important;background:rgba(11,30,69,.97)!important;border:1px solid rgba(221,235,250,.24);border-top:3px solid #3478C8;box-shadow:6px 6px 0 rgba(52,120,200,.5);z-index:12}
+ .tm-js .gscreen.gf-open .gtools{display:flex}
+ .tm-motion .gscreen.gf-open .gtools{animation:tmReveal 200ms steps(7,end)}
+ .tm-js .gscreen .gcourse{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+ .tm-js .gscreen .gfl2{margin-left:0;flex-basis:100%;margin-top:4px}
+ .tm-js .gscreen .gfl{min-width:72px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#B9D1EE}
+ .tm-js .gscreen .gfil>summary{display:none}
+ .tm-js .gscreen .gfil .gfrows{position:static;width:auto;padding:0;background:transparent;color:#DDEBFA;box-shadow:none;display:grid;gap:10px}
+ .tm-js .gscreen .gfrows .gfl{color:#B9D1EE}
+ .tm-js .gscreen .gfrow .pill,.tm-js .gscreen .gfrow .gf,.tm-js .gscreen .gfrow .btn-o{background:transparent!important;color:#DDEBFA!important;border:1.5px solid rgba(221,235,250,.35)!important;border-radius:999px!important;box-shadow:none!important;text-decoration:none}
+ .tm-js .gscreen .gfrow .pill[aria-pressed=true],.tm-js .gscreen .gfrow .gf[aria-pressed=true]{background:rgba(221,235,250,.14)!important;color:#fff!important;border-color:#A8DBFF!important;border-style:solid!important}
+ .tm-js .gscreen .gfrow .pill[aria-pressed=false],.tm-js .gscreen .gfrow .gf[aria-pressed=false]{color:#9AABC8!important;border-style:dashed!important;text-decoration:line-through}
+ .tm-js .gscreen #giso[aria-pressed=true]{text-decoration:none}
+ .tm-js .gscreen .gfrow .gf:hover,.tm-js .gscreen .gfrow .pill:hover{background:rgba(221,235,250,.2)!important}
+ .tm-js .gscreen .gcount{text-align:left!important;color:#B9D1EE;border-top:1px solid rgba(221,235,250,.16);padding-top:8px!important}
+ /* панель «Подробнее»: выдвигается справа на всю высоту поля */
+ .tm-js .gscreen .gside{background:#0B1E45!important;top:58px!important;right:0!important;bottom:0!important;width:min(380px,40vw)!important;max-height:none!important;min-height:0;padding:16px 18px 18px!important;border:0!important;border-left:4px solid #3478C8!important;box-shadow:-8px 0 0 rgba(52,120,200,.28)!important;z-index:13;transform:translateX(calc(100% + 12px));visibility:hidden;transition:transform 240ms steps(8,end),visibility 0s linear 240ms}
+ .tm-js .gscreen.gd-open .gside{transform:none;visibility:visible;transition:transform 240ms steps(8,end)}
+ .gscreen .gdx{position:absolute;right:12px;top:10px;width:34px;height:34px;display:grid;place-items:center;padding:0;border-radius:8px;border:1px solid rgba(221,235,250,.3);background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+ .gscreen .gdx:hover{background:rgba(221,235,250,.14)}
+ .tm-js .gscreen .gside .gpickl{padding-right:44px}
+ /* карточка выбранного узла */
+ .gscreen .gcard{position:absolute;left:0;top:0;z-index:8;display:grid;gap:2px;width:max-content;min-width:210px;max-width:290px;padding:11px 14px 12px;background:rgba(11,30,69,.96);color:#fff;border:1px solid rgba(221,235,250,.3);border-top:3px solid #3478C8;box-shadow:5px 5px 0 rgba(52,120,200,.55);cursor:default}
+ .gscreen .gcard.gcmove{transition:transform 240ms steps(8,end)}
+ .tm-motion .gscreen .gcard.tm-gc{animation:tmReveal 220ms steps(7,end) 120ms backwards}
+ .gct{font-family:var(--hd);font-size:15.5px;font-weight:700;line-height:1.2;letter-spacing:.01em;margin-bottom:2px}
+ .gcm{font-size:12.5px;color:#B9D1EE}
+ .gcrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+ .gcmore,.gcgo{font:inherit;font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;text-decoration:none;line-height:1.2}
+ .gcmore{background:transparent;color:#fff;border:1.5px solid rgba(221,235,250,.5)}
+ .gcmore:hover{background:rgba(221,235,250,.14)}
+ .gcgo{background:#fff;color:#173B70;border:1.5px solid #fff}
+ .gcgo:hover{background:#DDEBFA}
+ .gcmore:focus-visible,.gcgo:focus-visible{outline:2px solid #fff;outline-offset:2px}
+ .gscreen.gcarded .gorb .gn.r-self b{display:none}
+ /* управление снизу: масштаб слева, «Вся карта» справа */
+ .gscreen .gcomp{left:auto;top:auto;right:16px;bottom:16px;width:48px;height:48px;border-radius:50%;background:rgba(11,30,69,.92);color:#fff;border:1px solid rgba(221,235,250,.3);box-shadow:4px 4px 0 rgba(52,120,200,.45);transition:background 100ms steps(3,end)}
+ .gscreen .gcomp svg{width:22px;height:22px}
+ .gscreen .gcomp:hover{background:#24589C}
+ .gscreen .gcomp:focus-visible{outline:2px solid #fff;outline-offset:3px}
+ .gscreen .gzv{color:#DDEBFA;font-size:14px;min-width:52px}
+}
+@media(min-width:701px) and (max-width:1100px){.gbl{display:none!important}}
+@media(prefers-reduced-motion:reduce){.tm-js .gscreen .gside,.gscreen .gcard.gcmove{transition:none!important}}
+@media(min-width:701px){.gscreen .glegd:not([open]){width:auto!important}.gscreen .glegd:not([open]) summary{padding:8px 14px}}
+/* масштаб — вертикальной карточкой под панелью режимов: левая колонка экрана отдана управлению, схема правее */
+@media(min-width:701px){
+ .gscreen .gview .gzoom{left:16px!important;bottom:16px!important;width:66px;flex-direction:column-reverse;padding:6px 0!important;border-radius:14px!important;box-shadow:5px 5px 0 rgba(52,120,200,.45)}
+ .gscreen .gzoom button{width:48px;min-width:0;height:40px;font-size:20px}
+ .gscreen .gzv{min-width:0;font-size:13px;padding:4px 0}
+}
+@media(min-width:701px){.gscreen .glegd{padding:0!important}.gscreen .glegd[open]{padding-bottom:2px!important}.gscreen .glegd[open] summary{padding:10px 14px 8px}}
+/* слой «орбиты» поверх схемы — только на компьютере; на телефоне не перехватывает нажатия */
+.gorbit{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+@media(max-width:700px){.gorbit{display:none}}
+/* телефон: ряд семестров прокручивается внутри себя и не распирает страницу */
+@media(max-width:700px){.gwrap>.gmain{align-self:stretch;min-width:0}.gtools{min-width:0}.gcourse .gfl{flex:none}}
+@media(max-width:700px){.gfrows>*{min-width:0}.gfrow .sortl{flex:1 1 100%;min-width:0;flex-wrap:wrap}.gfrow .sortl select{min-width:0;max-width:100%;flex:1 1 160px}}
+/* без скрипта (компьютер): простая прокручиваемая схема со ссылками на предметы, без неработающих панелей */
+@media(min-width:701px){
+ html:not(.tm-js) .gscreen .grail,html:not(.tm-js) .gscreen .gtools,html:not(.tm-js) .gscreen .gside{display:none!important}
+ html:not(.tm-js) .gscreen .gview{overflow:auto}
+ .gscreen .gview:not(.gjs) .ghint{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.tm-js .gscreen .gside{transition:none!important}}
+
+/* =====================================================================
+   ФОН ЭКРАНА КАРТЫ КАК В РЕФЕРЕНСЕ (компьютер): светлеющий к низу и вправо синий,
+   треугольные «кристаллические» грани и осколки света, созвездие из точек и тонких линий (SVG из build.py: map_bg),
+   за выбранным предметом — сияние с лучами (graph.js: .gglow внутри схемы, движется и масштабируется вместе с ней).
+   ===================================================================== */
+@media(min-width:701px){
+ .gscreen{background:radial-gradient(ellipse 48% 55% at 60% 80%,rgba(126,192,255,.34),transparent 70%),radial-gradient(ellipse 40% 50% at 96% 100%,rgba(150,205,255,.32),transparent 70%),linear-gradient(158deg,#0A1F5C 0%,#10357F 28%,#1A4FA6 55%,#2766C2 78%,#3478C8 100%)!important}
+ .gscreen::before{display:none}
+ .gbg svg{left:0;top:0;right:auto;bottom:auto}
+ .gbg .gf1{fill:#fff}
+ .gbg .gf0{fill:#03123A}
+ .gbg-l{fill:none;stroke:#CFE6FF;stroke-width:1;opacity:.2;vector-effect:non-scaling-stroke}
+ .gbg-s circle{fill:#E6F3FF;opacity:.5}
+ .gbg-s .gsb{opacity:.95;stroke:rgba(190,225,255,.28);stroke-width:7}
+ .gscreen .gview{background-image:none!important}
+ .gbar{background:rgba(6,20,58,.86)}
+ .gscreen .gglow{position:absolute;left:0;top:0;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.7) 0,rgba(206,234,255,.48) 5%,rgba(126,192,255,.22) 17%,rgba(90,169,255,.08) 36%,transparent 58%),repeating-conic-gradient(from 6deg,rgba(214,236,255,.32) 0deg 2.2deg,transparent 2.2deg 10deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0,#000 10%,rgba(0,0,0,.5) 30%,transparent 60%);mask-image:radial-gradient(circle,#000 0,#000 10%,rgba(0,0,0,.5) 30%,transparent 60%)}
+ .gscreen .gglow[hidden]{display:none}
+ .tm-motion .gscreen .gglow.tm-gl{animation:tmGlow 420ms steps(12,end) 160ms backwards}
+}
+@keyframes tmGlow{from{opacity:0;scale:.45}to{opacity:1;scale:1}}
+.gglow{display:none}
+@media(min-width:701px){.gscreen .gglow{display:block}}
+@media(min-width:701px){.tm-lite .gscreen .gglow{background:radial-gradient(circle,rgba(206,234,255,.45) 0,rgba(126,192,255,.18) 18%,transparent 50%);-webkit-mask-image:none;mask-image:none}}   /* слабое устройство: сияние без лучей и маски */
