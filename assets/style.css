@@ -2240,3 +2240,140 @@ a.setrow{padding-right:50px}
    уже занято, а видна только первая вкладка; app.js ставит dtabs-on и дальше управляет секциями сам */
 .tm-js:not(.dtabs-on) .dtabs[hidden]{display:flex;visibility:hidden;min-height:48px}
 .tm-js:not(.dtabs-on) .dtab+.dtab{display:none}
+
+/* =====================================================================
+   ПРОФЕССИИ (jobs.html) — ЭКРАН ВЫБОРА НАПРАВЛЕНИЯ, КАК ШЕСТОЙ ЭКРАН РЕФЕРЕНСА
+   Слева список профессий (активная — синяя плашка), справа экран выбранной: светлая шапка с описанием и метками-счётчиками,
+   своя иллюстрация (грани, созвездие, значок профессии), ключевые предметы, коды компетенций, маршрут по семестрам.
+   jobs.js показывает один экран; до его запуска CSS показывает экран из адреса (:target) или первый — без сдвига вёрстки.
+   ===================================================================== */
+.jobpage{padding-bottom:40px}
+.jgrid{display:grid;grid-template-columns:290px minmax(0,1fr);gap:20px;align-items:start;position:relative;margin-top:-46px}
+.jlist{position:sticky;top:12px;background:var(--card);border-radius:14px;box-shadow:var(--sh-h);padding:10px}
+.jlist ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.jlist .jlx{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+.jli{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:700;font-size:14.5px;line-height:1.25;transition:background 90ms steps(3,end)}
+.jli:hover{background:var(--ice)}
+.jli:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.jli-i{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:var(--ice);color:var(--pri)}
+.jli-i svg{width:17px;height:17px}
+.jli-t{display:grid;gap:2px;min-width:0}
+.jli small{font-weight:500;font-size:12px;color:var(--mut)}
+.jli[aria-current]{background:var(--btn);color:#fff;box-shadow:0 4px 0 var(--tsh)}
+.jli[aria-current] .jli-i{background:rgba(255,255,255,.18);color:#fff}
+.jli[aria-current] small{color:#DDEBFA}
+.jmain{min-width:0}
+.jmain>.panel{margin-top:0}
+.jobpage .jm{padding:0;overflow:hidden;border-radius:14px}
+.jmhead{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);min-height:300px;background:linear-gradient(180deg,var(--card),var(--bg))}
+.jmtext{padding:28px 30px 24px;display:flex;flex-direction:column;align-items:flex-start}
+.jobpage .jm h2{margin:2px 0 10px;font-family:inherit;text-transform:none;font-weight:800;font-size:clamp(26px,2.8vw,36px);letter-spacing:-.01em;line-height:1.12;color:var(--ink)}
+.jobpage .jm h2:focus{outline:none}
+.jdesc{margin:0 0 14px;max-width:56ch;font-size:16px;line-height:1.6}
+.jtags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.jtags span{font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--ice);color:var(--pri)}
+.jmtext .acts{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px}
+.jgo svg{width:14px;height:14px;margin-left:6px}
+.jobpage .jm .dart{min-height:100%}
+.jmbody{padding:6px 30px 26px;display:grid;gap:6px}
+.jsec{margin-top:12px}
+.jsec .lkh{margin:0 0 8px}
+.jkl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.jkl li{display:grid;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.jkl a{font-weight:700;color:var(--link)}
+.jkl .muted{font-size:12.5px}
+.jcn{margin-top:8px;font-size:12.5px}
+.jmbody>.acts{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.jobpage .jcompare,.jobpage .jbasis{border-radius:14px}
+.jbase{margin-top:18px}
+.tm-motion .jmain>.tm-scr{animation:tmReveal 240ms steps(8,end)}
+/* до запуска jobs.js: один экран — из адреса или первый */
+.tm-js:not(.jscreens) .jmain>*{display:none}
+.tm-js:not(.jscreens) .jmain>:target{display:block}
+.tm-js:not(.jscreens) .jmain:not(:has(>:target))>:first-child{display:block}
+.jmain>[hidden]{display:none!important}
+@media(max-width:1100px) and (min-width:701px){.jgrid{grid-template-columns:240px minmax(0,1fr)}.jmhead{grid-template-columns:1fr}.jobpage .jm .dart{order:-1;height:130px;clip-path:none}.jli small{display:none}}
+@media(max-width:700px){
+ .jgrid{display:block;margin-top:10px}
+ .jlist{position:static;display:flex;gap:6px;overflow-x:auto;padding:6px;margin-bottom:10px;scrollbar-width:none}
+ .jlist::-webkit-scrollbar{display:none}
+ .jlist ul{display:flex;gap:6px;flex:none}
+ .jlist .jlx{border:0;margin:0;padding:0}
+ .jli{white-space:nowrap;padding:8px 12px;background:var(--ice-2)}
+ .jli small,.jli-i{display:none}
+ .jmhead{grid-template-columns:1fr;min-height:0}
+ .jobpage .jm .dart{order:-1;height:118px;clip-path:none}
+ .jmtext{padding:18px 16px}.jmbody{padding:4px 16px 18px}
+ .jkl{grid-template-columns:1fr}
+}
+@media print{.jlist,.dart{display:none!important}.jgrid{display:block}.jmain>[hidden]{display:block!important}}
+.jkl li{align-content:start}
+.jobpage .jm{padding:0!important}
+
+/* =====================================================================
+   ПРОФИЛЬ (profile.html) — ЭКРАН СОСТОЯНИЯ, КАК ПЯТЫЙ ЭКРАН РЕФЕРЕНСА
+   Светлая плашка: кольцо «пройдено» по личным отметкам, семестр, факты программы из плана, своя иллюстрация;
+   ниже тёмное вертикальное меню разделов (выбранный — белая плашка с треугольным курсором) и панель раздела.
+   Без «уровней», баллов и достижений: это личные пометки, а не успеваемость.
+   ===================================================================== */
+.profpage{padding-bottom:40px}
+.pgrid{position:relative;margin-top:-46px}
+.profpage .pstat{position:relative;display:grid;grid-template-columns:180px minmax(0,1fr) auto minmax(0,300px);gap:26px;align-items:center;margin:0 0 18px;padding:26px 0 26px 30px!important;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,var(--card),var(--bg));box-shadow:var(--sh-h)}
+.pring{position:relative;width:170px;height:170px}
+.pring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pring circle{fill:none;stroke-width:12}
+.pr-b{stroke:var(--ice)}
+.pr-f{stroke:var(--btn);stroke-linecap:round}
+.prv{position:absolute;inset:0;display:grid;place-content:center;text-align:center;margin:0}
+.prv b{font-family:var(--hd);font-size:40px;font-weight:700;line-height:1;color:var(--ink)}
+.prv span{font-size:13px;color:var(--mut)}
+.pinfo h2{margin:0 0 6px;font-family:inherit;text-transform:none;font-weight:800;font-size:26px;letter-spacing:-.01em;color:var(--ink)}
+.pprog{margin:0 0 8px;font-size:15.5px;font-weight:600}
+.pbar{display:flex;height:8px;max-width:360px;border-radius:999px;overflow:hidden;background:var(--ice);margin-bottom:14px}
+.pbar i{display:block;height:100%}.pbd{background:var(--btn)}.pbg{background:var(--acc);opacity:.55}
+.psem{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.psem select{min-height:38px}
+.psemn{margin:6px 0 0;font-size:13px}
+.pnote{margin:10px 0 0;font-size:12.5px;color:var(--mut);font-style:italic}
+.pfacts{list-style:none;margin:0;padding:0 0 0 22px;display:grid;gap:12px;border-left:1px solid var(--line);align-self:stretch;align-content:center}
+.pfacts li{display:grid}
+.pfacts b{font-family:var(--hd);font-size:30px;font-weight:700;line-height:1;color:var(--ink)}
+.pfacts span{font-size:13px;color:var(--mut)}
+.pstat .dart{align-self:stretch;margin:-26px 0;min-height:240px}
+.pbody{display:grid;grid-template-columns:270px minmax(0,1fr);gap:20px;align-items:start}
+.pmenu{position:sticky;top:12px;display:grid;gap:4px;padding:10px;border-radius:14px;background:linear-gradient(118deg,transparent 0 60%,rgba(255,255,255,.06) 60% 72%,transparent 72%),linear-gradient(158deg,#0A1F5C,#12398A 60%,#1F5BB4);box-shadow:var(--sh-h)}
+.pm{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 12px;border:0;border-radius:10px;background:transparent;color:#DDEBFA;font:inherit;font-size:15px;font-weight:600;text-align:left;cursor:pointer;transition:background 90ms steps(3,end),color 90ms steps(3,end)}
+.pm:hover{background:rgba(221,235,250,.12);color:#fff}
+.pm:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.pm[aria-selected=true]{background:#fff;color:#173B70;box-shadow:4px 4px 0 #3478C8}
+.pm[aria-selected=true]::before{content:"";position:absolute;left:-14px;top:50%;margin-top:-8px;border:8px solid transparent;border-left:10px solid #fff;border-right:0}
+.pmi{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:rgba(221,235,250,.12)}
+.pm[aria-selected=true] .pmi{background:var(--ice);color:var(--pri)}
+.pmi svg{width:16px;height:16px}
+.pmt{flex:1;min-width:0}
+.pmn{flex:none;min-width:26px;padding:1px 7px;border-radius:999px;background:rgba(221,235,250,.16);font-family:var(--hd);font-size:13px;text-align:center}
+.pm[aria-selected=true] .pmn{background:var(--btn);color:#fff}
+.ppanels{min-width:0}
+.ppanels>.panel{margin-top:0}
+.ppanels>.panel:focus{outline:none}
+.mydangerh{margin:20px 0 6px}
+.tm-motion .ppanels>.tm-scr{animation:tmReveal 220ms steps(7,end)}
+.profpage .mypriv{margin-top:18px}
+@media(max-width:1180px) and (min-width:701px){.profpage .pstat{grid-template-columns:150px minmax(0,1fr) auto;padding-right:26px!important}.pstat .dart{display:none}.pring{width:140px;height:140px}.prv b{font-size:32px}}
+@media(max-width:700px){
+ .pgrid{margin-top:10px}
+ .profpage .pstat{grid-template-columns:110px minmax(0,1fr);gap:14px;padding:16px!important}
+ .pring{width:104px;height:104px}.prv b{font-size:24px}.prv span{font-size:11px}
+ .pinfo h2{font-size:20px}
+ .pfacts{grid-column:1/-1;grid-template-columns:repeat(3,1fr);border-left:0;border-top:1px solid var(--line);padding:12px 0 0}
+ .pfacts b{font-size:22px}
+ .pstat .dart{display:none}
+ .pbody{display:block}
+ .pmenu{position:static;display:flex;overflow-x:auto;margin-bottom:10px;scrollbar-width:none}
+ .pmenu::-webkit-scrollbar{display:none}
+ .pm{flex:none;width:auto;white-space:nowrap;min-height:42px;font-size:14px}
+ .pm[aria-selected=true]::before,.pmi{display:none}
+}
+@media print{.pmenu,.pstat .dart{display:none!important}.ppanels>[hidden]{display:block!important}.pbody{display:block}}
+@media(max-width:700px){.psem{flex-wrap:wrap}.psem select{flex:1 1 100%}}
+.jli[aria-current] small{color:#fff}

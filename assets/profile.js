@@ -325,42 +325,68 @@
     };
     var msg = el('p', 'mymsg'); msg.setAttribute('role', 'status');
     var focusAfter = null;
+    // Экран состояния: сверху кольцо «пройдено» по личным отметкам, семестр и факты программы из плана;
+    // ниже вертикальное меню разделов (как в игровом меню) и панель выбранного. Выбранный раздел сохраняется при перерисовке, адрес — #my-…
+    var pActive = (/^#(my-[a-z]+|mydata)$/.exec(location.hash) || [])[1] || '';
+    var icon = function (k) { var t = document.getElementById('pico'), x = t && t.content.querySelector('[data-i="' + k + '"]'); var sp = el('span', 'pmi'); sp.setAttribute('aria-hidden', 'true'); if (x) sp.innerHTML = x.innerHTML; return sp; };
+    var ring = function (p) {
+      var ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 120 120'); svg.setAttribute('aria-hidden', 'true');
+      [['pr-b', 1], ['pr-f', p]].forEach(function (c) {
+        if (!(c[1] > 0)) return;                                   // ноль — только подложка (у скруглённого конца иначе остаётся точка)
+        var ci = document.createElementNS(ns, 'circle'); ci.setAttribute('cx', 60); ci.setAttribute('cy', 60); ci.setAttribute('r', 50); ci.setAttribute('pathLength', 100);
+        ci.setAttribute('class', c[0]); ci.style.strokeDasharray = (Math.max(0, Math.min(1, c[1])) * 100).toFixed(1) + ' 100'; svg.appendChild(ci);
+      });
+      return svg;
+    };
     var drawProfile = function () {
-      var had = prof.contains(document.activeElement);   // кнопка исчезает вместе со строкой: фокус вернём на заголовок
+      var had = prof.contains(document.activeElement), hadTab = had && document.activeElement.classList.contains('pm') ? document.activeElement.dataset.sec : '';
       prof.hidden = false; prof.textContent = '';
       if (!avail) { prof.appendChild(el('p', 'panel', 'Этот браузер не даёт сохранять данные сайта (например, в приватном режиме), поэтому личный план недоступен. Остальные разделы работают как обычно.')); return; }
       if (locked) prof.appendChild(el('p', 'panel mywarn', 'Личные данные в этом браузере сохранены более новой версией сайта. Они показаны, но изменения здесь не сохраняются: обновите страницу, чтобы загрузить новую версию сайта.'));
-      // текущий семестр
-      var s0 = section('Мой семестр'), lab = el('label', 'sortl', 'Сейчас учусь в '), sel = el('select'); sel.id = 'mysem';
-      sel.appendChild(new Option('не указано', '0')); for (var k = 1; k <= 8; k++) sel.appendChild(new Option(k + ' семестре', String(k)));
+      // ---- экран состояния ----
+      var done = count('done'), doing = count('doing'), top = el('section', 'panel pstat'); top.setAttribute('aria-labelledby', 'pstath');
+      var rg = el('div', 'pring'); rg.appendChild(ring(done / ptotal));
+      var rv = el('p', 'prv'); rv.appendChild(el('b', '', Math.round(done / ptotal * 100) + '%')); rv.appendChild(el('span', '', 'пройдено')); rg.appendChild(rv); top.appendChild(rg);
+      var info = el('div', 'pinfo'), h = el('h2', '', 'Моё состояние'); h.id = 'pstath'; info.appendChild(h);
+      info.appendChild(el('p', 'pprog', 'Пройдено ' + done + ' из ' + ptotal + ' предметов' + (doing ? ', изучаю ' + doing : '')));
+      var bar = el('div', 'pbar'), bi = el('i', 'pbd'), bj = el('i', 'pbg');
+      bi.style.width = Math.min(100, done / ptotal * 100).toFixed(1) + '%'; bj.style.width = Math.min(100, doing / ptotal * 100).toFixed(1) + '%';
+      bar.appendChild(bi); bar.appendChild(bj); bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', 'Пройдено ' + done + ' из ' + ptotal + ', изучаю ' + doing); info.appendChild(bar);
+      var lab = el('label', 'sortl psem', 'Сейчас учусь в '), sel = el('select'); sel.id = 'mysem';
+      sel.appendChild(new Option('не указано', '0')); for (var k = 1; k <= (+prof.dataset.sems || 8); k++) sel.appendChild(new Option(k + ' семестре', String(k)));
       sel.value = String(P.sem); sel.addEventListener('change', function () { focusAfter = 'mysem'; api.sem(+sel.value); });
-      lab.appendChild(sel); s0.appendChild(lab);
-      s0.appendChild(el('p', 'muted', P.sem ? 'На главной и на карте связей подсвечен этот семестр.' : 'Укажи семестр, чтобы главная и карта связей показывали, где ты сейчас.'));
-      prof.appendChild(s0);
+      lab.appendChild(sel); info.appendChild(lab);
+      info.appendChild(el('p', 'muted psemn', P.sem ? (Math.ceil(P.sem / 2) + ' курс. На пути студента и на карте связей подсвечен этот семестр.') : 'Укажи семестр, чтобы путь студента и карта связей показывали, где ты сейчас.'));
+      info.appendChild(el('p', 'pnote', 'Личные пометки для планирования, а не оценки и не зачёты.'));
+      top.appendChild(info);
+      var facts = el('ul', 'pfacts'); facts.setAttribute('aria-label', 'Программа по учебному плану');
+      [[prof.dataset.years, 'курса'], [prof.dataset.sems, 'семестров'], [prof.dataset.ze, 'з.е. в плане']].forEach(function (f) { if (!f[0]) return; var li = el('li'); li.appendChild(el('b', '', f[0])); li.appendChild(el('span', '', f[1])); facts.appendChild(li); });
+      top.appendChild(facts);
+      var art = document.getElementById('part'); if (art) top.appendChild(art.content.cloneNode(true));
+      prof.appendChild(top);
+      // ---- разделы ----
+      var secs = [];
+      var add = function (id, title, ico, cnt, s) { s.id = id; secs.push({ id: id, t: title, i: ico, n: cnt, s: s }); };
       if (api.empty()) {
-        var e = section('Пока пусто'); e.appendChild(el('p', '', 'Открой любой предмет и отметь статус («Изучаю», «Пройдено») или «Избранное», напиши заметку — всё появится здесь. Интересные профессии отмечаются на карте профессий.'));
-        var p = el('p', 'hlinks2'); [['Путь студента', 'path.html'], ['Все дисциплины', 'catalog.html'], ['Карта профессий', 'jobs.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; p.appendChild(a); });
-        e.appendChild(p); prof.appendChild(e);
+        var e = section('С чего начать'); e.appendChild(el('p', '', 'Открой любой предмет и отметь статус («Изучаю», «Пройдено») или «Избранное», напиши заметку — всё появится здесь. Интересные профессии отмечаются на странице «Профессии».'));
+        var pe = el('p', 'hlinks2'); [['Путь студента', 'path.html'], ['Все дисциплины', 'catalog.html'], ['Профессии', 'jobs.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; pe.appendChild(a); });
+        e.appendChild(pe); add('my-start', 'С чего начать', 'start', null, e);
       } else {
-        var s1 = section('Прогресс'); s1.appendChild(progress(ptotal));
-        var ma = el('p', 'hlinks2'), mal = el('a', 'btn-s', 'Мой маршрут на карте связей'); mal.href = base + 'map.html#mine'; ma.appendChild(mal); s1.appendChild(ma);
-        prof.appendChild(s1);
-        var NX = nextSteps(INFO);
-        if (NX.length || P.sem) {
-          var sn = section('Что изучать дальше', NX.length || null);
-          if (NX.length) {
-            var un = el('ul', 'mynext');
-            NX.slice(0, 12).forEach(function (r) {
-              var li = el('li'), a = el('a', '', nm(r.s)); a.href = base + 'd/' + r.s + '.html'; li.appendChild(a);
-              if (sem(r.s)) li.appendChild(el('span', 'muted', sem(r.s)));
-              var b = el('button', 'btn-o mysmall', 'Изучаю'); b.type = 'button'; b.setAttribute('aria-label', 'Отметить «Изучаю»: ' + nm(r.s)); b.addEventListener('click', function () { api.setStatus(r.s, 'doing'); }); li.appendChild(b);
-              li.appendChild(el('small', '', r.why)); un.appendChild(li);
-            });
-            sn.appendChild(un);
-            if (NX.length > 12) sn.appendChild(el('p', 'muted', 'И ещё ' + (NX.length - 12) + '.'));
-          } else sn.appendChild(el('p', 'muted', 'Пока подсказать нечего: отметь пройденные предметы — появятся те, для которых опоры уже пройдены.'));
-          sn.appendChild(el('p', 'muted', NEXTNOTE)); prof.appendChild(sn);
-        }
+        var NX = nextSteps(INFO), sn = section('Что изучать дальше', NX.length || null);
+        if (NX.length) {
+          var un = el('ul', 'mynext');
+          NX.slice(0, 12).forEach(function (r) {
+            var li = el('li'), a = el('a', '', nm(r.s)); a.href = base + 'd/' + r.s + '.html'; li.appendChild(a);
+            if (sem(r.s)) li.appendChild(el('span', 'muted', sem(r.s)));
+            var b = el('button', 'btn-o mysmall', 'Изучаю'); b.type = 'button'; b.setAttribute('aria-label', 'Отметить «Изучаю»: ' + nm(r.s)); b.addEventListener('click', function () { api.setStatus(r.s, 'doing'); }); li.appendChild(b);
+            li.appendChild(el('small', '', r.why)); un.appendChild(li);
+          });
+          sn.appendChild(un);
+          if (NX.length > 12) sn.appendChild(el('p', 'muted', 'И ещё ' + (NX.length - 12) + '.'));
+        } else sn.appendChild(el('p', 'muted', 'Пока подсказать нечего: отметь пройденные предметы — появятся те, для которых опоры уже пройдены.'));
+        sn.appendChild(el('p', 'muted', NEXTNOTE));
+        var ma = el('p', 'hlinks2'), mal = el('a', 'btn-s', 'Мой маршрут на карте связей'); mal.href = base + 'map.html#mine'; ma.appendChild(mal); sn.appendChild(ma);
+        add('my-next', 'Что дальше', 'next', NX.length || null, sn);
         [['doing', 'Изучаю', 'Пока ничего. Статус «Изучаю» ставится на странице предмета.'], ['done', 'Пройдено', 'Пока ничего. Статус «Пройдено» ставится на странице предмета.']].forEach(function (d) {
           var L = listOf(d[0]), s = section(d[1], L.length);
           if (L.length) {
@@ -369,12 +395,12 @@
             L.forEach(function (x) { u.appendChild(item(x, null, d[0] === 'doing' ? [['Пройдено', function () { api.setStatus(x, 'done'); }], ['Снять', function () { api.setStatus(x, ''); }]] : [['Снять', function () { api.setStatus(x, ''); }]])); });
             s.appendChild(u);
           } else s.appendChild(el('p', 'muted', d[2]));
-          prof.appendChild(s);
+          add('my-' + d[0], d[1], d[0], L.length, s);
         });
         var s2 = section('Избранные предметы', P.fav.length);
         if (P.fav.length) { var u2 = el('ul', 'mylist'); P.fav.forEach(function (s) { u2.appendChild(item(s, null, [['Убрать', function () { api.toggle('fav', s); }]])); }); s2.appendChild(u2); }
         else s2.appendChild(el('p', 'muted', 'Пока ничего. Звёздочка «Избранное» есть на странице каждого предмета.'));
-        prof.appendChild(s2);
+        add('my-fav', 'Избранное', 'fav', P.fav.length, s2);
         var JK = api.jobIndexes(), sj = section('Интересные профессии', JK.length);
         if (JK.length) {
           var uj = el('ul', 'mylist');
@@ -387,17 +413,16 @@
           sj.appendChild(uj);
           if (JK.length >= 2) { var cp = el('p', 'hlinks2'), ca = el('a', 'btn-o', 'Сравнить ' + (JK.length > 2 ? 'первые две' : 'эти профессии')); ca.href = base + 'jobs.html#compare=' + JK[0] + ',' + JK[1]; cp.appendChild(ca); sj.appendChild(cp); }
           sj.appendChild(el('p', 'muted', 'Предметы на пути к этим профессиям подсвечиваются как «в планах» в режиме «Мой маршрут» на карте связей.'));
-        } else { var pj = el('p', 'muted'); pj.appendChild(document.createTextNode('Пока ничего. Отметить профессию можно на ')); var aj = el('a', '', 'карте профессий'); aj.href = base + 'jobs.html'; pj.appendChild(aj); pj.appendChild(document.createTextNode('.')); sj.appendChild(pj); }
-        prof.appendChild(sj);
-        var keys = Object.keys(P.notes);
-        var s3 = section('Заметки', keys.length);
+        } else { var pj = el('p', 'muted'); pj.appendChild(document.createTextNode('Пока ничего. Отметить профессию можно на странице ')); var aj = el('a', '', '«Профессии»'); aj.href = base + 'jobs.html'; pj.appendChild(aj); pj.appendChild(document.createTextNode('.')); sj.appendChild(pj); }
+        add('my-jobs', 'Профессии', 'jobs', JK.length, sj);
+        var keys = Object.keys(P.notes), s3 = section('Заметки', keys.length);
         if (keys.length) { var u3 = el('ul', 'mylist'); keys.forEach(function (s) { u3.appendChild(item(s, el('p', 'mytext', P.notes[s]), [['Удалить заметку', function () { if (confirm('Удалить заметку к предмету «' + nm(s) + '»?')) api.note(s, ''); }]])); }); s3.appendChild(u3); }
-        else s3.appendChild(el('p', 'muted', 'Заметки пишутся на странице предмета, в блоке «Мои заметки».'));
-        prof.appendChild(s3);
-        if (P.recent.length) { var s4 = section('Недавно смотрел'); s4.appendChild(chips(P.recent)); prof.appendChild(s4); }
+        else s3.appendChild(el('p', 'muted', 'Заметки пишутся на странице предмета, во вкладке «Мои заметки».'));
+        add('my-notes', 'Заметки', 'notes', keys.length, s3);
+        if (P.recent.length) { var s4 = section('Недавно смотрел'); s4.appendChild(chips(P.recent)); add('my-recent', 'Недавно смотрел', 'recent', null, s4); }
       }
-      // перенос на другое устройство: файл с данными
-      var s6 = section('Перенести и выгрузить', null, 'mydata');
+      // перенос на другое устройство и очистка
+      var s6 = section('Перенести и выгрузить');
       s6.appendChild(el('p', '', 'Сохрани файл с личным планом и открой его на другом устройстве кнопкой «Загрузить из файла». Таблица CSV — для просмотра в Excel или Google Таблицах (обратно не загружается). Файлы остаются у тебя: на сервер ничего не отправляется.'));
       var row = el('p', 'hlinks2'), ex = el('button', 'btn-o', 'Сохранить в файл'); ex.type = 'button'; ex.disabled = api.empty();
       ex.addEventListener('click', function () { download(api.exportText(), 'teachmap-moy-plan-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json'); msg.textContent = 'Файл сохранён в загрузки.'; });
@@ -412,7 +437,7 @@
           try {
             api.checkText(String(r.result));                 // сначала проверяем файл, потом спрашиваем о замене
             if (!api.empty() && !confirm('Заменить текущий личный план данными из файла? Текущие отметки, заметки и избранное будут удалены.')) return;
-            var n = api.importText(String(r.result)); focusAfter = 'mydata'; msg.textContent = 'Загружено записей: ' + n + '.';
+            pActive = 'mydata'; var n = api.importText(String(r.result)); focusAfter = 'mydata'; msg.textContent = 'Загружено записей: ' + n + '.';
           }
           catch (err) { msg.textContent = err.message === 'newer' ? 'Файл сохранён более новой версией сайта: обнови страницу и попробуй снова.' : err.message === 'save' ? 'Не удалось сохранить: браузер не даёт записывать данные.' : 'Не получилось прочитать файл: это не файл личного плана TeachMap или он повреждён.'; }
         };
@@ -421,16 +446,48 @@
       });
       var cs = el('button', 'btn-o', 'Таблица для Excel (CSV)'); cs.type = 'button'; cs.disabled = api.empty();
       cs.addEventListener('click', function () { download(personalCsv(INFO), 'teachmap-moy-progress-' + new Date().toISOString().slice(0, 10) + '.csv', 'text/csv;charset=utf-8'); msg.textContent = 'Таблица сохранена в загрузки. Для переноса на другое устройство используй файл JSON («Сохранить в файл»).'; });
-      row.appendChild(ex); row.appendChild(im); row.appendChild(cs); s6.appendChild(row); s6.appendChild(fi); s6.appendChild(msg); prof.appendChild(s6);
+      row.appendChild(ex); row.appendChild(im); row.appendChild(cs); s6.appendChild(row); s6.appendChild(fi); s6.appendChild(msg);
       if (!api.empty()) {
-        var s5 = section('Очистить'); s5.appendChild(el('p', '', 'Удалит статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера. Отменить нельзя: если нужно, сначала сохрани файл.'));
+        s6.appendChild(el('h3', 'lkh mydangerh', 'Очистить'));
+        s6.appendChild(el('p', '', 'Удалит статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера. Отменить нельзя: если нужно, сначала сохрани файл.'));
         var cb = el('button', 'btn-o mydanger', 'Очистить мой план'); cb.type = 'button';
-        cb.addEventListener('click', function () { if (confirm('Удалить статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера? Это нельзя отменить.')) { api.clear(); var h = document.querySelector('main h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus(); } } });
-        s5.appendChild(cb); prof.appendChild(s5);
+        cb.addEventListener('click', function () { if (confirm('Удалить статусы, избранное, профессии, семестр, заметки и историю просмотров из этого браузера? Это нельзя отменить.')) { pActive = 'mydata'; api.clear(); var hh = document.querySelector('main h1'); if (hh) { hh.setAttribute('tabindex', '-1'); hh.focus(); } } });
+        s6.appendChild(cb);
       }
+      add('mydata', 'Перенос и очистка', 'data', null, s6);
+      // ---- меню разделов и панель ----
+      if (!secs.some(function (x) { return x.id === pActive; })) pActive = secs[0].id;
+      var body = el('div', 'pbody'), menu = el('div', 'pmenu'), panels = el('div', 'ppanels');
+      menu.setAttribute('role', 'tablist'); menu.setAttribute('aria-orientation', 'vertical'); menu.setAttribute('aria-label', 'Разделы моего плана');
+      var tabs = secs.map(function (x) {
+        var b = el('button', 'pm'); b.type = 'button'; b.id = 'pm-' + x.id; b.dataset.sec = x.id; b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', x.id);
+        b.appendChild(icon(x.i)); b.appendChild(el('span', 'pmt', x.t)); if (x.n != null) b.appendChild(el('b', 'pmn', String(x.n)));
+        b.addEventListener('click', function () { pick(x.id, true); });
+        menu.appendChild(b);
+        x.s.setAttribute('role', 'tabpanel'); x.s.setAttribute('aria-labelledby', b.id); x.s.tabIndex = -1; panels.appendChild(x.s);
+        return b;
+      });
+      function pick(id, user) {
+        pActive = id;
+        secs.forEach(function (x, i) { var on = x.id === id; x.s.hidden = !on; tabs[i].setAttribute('aria-selected', on ? 'true' : 'false'); tabs[i].tabIndex = on ? 0 : -1; });
+        if (user) {
+          try { history.replaceState(history.state, '', location.pathname + location.search + '#' + id); } catch (e) {}
+          var sx = document.getElementById(id); if (!RMP) { sx.classList.remove('tm-scr'); void sx.offsetWidth; sx.classList.add('tm-scr'); }
+        }
+      }
+      menu.addEventListener('keydown', function (e) {             // ↑ / ↓ — по разделам, как курсор в меню
+        var i = tabs.indexOf(document.activeElement), n = tabs.length; if (i < 0) return;
+        var j = e.key === 'ArrowDown' ? (i + 1) % n : e.key === 'ArrowUp' ? (i - 1 + n) % n : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : -1;
+        if (j < 0) return; e.preventDefault(); tabs[j].focus(); pick(secs[j].id, true);
+      });
+      body.appendChild(menu); body.appendChild(panels); prof.appendChild(body);
+      pick(pActive, false);
       if (focusAfter) { var fa = document.getElementById(focusAfter); focusAfter = null; if (fa) { if (fa.tagName !== 'SELECT') { var fh = fa.querySelector('h2'); fh.setAttribute('tabindex', '-1'); fh.focus({ preventScroll: true }); } else fa.focus({ preventScroll: true }); } }
-      else if (had) { var hh = prof.querySelector('h2'); if (hh) { hh.setAttribute('tabindex', '-1'); hh.focus({ preventScroll: true }); } }
+      else if (hadTab) { var tb = document.getElementById('pm-' + hadTab) || tabs[0]; tb.focus({ preventScroll: true }); }
+      else if (had) { var act = document.getElementById(pActive), hh2 = act && act.querySelector('h2'); if (hh2) { hh2.setAttribute('tabindex', '-1'); hh2.focus({ preventScroll: true }); } }
     };
+    var RMP = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still');
+    window.addEventListener('hashchange', function () { var m = /^#(my-[a-z]+|mydata)$/.exec(location.hash); if (m && document.getElementById(m[1])) { pActive = m[1]; drawProfile(); } });
     drawProfile(); api.on(drawProfile);
   }
 })();

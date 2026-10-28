@@ -293,7 +293,7 @@ def task_panel(c, slug):
     ans = f'<details class="ans"><summary>Что это показывает</summary><p>{E(c["answer"])}</p></details>' if c["answer"] else ""
     return (f'<section class="panel"><h2><span class="ci">{ic("FaChalkboardTeacher")}</span>Попробуй сам</h2><p>{E(c["example"])}</p>'
             f'<div class="task" data-task="{E(slug)}"></div>{ans}{note}</section>')
-def disc_art(slug, g):
+def disc_art(slug, g, icon=None):
     """иллюстрация шапки предмета: свои грани, осколки света и созвездие (как фон карты), значок раздела плана; у каждого предмета свой узор"""
     import random
     rnd = random.Random(int(hashlib.md5(slug.encode()).hexdigest()[:8], 16))
@@ -310,7 +310,7 @@ def disc_art(slug, g):
     lines = " ".join(f"M{stars[i][0]:.0f},{stars[i][1]:.0f}L{stars[i + 1][0]:.0f},{stars[i + 1][1]:.0f}" for i in range(0, len(stars) - 1, 2))
     dots = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{2.6 if n % 4 == 0 else 1.6}"/>' for n, (x, y) in enumerate(stars))
     return (f'<div class="dart g-{g}" aria-hidden="true"><svg viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid slice"><g>{"".join(out)}</g>'
-            f'<path class="dl" d="M600,0 L330,360 H420 L600,110Z" opacity=".12"/><path class="ln" d="{lines}"/><g class="st">{dots}</g></svg><span class="dicon">{ic(GROUPS[GKEYS[g]][1])}</span></div>')
+            f'<path class="dl" d="M600,0 L330,360 H420 L600,110Z" opacity=".12"/><path class="ln" d="{lines}"/><g class="st">{dots}</g></svg><span class="dicon">{ic(icon or GROUPS[GKEYS[g]][1])}</span></div>')
 def disc_page(it, c, order, k):
     """страница предмета: шапка как в референсе (крошки, название, курс и семестр, нагрузка, описание, «Мой статус» и «Избранное»,
     своя иллюстрация со срезом) и вкладки. Без скрипта все разделы идут подряд; вкладки строит app.js из секций .dtab."""
@@ -494,21 +494,32 @@ def jobs_page():
     arts = ""
     for k, (j, (keys, anc)) in enumerate(zip(JOBS, routes)):
         cols = ""
-        for s in range(1, 9):
-            here = sorted((x for x in keys | anc if start_sem(by[x]["sem"]) == s), key=lambda x: (x not in keys, by[x]["idx"]))
-            cols += f'<li class="rc{"" if here else " empty"}"><b>{s} сем.</b>{"".join(chip(x, x in keys) for x in here)}</li>'
-        cc = Counter(c for s in keys for r in RP.get(s, []) for c in set(r.get("competencies") or []))
+        for s_ in range(1, 9):
+            here = sorted((x for x in keys | anc if start_sem(by[x]["sem"]) == s_), key=lambda x: (x not in keys, by[x]["idx"]))
+            cols += f'<li class="rc{"" if here else " empty"}"><b>{s_} сем.</b>{"".join(chip(x, x in keys) for x in here)}</li>'
+        cc = Counter(c for s_ in keys for r in RP.get(s_, []) for c in set(r.get("competencies") or []))
         order = lambda c: (list(COMP).index(c.split("-")[0]) if c.split("-")[0] in COMP else 9, c)
         comps = "".join(f'<span class="kchip ccode" title="формируют ключевых предметов: {n_}">{E(c)}{f" ×{n_}" if n_ > 1 else ""}</span>' for c, n_ in sorted(cc.items(), key=lambda x: order(x[0])))
         q = j[4].replace(" ", "+")
-        arts += (f'<article class="panel jm" id="job-{k}"><h2><span class="ci">{ic(j[0])}</span>{E(j[1])}</h2><p>{E(j[2])}</p>'
-                 f'<p class="lkh" style="margin-top:14px">Маршрут по семестрам: {len(keys)} ключевых предметов и {len(anc)} — без которых их трудно начать</p>'
-                 f'<ol class="route">{cols}</ol>'
-                 + (f'<p class="lkh" style="margin-top:14px">Ключевые предметы формируют компетенции</p><div class="ks">{comps}</div>' if comps else "")
-                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="path.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
-                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a>'
-                 f'<button type="button" class="mybtn my-job" data-job="{k}" data-title="{E(j[1])}" aria-pressed="false" hidden><span class="myi" aria-hidden="true">★</span>Интересная профессия</button></div></article>')
-    toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS)) + '<a class="kchip jcmp" href="#compare">Сравнить две профессии</a>'
+        klist = "".join(f'<li><a href="d/{x}.html">{E(clean(by[x]["name"]))}</a><span class="muted">{course_line(by[x])}</span></li>'
+                        for x in sorted(keys, key=lambda x: (start_sem(by[x]["sem"]), by[x]["idx"])))
+        other = (k + 1) % len(JOBS)
+        arts += (f'<article class="panel jm" id="job-{k}" aria-labelledby="jh-{k}"><div class="jmhead"><div class="jmtext"><p class="dkick">Профессия · оценка команды проекта</p>'
+                 f'<h2 id="jh-{k}">{E(j[1])}</h2><p class="jdesc">{E(j[2])}</p>'
+                 f'<p class="jtags"><span>{len(keys)} ключевых предметов</span>{f"<span>{len(anc)} нужны для ключевых</span>" if anc else ""}{f"<span>{len(cc)} кодов компетенций</span>" if cc else ""}</p>'
+                 f'<div class="acts"><a class="btn-s jgo" href="map.html#job={k}">Построить маршрут на карте {ic("FaArrowRight")}</a>'
+                 f'<button type="button" class="mybtn my-job" data-job="{k}" data-title="{E(j[1])}" aria-pressed="false" hidden><span class="myi" aria-hidden="true">★</span>Интересная профессия</button></div></div>'
+                 f'{disc_art(_JD["jobs"][k]["id"], k % 4, j[0])}</div>'
+                 f'<div class="jmbody"><section class="jsec"><h3 class="lkh">Ключевые предметы</h3><ul class="jkl">{klist}</ul></section>'
+                 + (f'<section class="jsec"><h3 class="lkh">Ключевые предметы формируют компетенции</h3><div class="ks">{comps}</div><p class="muted jcn">Коды индикаторов из рабочих программ; «×2» — компетенцию формируют два ключевых предмета.</p></section>' if comps else "")
+                 + f'<section class="jsec jroute"><h3 class="lkh">Маршрут по семестрам: {len(keys)} ключевых предметов и {len(anc)} — без которых их трудно начать</h3><ol class="route">{cols}</ol></section>'
+                 f'<div class="acts"><a class="btn-o" href="path.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="catalog.html?job={k}">Предметы в каталоге</a>'
+                 f'<a class="btn-o" href="#compare={k},{other}">Сравнить с другой профессией</a>'
+                 f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a></div></div></article>')
+    toc = ('<nav class="jlist" id="jlist" aria-label="Профессии"><ul>'
+           + "".join(f'<li><a class="jli" href="#job-{k}"><span class="jli-i" aria-hidden="true">{ic(j[0])}</span><span class="jli-t">{E(j[1])}<small>{len(routes[k][0])} ключевых{f" · {len(routes[k][1])} нужны для них" if routes[k][1] else ""}</small></span></a></li>' for k, j in enumerate(JOBS))
+           + f'</ul><ul class="jlx"><li><a class="jli" href="#compare"><span class="jli-i" aria-hidden="true">{ic("FaLayerGroup")}</span><span class="jli-t">Сравнить две профессии</span></a></li>'
+           f'<li><a class="jli" href="#basis"><span class="jli-i" aria-hidden="true">{ic("FaClipboardCheck")}</span><span class="jli-t">На чём основана карта</span></a></li></ul></nav>')
     # сравнение: те же данные, что в маршрутах ниже — ключевые предметы, нужные для них и коды компетенций ключевых предметов
     used = sorted({x for keys, anc in routes for x in keys | anc}, key=lambda x: (start_sem(by[x]["sem"]), by[x]["idx"]))
     cdata = {"n": {x: [clean(by[x]["name"]), str(by[x]["sem"])] for x in used},
@@ -522,17 +533,16 @@ def jobs_page():
                '<div id="cmpout" aria-live="polite"><noscript><p class="muted">Для сравнения нужен включённый JavaScript. Маршруты всех профессий — ниже на странице.</p></noscript></div>'
                '<p class="muted cmpnote">Сравнение построено на тех же данных, что и маршруты ниже: ключевые предметы — оценка команды проекта, «нужные для ключевых» — по логическим связям, '
                'компетенции — коды из рабочих программ ключевых предметов. Это не требования работодателей и не профессиональный стандарт.</p></section>')
-    body = head_nav(0, "jobs") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
-<p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
-<p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="path.html">Путь студента</a></p></section></div></div>
-<div class="wrap"><nav class="ks jtoc" aria-label="Профессии">{toc}</nav>
-<section class="panel jbasis"><h2><span class="ci">{ic("FaClipboardCheck")}</span>На чём основана карта</h2><ul class="bl">
-<li><span class="rch key sample">ключевой предмет</span> — оценка команды проекта по задачам профессии; это не официальный перечень и не гарантия трудоустройства.</li>
-<li><span class="rch sample">нужен для ключевого</span> — предметы, без которых ключевые трудно начать, по согласованным логическим связям (не официальные пререквизиты).</li>
-<li>Компетенции — коды индикаторов из рабочих программ ключевых предметов; «×2» значит, что компетенцию формируют два ключевых предмета.</li>
-<li>Профессии и их ключевые предметы хранятся в файле <code>data/jobs.json</code> с пометкой «оценка команды проекта». Предложить правку можно через <a href="feedback.html">обратную связь</a>.</li></ul></section>
-<section class="panel"><h2><span class="ci">{ic("FaLayerGroup")}</span>Общая основа</h2><p>Эти предметы входят в маршрут к четырём и более профессиям из шести.</p><div class="ks" style="margin-top:10px">{"".join(f'<a class="kchip" href="d/{s}.html">{E(clean(by[s]["name"]))}</a>' for s in base)}</div></section>
-{compare}{arts}</div></main><script type="application/json" id="cmpd">{cdata}</script>'''
+    base_chips = "".join(f'<a class="kchip" href="d/{s_}.html">{E(clean(by[s_]["name"]))}</a>' for s_ in base)
+    basis = (f'<section class="panel jbasis" id="basis" aria-labelledby="basish"><h2 id="basish"><span class="ci">{ic("FaClipboardCheck")}</span>На чём основана карта</h2><ul class="bl">'
+             '<li><span class="rch key sample">ключевой предмет</span> — оценка команды проекта по задачам профессии; это не официальный перечень и не гарантия трудоустройства.</li>'
+             '<li><span class="rch sample">нужен для ключевого</span> — предметы, без которых ключевые трудно начать, по согласованным логическим связям (не официальные пререквизиты).</li>'
+             '<li>Компетенции — коды индикаторов из рабочих программ ключевых предметов; «×2» значит, что компетенцию формируют два ключевых предмета.</li>'
+             '<li>Профессии и их ключевые предметы хранятся в файле <code>data/jobs.json</code> с пометкой «оценка команды проекта». Предложить правку можно через <a href="feedback.html">обратную связь</a>.</li></ul>'
+             f'<h3 class="lkh jbase">Общая основа</h3><p>Эти предметы входят в маршрут к четырём и более профессиям из шести.</p><div class="ks" style="margin-top:10px">{base_chips}</div></section>')
+    head = ('<div class="cathead jhead"><div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="index.html">TeachMap</a> › Профессии</nav><h1>Профессии</h1>'
+            f'<p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома. Это оценка команды проекта, а не официальный перечень и не гарантия трудоустройства.</p></div></div>')
+    body = head_nav(0, "jobs") + f'''<main id="main" class="jobpage">{head}<div class="wrap jgrid">{toc}<div class="jmain" id="jmain">{arts}{compare}{basis}</div></div></main><script type="application/json" id="cmpd">{cdata}</script>'''
     return page("Карта профессий: предметы, которые ведут к профессии · TeachMap", "Шесть профессий выпускников 27.03.01 ДВФУ и маршрут к каждой по семестрам: ключевые предметы, опоры, компетенции и сравнение двух профессий", body, jobs=True)
 # ---- карта связей (map.html): раскладка считается здесь, при сборке; браузер только показывает, подсвечивает и масштабирует ----
 GNW, GNH, GCW, GRH, GTOP, GPAD = 168, 54, 206, 64, 46, 18   # узел: ширина, высота; шаг столбца и строки; место под подписи семестров; поля
@@ -852,11 +862,15 @@ def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"]), [x for x, t, _ in links_of(i["slug"])[0] if t == "need"], i["idx"]] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     jn = json.dumps([j[1] for j in JOBS], ensure_ascii=False).replace("</", "<\\/")
-    body = head_nav(0, "profile") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Мой план</h1>
-<p class="lead">Статусы предметов, избранное, интересные профессии, текущий семестр и заметки — без регистрации.</p></section></div></div><div class="wrap">
-<section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. Сами на другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере; перенести их можно файлом (блок «Перенести и выгрузить» внизу). На сервер ничего не отправляется. Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.</p></section>
+    icons = "".join(f'<span data-i="{k}">{ic(v)}</span>' for k, v in (("next", "FaMapMarkedAlt"), ("doing", "FaBookOpen"), ("done", "FaCheck"), ("fav", "FaStar"), ("jobs", "FaBriefcase"),
+                                                                         ("notes", "FaCommentDots"), ("recent", "FaRegClock"), ("data", "FaUserLock"), ("start", "FaRocket")))
+    head = ('<div class="cathead phead"><div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="index.html">TeachMap</a> › Профиль</nav><h1>Мой план</h1>'
+            '<p class="lead">Статусы предметов, избранное, интересные профессии, текущий семестр и заметки — без регистрации. Всё хранится только в этом браузере.</p></div></div>')
+    body = head_nav(0, "profile") + f'''<main id="main" class="profpage">{head}<div class="wrap pgrid">
 <noscript><p class="panel">Для личного плана нужен включённый JavaScript.</p></noscript>
-<div id="profile" data-total="{len(items)}"></div></div></main><script type="application/json" id="pnames">{names}</script><script type="application/json" id="pjobs">{jn}</script>'''
+<div id="profile" data-total="{len(items)}" data-ze="{meta.get("total_ze") or ""}" data-years="{(max(x for i in items for x in sem_list(i["sem"])) + 1) // 2}" data-sems="{max(x for i in items for x in sem_list(i["sem"]))}"></div>
+<section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. Сами на другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере; перенести их можно файлом (раздел «Перенос и очистка»). На сервер ничего не отправляется. Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.</p></section>
+</div></main><template id="part">{disc_art("my-profile", 1, "FaUserGraduate")}</template><template id="pico">{icons}</template><script type="application/json" id="pnames">{names}</script><script type="application/json" id="pjobs">{jn}</script>'''
     return page("Мой план · TeachMap", "Статусы предметов, избранное, профессии и заметки: хранятся только в вашем браузере", body)
 def build():
     if OUT.exists(): shutil.rmtree(OUT)

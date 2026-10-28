@@ -3,6 +3,41 @@
 // Адрес: #compare=A,B (номера профессий по порядку); ссылку можно отправить.
 (function () {
   'use strict';
+  // ---------- экран выбора: слева список профессий, справа выбранная (как в игровом меню) ----------
+  // Экраны — статьи профессий (#job-N), сравнение (#compare, #compare=A,B) и «На чём основана карта» (#basis).
+  // Без скрипта все экраны идут подряд; до запуска скрипта CSS показывает экран из адреса (:target) или первый.
+  (function () {
+    var list = document.getElementById('jlist'), main = document.getElementById('jmain'); if (!list || !main) return;
+    var root = document.documentElement, RMs = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || root.classList.contains('tm-still');
+    var scr = [].filter.call(main.children, function (x) { return !!x.id; }), links = [].slice.call(list.querySelectorAll('.jli')), cur = null;
+    function idOf(h) { var m = /^#(job-\d+|compare|basis)\b/.exec(h || ''); var id = m ? m[1] : ''; return document.getElementById(id) && main.contains(document.getElementById(id)) ? id : scr[0].id; }
+    function show(id, user) {
+      if (id === cur) return; cur = id;
+      scr.forEach(function (x) { x.hidden = x.id !== id; });
+      links.forEach(function (a) { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+      var el = document.getElementById(id);
+      if (user) {
+        if (!RMs) { el.classList.remove('tm-scr'); void el.offsetWidth; el.classList.add('tm-scr'); }
+        var h = el.querySelector('h2'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+        var r = main.getBoundingClientRect(); if (r.top < 0) main.scrollIntoView({ block: 'start', behavior: RMs ? 'auto' : 'smooth' });
+      }
+    }
+    root.classList.add('jscreens');
+    list.addEventListener('click', function (e) {
+      var a = e.target.closest('.jli'); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      e.preventDefault(); var id = a.getAttribute('href').slice(1);
+      try { history.replaceState(history.state, '', location.pathname + location.search + '#' + id); } catch (x) {}
+      show(id, true);
+    });
+    list.addEventListener('keydown', function (e) {                // ↑ / ↓ — по списку, как курсор в меню
+      var i = links.indexOf(document.activeElement); if (i < 0 || !/^(ArrowUp|ArrowDown|Home|End)$/.test(e.key)) return;
+      var j = e.key === 'Home' ? 0 : e.key === 'End' ? links.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + links.length) % links.length;
+      e.preventDefault(); links[j].focus();
+    });
+    show(idOf(location.hash), false);
+    window.addEventListener('hashchange', function () { show(idOf(location.hash), true); });
+  })();
+
   var box = document.getElementById('cmpout'), dEl = document.getElementById('cmpd'), sa = document.getElementById('cmpa'), sb = document.getElementById('cmpb');
   if (!box || !dEl || !sa || !sb) return;
   var D; try { D = JSON.parse(dEl.textContent); } catch (e) { return; }
