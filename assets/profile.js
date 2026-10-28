@@ -339,7 +339,7 @@
       prof.appendChild(s0);
       if (api.empty()) {
         var e = section('Пока пусто'); e.appendChild(el('p', '', 'Открой любой предмет и отметь статус («Изучаю», «Пройдено») или «Избранное», напиши заметку — всё появится здесь. Интересные профессии отмечаются на карте профессий.'));
-        var p = el('p', 'hlinks2'); [['Путь студента', 'index.html'], ['Все дисциплины', 'catalog.html'], ['Карта профессий', 'jobs.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; p.appendChild(a); });
+        var p = el('p', 'hlinks2'); [['Путь студента', 'path.html'], ['Все дисциплины', 'catalog.html'], ['Карта профессий', 'jobs.html']].forEach(function (x) { var a = el('a', 'btn-o', x[0]); a.href = base + x[1]; p.appendChild(a); });
         e.appendChild(p); prof.appendChild(e);
       } else {
         var s1 = section('Прогресс'); s1.appendChild(progress(ptotal));

@@ -1280,3 +1280,149 @@ html.access .gch.mnow{clip-path:none}
  footer p:has(a){display:none!important}
  footer *{color:#000!important}
 }
+
+/* =====================================================================
+   СТАРТОВЫЙ ЭКРАН (index.html, assets/start.js) — игровое меню
+   Палитра: #0E2550 / #173B70 тёмные, #3478C8 акцент (только заливки и линии), #DDEBFA светло-голубой, #FFFFFF.
+   Композиция: слева логотип, заголовок, главное действие и крупное вертикальное меню; справа собственная SVG-сцена
+   (лучи, город, «созвездие» из 8 семестров); внизу справа плашка программы и личного прогресса.
+   ===================================================================== */
+.start{--s-0:#0E2550;--s-1:#173B70;--s-2:#1F4E8F;--s-acc:#3478C8;--s-ice:#DDEBFA;--s-mut:#B9D1EE;
+  position:relative;min-height:100vh;min-height:100svh;overflow:hidden;overflow:clip;color:#fff;background:linear-gradient(155deg,var(--s-0) 0%,var(--s-1) 52%,#24589C 100%);isolation:isolate}
+body:has(.start){background:var(--s-0,#0E2550)}
+.start::before{content:"";position:absolute;left:-12%;bottom:-30%;width:62%;height:120%;background:var(--s-ice);opacity:.07;transform:skewX(-24deg);z-index:-1}
+.start::after{content:"";position:absolute;left:0;top:0;width:44%;height:7px;background:var(--s-acc);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.st-bg{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.st-art{position:absolute;right:0;bottom:0;width:min(78vw,1100px);height:100%}
+.sv-ray path{fill:#fff;opacity:.07}
+.sv-ring{fill:none;stroke:var(--s-ice);stroke-width:2;opacity:.2}
+.sv-ring2{fill:none;stroke:var(--s-ice);stroke-width:1.5;opacity:.12;stroke-dasharray:3 9}
+.sv-city-b rect{fill:#2B63A6;opacity:.55}
+.sv-city-f rect,.sv-city-f path{fill:var(--s-0)}
+.sv-win rect{fill:var(--s-ice);opacity:.42}
+.sv-line{fill:none;stroke:var(--s-ice);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.sv-node circle{fill:var(--s-1);stroke:#fff;stroke-width:2.5}
+.sv-node text{fill:#fff;font:700 13px/1 var(--hd);text-anchor:middle}
+.sv-star{fill:#fff}
+.sv-stl{fill:var(--s-ice);font:600 14px/1 var(--hd);letter-spacing:.12em;text-transform:uppercase;text-anchor:middle}
+.st-wrap{position:relative;max-width:1240px;margin:0 auto;padding:26px 32px 40px;min-height:100vh;min-height:100svh;display:grid;grid-template-columns:minmax(0,560px) 1fr;grid-template-rows:auto 1fr;gap:10px 40px}
+.st-top{grid-column:1/-1;position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-right:150px}
+.st-logo{display:inline-flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.st-logo .tmlogo{width:52px;height:52px}
+.st-lw{font-family:var(--hd);font-size:34px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;text-shadow:3px 3px 0 var(--s-0)}
+.st-lw em{font-style:normal;color:var(--s-ice)}
+.st-logo:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.st-date{position:absolute;right:0;top:0;margin:0;text-align:right;font-family:var(--hd);line-height:1.05;text-shadow:3px 3px 0 var(--s-0)}
+.st-date b{display:block;font-size:44px;font-weight:700;letter-spacing:.02em}
+.st-date span{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--s-ice)}
+.st-left{grid-column:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:18px 0 10px}
+.st-h1{margin:0;display:flex;flex-direction:column;gap:6px;color:#fff}
+.st-k{font-family:var(--hd);font-size:15px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--s-ice)}
+.st-ht{font-family:var(--hd);font-size:clamp(30px,4.2vw,50px);line-height:1.02;font-weight:700;text-transform:uppercase;text-shadow:4px 4px 0 var(--s-0);transform:rotate(-1.5deg);transform-origin:left center}
+.st-cta{margin:4px 0 0}
+.st-go{position:relative;display:inline-grid;grid-template-columns:auto 1fr;align-items:center;gap:0 14px;padding:14px 34px 14px 22px;background:#fff;color:var(--s-1);text-decoration:none;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);box-shadow:none;overflow:hidden;isolation:isolate;transition:translate 80ms steps(3,end)}
+.st-gi{grid-row:1/3;width:0;height:0;border-left:16px solid var(--s-acc);border-top:11px solid transparent;border-bottom:11px solid transparent}
+.st-gt{font-family:var(--hd);font-size:26px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.05}
+.st-gd{font-size:13.5px;font-weight:600;color:#33507A}
+.st-go::after{content:"";position:absolute;top:0;bottom:0;left:0;width:30%;background:linear-gradient(90deg,transparent,rgba(52,120,200,.22),transparent);transform:translateX(-120%) skewX(-20deg);z-index:-1}
+@media(hover:hover){.st-go:hover::after{animation:tmSweep 420ms steps(13,end)}.st-go:hover{translate:4px 0}}
+.st-go:focus-visible{outline:3px solid var(--s-ice);outline-offset:4px}
+.st-menu ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.sm-i{position:relative;display:grid;grid-template-columns:44px 1fr;align-items:baseline;column-gap:6px;padding:7px 28px 7px 12px;color:#fff;text-decoration:none;isolation:isolate;max-width:520px}
+.sm-n{font-family:var(--hd);font-size:15px;font-weight:600;color:var(--s-mut);letter-spacing:.06em}
+.sm-t{font-family:var(--hd);font-size:clamp(25px,2.8vw,34px);font-weight:700;line-height:1.08;letter-spacing:.03em;text-transform:uppercase}
+.sm-d{grid-column:2;font-size:13.5px;font-weight:600;line-height:1.35;color:var(--s-1);max-height:0;overflow:hidden;opacity:0}
+/* активный пункт: белая плашка-параллелограмм со сдвинутой синей тенью, тёмный текст, подпись раскрывается */
+.sm-i::before,.sm-i::after{content:"";position:absolute;inset:0;clip-path:polygon(0 0,100% 0,calc(100% - 22px) 100%,0 100%);transform:scaleX(0);transform-origin:left center;transition:transform 120ms steps(5,end);z-index:-1}
+.sm-i::before{background:#fff}
+.sm-i::after{background:var(--s-acc);translate:8px 6px;z-index:-2;transition-delay:30ms}
+.sm-i.on::before,.sm-i.on::after{transform:scaleX(1)}
+.sm-i.on .sm-t{color:var(--s-1)}
+.sm-i.on .sm-n{color:var(--s-acc)}
+.sm-i.on .sm-d{max-height:6em;opacity:1;margin-top:2px}
+.sm-i .sm-t{transition:translate 120ms steps(4,end)}
+.sm-i.on .sm-t{translate:6px 0}
+/* один «курсор»: плашка только у активного пункта (мышь или клавиатура — что было последним); фокус клавиатуры — белая рамка */
+.sm-i:focus-visible{outline:3px solid #fff;outline-offset:3px}
+html:not(.st-js) .sm-i:focus-visible::before,html:not(.st-js) .sm-i:focus-visible::after{transform:scaleX(1)}
+html:not(.st-js) .sm-i:focus-visible .sm-t{color:var(--s-1)}
+html:not(.st-js) .sm-i:hover::before,html:not(.st-js) .sm-i:hover::after{transform:scaleX(1)}
+html:not(.st-js) .sm-i:hover .sm-t{color:var(--s-1)}
+/* подменю «Настройки» */
+.st-set h2{margin:0 0 8px;font-family:var(--hd);font-size:30px;text-transform:uppercase;color:#fff;text-shadow:3px 3px 0 var(--s-0)}
+.st-set h2:focus{outline:none}
+.sm-sl{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-width:520px}
+.sm-s{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;font-family:var(--hd);font-size:20px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:rgba(14,37,80,.45);border:0;border-left:4px solid var(--s-acc);padding:10px 14px;text-decoration:none;cursor:pointer;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);transition:background 100ms steps(3,end),color 100ms steps(3,end)}
+.sm-s:hover,.sm-s:focus-visible{background:#fff;color:var(--s-1);outline:none}
+.sm-s[aria-pressed=true]{background:#fff;color:var(--s-1)}
+.sm-s[aria-pressed=true]::after{content:"вкл.";margin-left:auto;font-size:14px;color:var(--s-acc)}
+.sm-s .ni{font-size:18px}
+.st-back{margin-top:12px;font:inherit;font-family:var(--hd);font-size:16px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--s-ice);background:none;border:0;padding:6px 0;cursor:pointer}
+.st-back:hover,.st-back:focus-visible{color:#fff;text-decoration:underline;outline:none}
+.st-set[hidden],.st-menu[hidden]{display:none}
+.st-js .st-set,.st-js.st-setopen .st-menu{display:none}
+.st-js.st-setopen .st-set,.st-js .st-set:target{display:block}   /* :target — на случай, если start.js не загрузился */
+html:not(.st-js) .st-set{margin-top:10px}
+/* поиск */
+.st-find{display:flex;max-width:420px;border-bottom:2px solid rgba(221,235,250,.55)}
+.st-find input{flex:1;min-width:0;font:inherit;font-size:15px;color:#fff;background:transparent;border:0;padding:10px 4px}
+.st-find input::placeholder{color:var(--s-mut);opacity:1}
+.st-find input:focus{outline:none}
+.st-find:focus-within{border-bottom-color:#fff}
+.st-find button{background:none;border:0;color:#fff;padding:0 8px;cursor:pointer;font-size:18px}
+.st-find button:focus-visible{outline:2px solid #fff}
+/* плашка программы и прогресса */
+.st-stat{grid-column:2;align-self:end;justify-self:end;width:min(100%,360px);background:rgba(14,37,80,.9);border-left:5px solid var(--s-acc);padding:16px 18px 14px;clip-path:polygon(18px 0,100% 0,100% 100%,0 100%,0 18px)}
+.st-sk{margin:0 0 8px;font-family:var(--hd);font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--s-ice)}
+.st-facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,auto);gap:4px 14px}
+.st-facts li{display:flex;flex-direction:column}
+.st-facts b{font-family:var(--hd);font-size:30px;line-height:1;font-weight:700}
+.st-facts span{font-size:12px;color:var(--s-mut)}
+.st-me{margin-top:14px;padding-top:12px;border-top:1px solid rgba(221,235,250,.25)}
+.st-me[hidden]{display:none}
+.st-ring{display:flex;align-items:center;gap:12px}
+.st-ring svg{width:58px;height:58px;flex:none;transform:rotate(-90deg)}
+.st-ring circle{fill:none;stroke-width:5}
+.st-rb{stroke:rgba(221,235,250,.22)}.st-rf{stroke:#fff;stroke-linecap:round}
+.st-ring p{margin:0;font-size:13.5px;line-height:1.4;color:var(--s-ice)}
+.st-ring b{display:block;font-family:var(--hd);font-size:24px;color:#fff}
+.st-ml{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 0}
+.start .st-ml a{color:#fff;font-weight:600;font-size:13.5px;text-decoration-color:rgba(255,255,255,.55)}
+.start .st-ml a:hover{text-decoration-color:#fff}
+.start a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.st-mn{margin:6px 0 0;font-size:12px;color:var(--s-mut)}
+.st-note{margin:12px 0 0;font-size:12px;line-height:1.45;color:var(--s-mut)}
+/* телефон и узкие экраны: всё в одну колонку, сцена приглушена и уходит наверх */
+@media(max-width:900px){
+ .st-wrap{grid-template-columns:1fr;padding:18px 18px 28px;gap:8px}
+ .st-stat{grid-column:1;justify-self:stretch;width:auto;margin-top:12px}
+ .st-art{width:140%;opacity:.45}
+ .st-date b{font-size:32px}
+}
+@media(max-width:560px){
+ .st-lw{font-size:26px}.st-logo .tmlogo{width:42px;height:42px}
+ .st-date b{font-size:26px}.st-date span{font-size:11.5px}
+ .st-top{padding-right:110px}
+ .st-go{padding:12px 28px 12px 16px}.st-gt{font-size:22px}
+ .sm-i{grid-template-columns:34px 1fr;padding:6px 22px 6px 8px}
+ .st-facts{grid-template-columns:repeat(4,1fr);gap:4px 8px}.st-facts b{font-size:24px}
+ .sm-s{font-size:17px}
+}
+/* «Крупно»: без наклонов и срезов, плотнее контраст */
+html.access .start .st-ht{transform:none;text-shadow:none}
+html.access .st-go,html.access .sm-i::before,html.access .sm-i::after,html.access .sm-s,html.access .st-stat{clip-path:none}
+html.access .sm-d{color:var(--s-0)}
+html.access .st-art{opacity:.3}
+/* движение: сцена собирается за полсекунды, пункты меню въезжают лесенкой; при «меньше движения» всё сразу */
+.tm-motion .start .st-ht,.tm-motion .start .st-k{animation:tmIn .35s steps(10,end) both}
+.tm-motion .start .st-go{animation:tmEnter 300ms steps(10,end) 120ms backwards}
+.tm-motion .start .sm-i{animation:tmEnter 280ms steps(10,end) calc(180ms + var(--k,0) * 55ms) backwards}
+.tm-motion .start .st-stat{animation:tmReveal 300ms steps(9,end) 420ms backwards}
+.tm-motion .start .sv-ray{animation:tmFade 400ms steps(8,end) backwards}
+.tm-motion .start .sv-line{stroke-dasharray:1;stroke-dashoffset:1;animation:rtdraw 900ms steps(24,end) 300ms forwards}
+.tm-motion .start .sv-node{animation:tmOn 280ms steps(9,end) calc(320ms + var(--i,0) * 95ms) backwards;transform-box:fill-box;transform-origin:center}
+.tm-motion .start .sv-star{animation:tmOn 320ms steps(9,end) 1100ms backwards;transform-box:fill-box;transform-origin:center}
+.tm-motion .start .st-in{animation:tmReveal 240ms steps(8,end)}
+.tm-lite .start .sm-i,.tm-lite .start .sv-node{animation-delay:0ms!important}
+@media(prefers-reduced-motion:reduce){.start *,.start *::before,.start *::after{animation:none!important;transition:none!important}.sv-line{stroke-dashoffset:0!important}}
+

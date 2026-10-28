@@ -176,7 +176,7 @@
       var w = el('div', 'ks'); js.forEach(function (i) { var b = el('button', 'kchip gnb', D.j[i][0]); b.type = 'button'; b.dataset.id = 'job-' + i; w.appendChild(b); });
       ps.appendChild(w); f.appendChild(ps);
     }
-    f.appendChild(acts([['Открыть страницу предмета', 'd/' + s + '.html', 'btn-s'], ['Маршрут на пути студента', 'index.html#route=' + s, 'btn-o']]));
+    f.appendChild(acts([['Открыть страницу предмета', 'd/' + s + '.html', 'btn-s'], ['Маршрут на пути студента', 'path.html#route=' + s, 'btn-o']]));
     f.appendChild(el('p', 'muted gtip', 'Повторное нажатие на выбранный узел тоже открывает страницу предмета.'));
     show(f); pick.value = s; jobSel.value = ''; setHash('node=' + s); after(opt);
     say('Выбран предмет «' + n[0] + '»: опирается на ' + upL.length + ', ведёт к ' + dnL.length + (js.length ? ', ключевой для профессий: ' + js.length : '') + '.');
@@ -191,7 +191,7 @@
     f.appendChild(el('p', 'gwhat', j[1]));
     f.appendChild(group('Ключевые предметы', j[2].slice().sort(byPlan).map(function (s) { return item(s, 'ключевой', 'key', ''); }), ''));
     f.appendChild(group('Нужны для ключевых', j[3].slice().sort(byPlan).map(function (s) { return item(s, 'нужен', 'need', ''); }), 'Таких предметов не отмечено.'));
-    var ac = acts([['Маршрут по семестрам', 'jobs.html#job-' + i, 'btn-s'], ['Показать на пути студента', 'index.html#path=' + i, 'btn-o']]);
+    var ac = acts([['Маршрут по семестрам', 'jobs.html#job-' + i, 'btn-s'], ['Показать на пути студента', 'path.html#path=' + i, 'btn-o']]);
     if (TM) {                                                  // «Интересная профессия»: кнопку оживляет profile.js
       var fb = el('button', 'mybtn my-job'); fb.type = 'button'; fb.dataset.job = i; fb.dataset.title = j[0]; fb.hidden = true;
       var fi = el('span', 'myi', '★'); fi.setAttribute('aria-hidden', 'true'); fb.appendChild(fi); fb.appendChild(document.createTextNode('Интересная профессия'));

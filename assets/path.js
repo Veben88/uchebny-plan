@@ -405,7 +405,7 @@
   window.addEventListener('scroll', schedule, { passive: true });
   window.addEventListener('resize', schedule); prog();
 
-  // ---------- ссылка на раскрытую карточку: index.html#d=код ----------
+  // ---------- ссылка на раскрытую карточку: path.html#d=код (старые index.html#d=… перенаправляются сюда) ----------
   window.addEventListener('hashchange', function () {
     var rt = location.hash.match(/^#route=([\w-]+)$/), jb = location.hash.match(/^#path=(\d+)$/);
     if (rt && I[rt[1]]) { if (xp) close(function () { showRoute(rt[1], true, true); }); else showRoute(rt[1], true, true); return; }
@@ -415,7 +415,7 @@
   });
   var m = location.hash.match(/^#d=([\w-]+)/);
   if (m && I[m[1]]) { var c = cardFor(m[1]); if (c) { c.scrollIntoView({ block: 'center' }); prog(); } setTimeout(function () { open(m[1], c, true); }, 60); }
-  // ссылка с карты профессий: index.html#path=N сразу подсвечивает путь к профессии N
+  // ссылка с карты профессий: path.html#path=N сразу подсвечивает путь к профессии N
   var mr = location.hash.match(/^#route=([\w-]+)$/);
   if (mr && I[mr[1]]) setTimeout(function () { showRoute(mr[1], true, true); }, 60);
   var mj = location.hash.match(/^#path=(\d+)$/);

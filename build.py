@@ -17,7 +17,7 @@ for _d in _RPA["disciplines"]:
     if _s: RP.setdefault(_s, []).append(_d)
 def ic(n): return ICONS.get(n, "")
 # отпечаток версии файлов сайта: меняется при любой правке стилей и скриптов, поэтому браузер не показывает старое из кэша
-ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js","graph.js","jobs.js","plan.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
+ASSET_V = hashlib.md5(b"".join((ROOT/"assets"/f).read_bytes() for f in ("style.css","app.js","live.js","path.js","feedback.js","tasks.js","form.js","motion.js","profile.js","graph.js","jobs.js","plan.js","start.js") if (ROOT/"assets"/f).exists())).hexdigest()[:8]
 
 # ---- сжатие ресурсов при сборке (только стандартная библиотека; исходники в assets/ не меняются) ----
 _STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')')
@@ -105,7 +105,7 @@ HERO3D = ('<div class="hero3d" aria-hidden="true"><span class="g3 ring"></span><
 SITE = "TeachMap"; SITE_URL = "https://veben88.github.io/uchebny-plan/"
 def head_nav(depth, active, band=False):
     b = "../"*depth
-    NAV = (("home","index.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("map","map.html","Карта связей","Карта","FaCompass"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
+    NAV = (("home","path.html","Путь студента","Путь","FaMapMarkedAlt"),("cat","catalog.html","Все дисциплины","Каталог","FaBookOpen"),("map","map.html","Карта связей","Карта","FaCompass"),("road","roadmap.html","Развитие сайта","Планы","FaRocket"),("about","about.html","О проекте","Проект","FaLightbulb")) + ((("fb","feedback.html","Обратная связь","Отзыв","FaCommentDots"),) if FB_ON else ())
     links = "".join(f'<a href="{b}{h}"{" aria-current=page" if k==active else ""}><span class="ni" aria-hidden="true">{ic(i)}</span><span class="nt">{t}</span><span class="ns" aria-hidden="true">{sh}</span></a>' for k,h,t,sh,i in NAV)
     return (f'<header class="top wrap"><a class="brand" href="{b}index.html">{LOGO_SVG}<span class="bw"><b>Teach<em>Map</em></b><small>учебный план простым языком</small></span><span class="vh">, на главную</span></a>'
             f'<nav class="menu" aria-label="Разделы">{links}<button type="button" class="acc" id="acc" aria-pressed="false" title="Крупный шрифт и высокий контраст"><span class="ni" aria-hidden="true">{ic("FaEye")}</span><span>Крупно</span></button></nav></header>')
@@ -115,7 +115,7 @@ def footer_html(b=""):
     if FB_ON: contact += f'<p><a href="{b}feedback.html">Обратная связь: расскажите, что улучшить</a></p>'
     return (f'<footer><div class="wrap"><p><b>TeachMap: проект студентов ДВФУ.</b> Это не официальный сайт вуза: информация справочная и не заменяет рабочий учебный план и консультацию приёмной комиссии.</p>'
             f'<p>Источник данных: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}.</p>{contact}</div></footer>')
-def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False, jobs=False, plan=False):
+def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=False, jobs=False, plan=False, start=False, head=""):
     b = "../"*depth
     lm = f'<meta name="ratings-url" content="{E(RATINGS_URL)}">' if (live and RATINGS_URL) else ""
     lj = f'<script src="{b}assets/live.js?v={ASSET_V}" defer></script>' if (live and RATINGS_URL) else ""
@@ -129,7 +129,8 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
     if graph: lj += f'<script src="{b}assets/graph.js?v={ASSET_V}" defer></script>'
     if jobs: lj += f'<script src="{b}assets/jobs.js?v={ASSET_V}" defer></script>'
     if plan: lj += f'<script src="{b}assets/plan.js?v={ASSET_V}" defer></script>'
-    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    if start: lj += f'<script src="{b}assets/start.js?v={ASSET_V}" defer></script>'
+    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8">{head}<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#2A6FBF"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}try{{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&document.documentElement.classList.contains("tm-lite")){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
@@ -197,7 +198,7 @@ def links_panel(slug):
             + col("Пригодится для", down, "Связей пока не отмечено.")
             + '</div><p class="muted lknote"><span class="lkt need">нужен</span> без этого предмета трудно начать, <span class="lkt helps">помогает</span> полезная опора. '
               'Связи составлены командой проекта по содержанию предметов: это логические предположения, а не официальные требования учебного плана.</p>'
-            f'<p class="hlinks2"><a class="btn-s" href="../index.html#route={slug}">{ic("FaMapMarkedAlt")} Показать маршрут на пути студента</a><a class="btn-o" href="../map.html#node={slug}">{ic("FaCompass")} На карте связей</a></p></section>')
+            f'<p class="hlinks2"><a class="btn-s" href="../path.html#route={slug}">{ic("FaMapMarkedAlt")} Показать маршрут на пути студента</a><a class="btn-o" href="../map.html#node={slug}">{ic("FaCompass")} На карте связей</a></p></section>')
 def jobs_panel(slug):
     js = [(k, j) for k, j in enumerate(JOBS) if slug in j[3]]
     if not js: return ""
@@ -396,7 +397,7 @@ def jobs_page():
                  f'<p class="lkh" style="margin-top:14px">Маршрут по семестрам: {len(keys)} ключевых предметов и {len(anc)} — без которых их трудно начать</p>'
                  f'<ol class="route">{cols}</ol>'
                  + (f'<p class="lkh" style="margin-top:14px">Ключевые предметы формируют компетенции</p><div class="ks">{comps}</div>' if comps else "")
-                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="index.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
+                 + f'<div class="acts" style="margin-top:14px"><a class="btn-s" href="path.html#path={k}">{ic("FaMapMarkedAlt")} Показать на пути студента</a><a class="btn-o" href="map.html#job={k}">{ic("FaCompass")} На карте связей</a>'
                  f'<a class="btn-o" href="https://hh.ru/search/vacancy?text={E(q)}" target="_blank" rel="noopener">Вакансии на hh.ru</a>'
                  f'<button type="button" class="mybtn my-job" data-job="{k}" data-title="{E(j[1])}" aria-pressed="false" hidden><span class="myi" aria-hidden="true">★</span>Интересная профессия</button></div></article>')
     toc = "".join(f'<a class="kchip" href="#job-{k}">{E(j[1])}</a>' for k, j in enumerate(JOBS)) + '<a class="kchip jcmp" href="#compare">Сравнить две профессии</a>'
@@ -415,7 +416,7 @@ def jobs_page():
                'компетенции — коды из рабочих программ ключевых предметов. Это не требования работодателей и не профессиональный стандарт.</p></section>')
     body = head_nav(0, "") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта профессий</h1>
 <p class="lead">Кем можно работать после направления 27.03.01 и какие предметы к этому ведут: от первого семестра до диплома.</p>
-<p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="index.html">Путь студента</a></p></section></div></div>
+<p class="hlinks"><a class="btn" href="#job-0">К профессиям {ic("FaArrowRight")}</a><a class="btn-o" href="path.html">Путь студента</a></p></section></div></div>
 <div class="wrap"><nav class="ks jtoc" aria-label="Профессии">{toc}</nav>
 <section class="panel jbasis"><h2><span class="ci">{ic("FaClipboardCheck")}</span>На чём основана карта</h2><ul class="bl">
 <li><span class="rch key sample">ключевой предмет</span> — оценка команды проекта по задачам профессии; это не официальный перечень и не гарантия трудоустройства.</li>
@@ -490,7 +491,7 @@ def map_page(cards):
     data = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     hero = ('<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>Карта связей между предметами</h1>'
             '<p class="lead">Все предметы плана на одной схеме: на что опирается каждый, к чему ведёт и какие предметы нужны для профессии. Выбери предмет на карте или в списке.</p>'
-            f'<nav class="gtabs" aria-label="Режимы образовательной карты"><a href="index.html#journey">{ic("FaMapMarkedAlt")}Учебный план</a><a href="map.html" aria-current="page">{ic("FaCompass")}Граф связей</a><a href="jobs.html">{ic("FaUserGraduate")}Путь к профессии</a></nav></section></div></div>')
+            f'<nav class="gtabs" aria-label="Режимы образовательной карты"><a href="path.html#journey">{ic("FaMapMarkedAlt")}Учебный план</a><a href="map.html" aria-current="page">{ic("FaCompass")}Граф связей</a><a href="jobs.html">{ic("FaUserGraduate")}Путь к профессии</a></nav></section></div></div>')
     tools = (f'<div class="gtools"><details class="gfil" open><summary>Фильтры</summary><div class="gfrows">'
              f'<div class="gfrow" role="group" aria-label="Показывать семестры"><span class="gfl">Семестры</span>{sems}</div>'
              f'<div class="gfrow" role="group" aria-label="Показывать разделы плана"><span class="gfl">Разделы</span>{grs}</div>'
@@ -506,7 +507,7 @@ def map_page(cards):
             '<div id="gp"><p class="muted">Выбери предмет на карте или в списке: появится, на что он опирается, к чему ведёт и с какими профессиями связан.</p></div></aside>')
     legend = ('<p class="muted gnote"><b>Как читать карту.</b> Сплошная стрелка «нужен»: без этого предмета трудно начать следующий. Пунктир «помогает»: полезная опора, но начать можно и без неё. '
               'Точки «ведёт к профессии»: ключевые предметы направления. Связи составлены командой проекта по содержанию предметов и согласованы автором: это логические предположения, '
-              'а не официальные требования учебного плана; связи с профессиями — оценка команды, не гарантия трудоустройства. Тот же план списком — в <a href="catalog.html">каталоге</a> и на <a href="index.html#journey">пути по семестрам</a>.</p>')
+              'а не официальные требования учебного плана; связи с профессиями — оценка команды, не гарантия трудоустройства. Тот же план списком — в <a href="catalog.html">каталоге</a> и на <a href="path.html#journey">пути по семестрам</a>.</p>')
     body = (head_nav(0, "map") + f'<main id="main">{hero}<div class="wrap"><div class="gwrap"><div class="gmain" id="gmain">{tools}{view}</div>{side}</div>{legend}</div></main>'
             f'<p class="vh" id="glive" aria-live="polite"></p><script type="application/json" id="gd">{data}</script>')
     return page("Карта связей между предметами 27.03.01 · TeachMap", "Граф учебного плана: на что опирается каждый предмет, к чему ведёт и какие предметы нужны для профессии", body, graph=True)
@@ -528,7 +529,7 @@ def path_page(cards):
                    f'<span class="dci" aria-hidden="true">{ic(GROUPS[GKEYS[g]][1])}</span><b>{E(label)}</b>'
                    f'<small>{ze_num(it)} з.е. · {n(it["hours"])} ч{" · продолжение" if cont else ""}</small></a>')
         new = sum(1 for _, c in lst if not c)
-        sts.append(f'<li class="station" data-sem="{s}" data-course="{(s+1)//2}"><div class="node"><b>{s}</b><span>семестр</span></div><div class="stbody">'
+        sts.append(f'<li class="station" id="sem-{s}" data-sem="{s}" data-course="{(s+1)//2}"><div class="node"><b>{s}</b><span>семестр</span></div><div class="stbody">'
                    f'<div class="sthead"><span class="kicker">{(s+1)//2} курс · {"осень" if s % 2 else "весна"}</span><h2>Семестр {s}</h2>'
                    f'<p>{SEM_NOTE[s]} <span class="muted">Новых предметов: {new}, всего в семестре: {len(lst)}.</span></p></div><div class="dcs">{cs}</div></div></li>')
     jobs = ""
@@ -602,6 +603,68 @@ def plan_page(cards):
 <p class="muted cmpnote">Нагрузка и формы контроля — по учебному плану; связи — логические предположения команды проекта (не официальные пререквизиты); профессии — оценка команды; компетенции — коды из рабочих программ.</p></section></div></main>
 <script type="application/json" id="pcd">{cdata}</script>'''
     return page("Учебный план 27.03.01 таблицей: часы, з.е., контроль · TeachMap", "Все позиции учебного плана 27.03.01 ДВФУ таблицей: семестры, зачётные единицы, часы и формы контроля; выгрузка CSV и сравнение дисциплин", body, plan=True)
+# ---- стартовый экран (index.html): игровое меню; дорога по семестрам — на path.html ----
+def start_art():
+    """Собственная SVG-композиция (без персонажей и чужой графики): лучи, кольцо, силуэт города из прямоугольников
+    и «созвездие» пути — 8 семестров от нижнего левого угла к звезде профессии. Город детерминирован (без случайных чисел)."""
+    W, H, base = 900, 700, 700
+    city_b = city_f = win = ""
+    x = 300
+    k = 0
+    while x < W:                                       # задний ряд: выше и светлее
+        w = 34 + (k * 37) % 42; h = 150 + (k * 71) % 170
+        city_b += f'<rect x="{x}" y="{base - h}" width="{w}" height="{h}"/>'
+        x += w + 4; k += 1
+    x = 250; k = 0
+    while x < W:                                       # передний ряд и окна
+        w = 40 + (k * 53) % 50; h = 70 + (k * 89) % 150
+        if k == 7: w, h = 46, 330                      # башня
+        city_f += f'<rect x="{x}" y="{base - h}" width="{w}" height="{h}"/>'
+        if k == 7: city_f += f'<path d="M{x + 23},{base - h - 70}L{x + 33},{base - h}H{x + 13}Z"/><rect x="{x + 21}" y="{base - h - 110}" width="4" height="44"/>'
+        for r in range(base - h + 14, base - 16, 22):
+            for c in range(x + 8, x + w - 8, 14):
+                if (r * 7 + c * 3 + k) % 5 == 0: win += f'<rect x="{c}" y="{r}" width="6" height="9"/>'
+        x += w + 6; k += 1
+    pts = [(120, 560), (210, 488), (300, 520), (390, 420), (470, 450), (560, 330), (640, 352), (720, 236)]
+    line = "M" + " L".join(f"{a},{b}" for a, b in pts) + " L812,128"
+    nodes = "".join(f'<g class="sv-node" style="--i:{i}"><circle cx="{a}" cy="{b}" r="12"/><text x="{a}" y="{b + 4.5}">{i + 1}</text></g>' for i, (a, b) in enumerate(pts))
+    star = "M812,96 L820,118 L844,118 L825,132 L832,156 L812,142 L792,156 L799,132 L780,118 L804,118Z"
+    return (f'<svg class="st-art" viewBox="0 0 {W} {H}" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">'
+            '<g class="sv-ray"><path d="M900,0 L520,700 H610 L900,150Z"/><path d="M900,210 L700,700 H760 L900,330Z"/><path d="M760,0 L470,700 H500 L800,0Z"/></g>'
+            '<circle class="sv-ring" cx="660" cy="250" r="190"/><circle class="sv-ring2" cx="660" cy="250" r="236"/>'
+            f'<g class="sv-city-b">{city_b}</g><g class="sv-city-f">{city_f}</g><g class="sv-win">{win}</g>'
+            f'<path class="sv-line" d="{line}" pathLength="1"/>{nodes}<path class="sv-star" d="{star}"/><text class="sv-stl" x="812" y="186">профессия</text></svg>')
+def start_page():
+    menu = [("map.html", "Образовательная карта", "Граф связей, путь по семестрам и маршруты к профессиям"),
+            ("catalog.html", "Дисциплины", f"Все {len(items)} позиций плана: поиск, фильтры, страницы предметов"),
+            ("jobs.html", "Профессии", f"{len(JOBS)} направлений: полезные дисциплины, компетенции, сравнение"),
+            ("profile.html", "Профиль", "Мой план: статусы, избранное, заметки — только в этом браузере"),
+            ("#settings", "Настройки", "Крупный шрифт и контраст, о проекте, обратная связь")]
+    lis = "".join(f'<li><a class="sm-i{" on" if k == 0 else ""}" href="{h}" style="--k:{k}"><span class="sm-n" aria-hidden="true">{k + 1:02d}</span><span class="sm-t">{t}</span><span class="sm-d">{d}</span></a></li>'
+                  for k, (h, t, d) in enumerate(menu))
+    fb = '<li><a class="sm-s" href="feedback.html">Обратная связь</a></li>' if FB_ON else ""
+    settings = ('<section class="st-set" id="settings" aria-labelledby="seth"><h2 id="seth" tabindex="-1">Настройки</h2><ul class="sm-sl">'
+                f'<li><button type="button" class="sm-s acc" id="acc" aria-pressed="false"><span class="ni" aria-hidden="true">{ic("FaEye")}</span>Крупный шрифт и высокий контраст</button></li>'
+                '<li><a class="sm-s" href="profile.html">Мои данные: перенос, выгрузка, очистка</a></li>'
+                '<li><a class="sm-s" href="plan.html">Учебный план таблицей и CSV</a></li>'
+                '<li><a class="sm-s" href="about.html">О проекте</a></li><li><a class="sm-s" href="roadmap.html">Развитие сайта</a></li>'
+                f'{fb}</ul><button type="button" class="st-back" id="setback" hidden>← Назад к меню</button></section>')
+    total_ze = meta.get("total_ze", 240)
+    facts = (f'<ul class="st-facts"><li><b>4</b><span>года</span></li><li><b>8</b><span>семестров</span></li>'
+             f'<li><b>{total_ze}</b><span>з.е.</span></li><li><b>{len(items)}</b><span>позиции плана</span></li></ul>')
+    body = f'''<main id="main" class="start"><div class="st-bg" aria-hidden="true">{start_art()}</div>
+<div class="st-wrap"><div class="st-top"><a class="st-logo" href="index.html">{LOGO_SVG}<span class="st-lw">Teach<em>Map</em></span><span class="vh">: стартовый экран</span></a><p class="st-date" id="stdate" aria-hidden="true"></p></div>
+<div class="st-left"><h1 class="st-h1"><span class="st-k">{E(meta.get("program", "27.03.01"))} · ДВФУ</span><span class="st-ht">Учебный план простым языком</span></h1>
+<p class="st-cta"><a class="st-go" id="stgo" href="path.html#journey"><span class="st-gi" aria-hidden="true"></span><span class="st-gt" id="stgot">Начать путь</span><span class="st-gd" id="stgod">от первого семестра до профессии</span></a></p>
+<nav class="st-menu" id="stnav" aria-label="Главное меню"><ol id="stmenu">{lis}</ol></nav>{settings}
+<form class="st-find" action="catalog.html" role="search"><label class="vh" for="stq">Найти предмет</label><input id="stq" name="q" type="search" placeholder="Найти предмет, например «метрология»"><button type="submit" aria-label="Найти">{ic("FaSearch")}</button></form></div>
+<aside class="st-stat" aria-labelledby="stath"><h2 class="vh" id="stath">Программа и мой прогресс</h2><p class="st-sk">Программа</p>{facts}
+<div class="st-me" id="stme" hidden></div><p class="st-note">Справочный студенческий проект, не официальный сайт ДВФУ. Данные плана сверены {E(meta["checked"])}.</p></aside></div></main>'''
+    # старые ссылки на путь студента (index.html#d=…, #route=…, #path=…, #journey) ведут на path.html — до отрисовки страницы
+    # st-js ставится до отрисовки: подменю «Настройки» скрыто сразу, без сдвига экрана, когда скрипт загрузится позже
+    head = ('<script>if(/^#(d|route|path)=|^#journey$/.test(location.hash))location.replace("path.html"+location.hash);'
+            'document.documentElement.classList.add("st-js");if(location.hash==="#settings")document.documentElement.classList.add("st-setopen")</script>')
+    return page("TeachMap: учебный план 27.03.01 «Стандартизация и метрология» ДВФУ простым языком", "Интерактивная карта учебного плана: дисциплины, связи между ними, путь по семестрам и профессии выпускников", body, start=True, head=head)
 def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"]), [x for x, t, _ in links_of(i["slug"])[0] if t == "need"], i["idx"]] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
@@ -616,7 +679,7 @@ def build():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT/"d").mkdir(parents=True); shutil.copytree(ROOT/"assets", OUT/"assets", ignore=shutil.ignore_patterns("icons.json")); minify_assets(OUT/"assets")
     cards = {it["slug"]: read_card(it["slug"]) for it in items}; order = sorted(items, key=SORT)
-    (OUT/"index.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
+    (OUT/"index.html").write_text(start_page(), encoding="utf-8"); (OUT/"path.html").write_text(path_page(cards), encoding="utf-8"); (OUT/"catalog.html").write_text(home_page(cards), encoding="utf-8")
     for k, it in enumerate(order): (OUT/"d"/f'{it["slug"]}.html').write_text(disc_page(it, cards[it["slug"]], order, k), encoding="utf-8")
     (OUT/"roadmap.html").write_text(road_page(), encoding="utf-8"); (OUT/"jobs.html").write_text(jobs_page(), encoding="utf-8"); (OUT/"map.html").write_text(map_page(cards), encoding="utf-8"); (OUT/"plan.html").write_text(plan_page(cards), encoding="utf-8"); (OUT/"plan.csv").write_text(plan_csv(), encoding="utf-8", newline=""); (OUT/"profile.html").write_text(profile_page(), encoding="utf-8"); (OUT/"about.html").write_text(about_page(), encoding="utf-8"); (OUT/"feedback.html").write_text(feedback_page(), encoding="utf-8")
     (OUT/"404.html").write_text(page("Страница не найдена · TeachMap","",head_nav(0,"")+'<main id="main" class="wrap"><section class="hero"><h1>Страница не найдена</h1><p><a href="index.html">Вернуться на главную</a></p></section></main>'), encoding="utf-8")

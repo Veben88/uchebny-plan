@@ -16,7 +16,7 @@ from urllib.parse import urlparse, unquote
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "site"
-PAGES = ["index", "catalog", "map", "plan", "jobs", "profile", "roadmap", "about", "feedback", "404"]
+PAGES = ["index", "path", "catalog", "map", "plan", "jobs", "profile", "roadmap", "about", "feedback", "404"]
 SCRIPT_HASHES = ("d=", "path=", "route=", "node=", "job=", "compare=", "cmp=")
 
 
