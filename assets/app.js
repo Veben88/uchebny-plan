@@ -99,7 +99,7 @@
     setTimeout(function () {
       var go = list.filter(function (c) { return c._out; });   // строку могли вернуть, пока она уходила
       slide(function () { go.forEach(function (c) { c._out = false; c.classList.remove('tm-leave'); c.hidden = true; }); });
-      pickVisible();
+      pickVisible(); heads();
     }, LEAVE);
   }
   // Поиск: каждое слово запроса должно встретиться в тексте строки (порядок не важен), ё и е не различаются.
@@ -115,6 +115,7 @@
     ze: function (a, b) { return (+b.dataset.ze) - (+a.dataset.ze) || a._ord - b._ord; }
   };
   var KEYS = ['q', 'course', 'kind', 'sem', 'group', 'kr', 'lab', 'fav', 'doing', 'done', 'job'], SIDE = ['course', 'kind', 'group'];
+  var VIEW = '';   // представление: '' список, sem — по семестрам, group — по разделам плана
   function norm(s) { return s.toLowerCase().replace(/ё/g, 'е').trim(); }
   function sortCards(animate) {
     var cmp = SORTS[sortSel.value] || SORTS[''], sorted = cards.slice().sort(cmp);
@@ -127,6 +128,7 @@
     if (q.value.trim()) p.set('q', q.value.trim());
     KEYS.slice(1).forEach(function (k) { if (F[k]) p.set(k, F[k]); });
     if (sortSel.value) p.set('sort', sortSel.value);
+    if (VIEW) p.set('view', VIEW);
     var s = p.toString();
     try { history.replaceState(history.state, '', location.pathname + (s ? '?' + s : '') + location.hash); } catch (e) {}
   }
@@ -174,11 +176,11 @@
     counts(words);
     reset.hidden = !(words.length || Object.keys(F).length || sortSel.value);
     jobSel.value = F.job || ''; jobMap.hidden = jobNote.hidden = !F.job; if (F.job) jobMap.href = 'map.html#job=' + F.job;
-    saveUrl(); pickVisible();
+    saveUrl(); pickVisible(); heads();
   }
   function clearAll() {
     F = {}; q.value = ''; var sorted = sortSel.value; sortSel.value = '';
-    if (sorted) sortCards(true);
+    if (sorted) { sortCards(true); if (VIEW) regroup(); }
     run(); q.focus();
   }
   [].forEach.call(document.querySelectorAll('[data-f]'), function (b) {
@@ -207,9 +209,45 @@
     e.preventDefault(); vis[j].querySelector('.cl').focus();
   });
   jobSel.addEventListener('change', function () { if (jobSel.value) F.job = jobSel.value; else delete F.job; run(); });
-  sortSel.addEventListener('change', function () { sortCards(true); run(); });
+  sortSel.addEventListener('change', function () { sortCards(true); if (VIEW) regroup(); run(); });
   reset.addEventListener('click', clearAll);
   document.getElementById('reset2').addEventListener('click', clearAll);
+
+  // ---------- представления: список / по семестрам / по разделам плана (заголовки групп вставляются между строками) ----------
+  var GROUP_ORDER = [], GNAMES = {};
+  [].forEach.call(document.querySelectorAll('.cf[data-f="group"]'), function (b) { GROUP_ORDER.push(b.dataset.v); });
+  var viewBar = document.createElement('div'); viewBar.className = 'cview'; viewBar.setAttribute('role', 'group'); viewBar.setAttribute('aria-label', 'Представление списка');
+  [['', 'Список'], ['sem', 'По семестрам'], ['group', 'По разделам']].forEach(function (m) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'cvb'; b.dataset.view = m[0]; b.textContent = m[1];
+    b.addEventListener('click', function () { VIEW = m[0]; viewBar.querySelectorAll('.cvb').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.view === VIEW ? 'true' : 'false'); }); regroup(); saveUrl(); });
+    viewBar.appendChild(b);
+  });
+  var cntrow0 = document.querySelector('.cntrow'); if (cntrow0) cntrow0.parentNode.insertBefore(viewBar, cntrow0);
+  function startSem(c) { return +c.dataset.sems.trim().split(' ')[0] || 99; }
+  function regroup() {
+    viewBar.querySelectorAll('.cvb').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.view === VIEW ? 'true' : 'false'); });
+    var cmp = SORTS[sortSel.value] || SORTS[''];
+    var order = cards.slice().sort(function (a, b) {
+      if (VIEW === 'sem') return startSem(a) - startSem(b) || cmp(a, b);
+      if (VIEW === 'group') return GROUP_ORDER.indexOf(a.dataset.group) - GROUP_ORDER.indexOf(b.dataset.group) || cmp(a, b);
+      return cmp(a, b);
+    });
+    order.forEach(function (c) { grid.appendChild(c); });
+    heads();
+  }
+  function heads() {
+    [].forEach.call(grid.querySelectorAll('.cgh'), function (h) { h.remove(); });
+    grid.classList.toggle('cgrouped', !!VIEW); if (!VIEW) return;
+    var vis = cards.filter(function (c) { return !c.hidden && !c._out; }), cnt = {}, key = function (c) { return VIEW === 'sem' ? String(startSem(c)) : c.dataset.group; };
+    vis.forEach(function (c) { cnt[key(c)] = (cnt[key(c)] || 0) + 1; });
+    var last = null;
+    [].slice.call(grid.children).forEach(function (c) {
+      if (!c.classList || !c.classList.contains('card') || c.hidden || c._out) return;
+      var k = key(c); if (k === last) return; last = k;
+      var h = document.createElement('h3'); h.className = 'cgh'; h.textContent = (VIEW === 'sem' ? k + ' семестр' : k) + ' · ' + cnt[k];
+      grid.insertBefore(h, c);
+    });
+  }
 
   // ---------- активные фильтры чипами; на телефоне — нижняя шторка фильтров; прокрутка при «Назад» ----------
   var NARROWC = window.matchMedia ? matchMedia('(max-width: 700px)') : { matches: false, addEventListener: function () {} };
@@ -321,6 +359,7 @@
   if (p.get('job') && jobSel.querySelector('option[value="' + p.get('job').replace(/\D/g, '') + '"]')) F.job = p.get('job').replace(/\D/g, '');
   if (p.get('q')) q.value = p.get('q');
   if (p.get('sort') && SORTS[p.get('sort')]) { sortSel.value = p.get('sort'); sortCards(false); }
+  if (/^(sem|group)$/.test(p.get('view') || '')) { VIEW = p.get('view'); regroup(); }
   run();
   // отметки «Моего плана» меняются (в том числе в другой вкладке) — пересчитать фильтры и счётчики
   if (window.TMProfile && window.TMProfile.on) window.TMProfile.on(function () { setTimeout(run, 0); });

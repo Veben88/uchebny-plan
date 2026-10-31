@@ -2416,3 +2416,12 @@ main{overflow-x:clip}
 .gsb:last-child{border-right:0}.gsb:hover{background:rgba(221,235,250,.14)}
 .gsb[aria-pressed=true]{background:#fff;color:#173B70}
 .gsb:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+/* каталог: представления и заголовки групп */
+.cview{display:inline-flex;margin:0 0 10px;border:1.5px solid var(--field);border-radius:999px;overflow:hidden}
+.cvb{font:inherit;font-size:13.5px;font-weight:600;padding:6px 14px;background:var(--card);color:var(--ink);border:0;border-right:1px solid var(--line);cursor:pointer}
+.cvb:last-child{border-right:0}.cvb:hover{background:var(--ice)}
+.cvb[aria-pressed=true]{background:var(--btn);color:#fff}
+.cvb:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.cgh{margin:14px 0 2px;padding:6px 12px;font-family:var(--hd);font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:linear-gradient(100deg,#173B70,#2A6FBF);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);width:max-content;max-width:100%}
+.cgh:first-child{margin-top:2px}
+@media(max-width:700px){.cview{display:flex;width:100%}.cvb{flex:1;padding:8px 6px;font-size:13px}}
