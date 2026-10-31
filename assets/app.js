@@ -71,6 +71,9 @@
     fromHash(!!location.hash);
     window.addEventListener('hashchange', function () { fromHash(true); });
   })();
+  // «Движение»: показываем, просит ли само устройство уменьшить движение (тогда анимаций нет независимо от переключателя)
+  (function () { var n = document.getElementById('sysmot'); if (!n || !window.matchMedia) return;
+    n.textContent = (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'Устройство просит уменьшить движение: анимаций нет независимо от переключателя. ' : 'Устройство не просит уменьшить движение. ') + 'Настройки сохраняются только в этом браузере.'; })();
   var g = document.getElementById('grid'); if (!g) return;
   // ---------- «Дисциплины» (catalog.html): экран выбора ----------
   // Слева фильтры со счётчиками (курс, обязательные / по выбору, разделы плана, мои отметки), в центре список строк,
