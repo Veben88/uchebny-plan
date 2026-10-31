@@ -2453,3 +2453,12 @@ main{overflow-x:clip}
 .srcl dt{font-weight:700;color:var(--pri)}.srcl dd{margin:0}
 .stprog{margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--mut)}
 @media(max-width:700px){.srcl>div{grid-template-columns:1fr;gap:2px}}
+/* без сдвига вёрстки при запуске скриптов (телефон): место под скрытые до скрипта элементы занято заранее */
+.tm-js .sechead [data-print][hidden]{display:inline-flex;visibility:hidden}
+@media(max-width:700px){
+ .tm-js .catlist .ctools,.tm-js #catside:not(.cfin){display:none}
+ .tm-js .cfsb .ctools{display:grid}.tm-js .cfsb #catside{display:block}
+ .tm-js .catgrid:has(>#catside){display:block}
+ .catlist .cntrow{min-height:44px}
+}
+@media(max-width:700px){.sechead .hlinks{flex-direction:column;align-items:stretch}.sechead .hlinks>*{justify-content:center;text-align:center}}

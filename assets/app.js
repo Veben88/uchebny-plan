@@ -219,13 +219,10 @@
   // ---------- представления: список / по семестрам / по разделам плана (заголовки групп вставляются между строками) ----------
   var GROUP_ORDER = [], GNAMES = {};
   [].forEach.call(document.querySelectorAll('.cf[data-f="group"]'), function (b) { GROUP_ORDER.push(b.dataset.v); });
-  var viewBar = document.createElement('div'); viewBar.className = 'cview'; viewBar.setAttribute('role', 'group'); viewBar.setAttribute('aria-label', 'Представление списка');
-  [['', 'Список'], ['sem', 'По семестрам'], ['group', 'По разделам']].forEach(function (m) {
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'cvb'; b.dataset.view = m[0]; b.textContent = m[1];
-    b.addEventListener('click', function () { VIEW = m[0]; viewBar.querySelectorAll('.cvb').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.view === VIEW ? 'true' : 'false'); }); regroup(); saveUrl(); });
-    viewBar.appendChild(b);
+  var viewBar = document.getElementById('cview');
+  [].forEach.call(viewBar.querySelectorAll('.cvb'), function (b) {
+    b.addEventListener('click', function () { VIEW = b.dataset.view; regroup(); saveUrl(); });
   });
-  var cntrow0 = document.querySelector('.cntrow'); if (cntrow0) cntrow0.parentNode.insertBefore(viewBar, cntrow0);
   function startSem(c) { return +c.dataset.sems.trim().split(' ')[0] || 99; }
   function regroup() {
     viewBar.querySelectorAll('.cvb').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.view === VIEW ? 'true' : 'false'); });
@@ -280,12 +277,11 @@
   var shClose = document.createElement('button'); shClose.type = 'button'; shClose.className = 'btn-s cfdone'; shClose.textContent = 'Показать'; shHead.appendChild(shClose);
   sheet.appendChild(shHead); var shBody = document.createElement('div'); shBody.className = 'cfsb'; sheet.appendChild(shBody); document.body.appendChild(sheet);
   var back = document.createElement('div'); back.className = 'cfback'; back.hidden = true; document.body.appendChild(back);
-  var fbtn = document.createElement('button'); fbtn.type = 'button'; fbtn.className = 'btn-o cfbtn'; fbtn.id = 'cfbtn'; fbtn.setAttribute('aria-controls', 'cfsheet'); fbtn.setAttribute('aria-expanded', 'false'); fbtn.innerHTML = 'Фильтры <b hidden></b>';
-  if (cntrow) cntrow.insertBefore(fbtn, cntrow.firstChild);
+  var fbtn = document.getElementById('cfbtn');
   var homeSide = side0.parentNode, homeSideNext = side0.nextSibling, homeTools = tools0.parentNode, homeToolsNext = tools0.nextSibling;
   function place() {
-    if (NARROWC.matches) { shBody.appendChild(side0); shBody.appendChild(tools0); }
-    else { homeSide.insertBefore(side0, homeSideNext); homeTools.insertBefore(tools0, homeToolsNext); closeSheet(); }
+    if (NARROWC.matches) { shBody.appendChild(side0); shBody.appendChild(tools0); side0.classList.add('cfin'); }
+    else { side0.classList.remove('cfin'); homeSide.insertBefore(side0, homeSideNext); homeTools.insertBefore(tools0, homeToolsNext); closeSheet(); }
   }
   function openSheet() { sheet.hidden = false; back.hidden = false; fbtn.setAttribute('aria-expanded', 'true'); document.documentElement.classList.add('cf-open'); var f = sheet.querySelector('button.cf'); if (f) f.focus(); }
   function closeSheet() { if (sheet.hidden) return; sheet.hidden = true; back.hidden = true; fbtn.setAttribute('aria-expanded', 'false'); document.documentElement.classList.remove('cf-open'); fbtn.focus({ preventScroll: true }); }

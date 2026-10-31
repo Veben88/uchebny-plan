@@ -230,8 +230,10 @@ def home_page(cards):
              '<div class="tools"><button type="button" class="pill" data-f="kr" data-v="1" aria-pressed="false">Есть курсовая</button><button type="button" class="pill" data-f="lab" data-v="1" aria-pressed="false">С лабораторными</button>'
              f'<label class="sortl">Профессия <select id="fjob">{jopt}</select></label><label class="sortl">Порядок <select id="sort"><option value="">как в плане</option><option value="name">по названию</option><option value="ze">по трудоёмкости</option></select></label>'
              '<button type="button" class="btn-o" id="reset" hidden>Сбросить всё</button></div></div>')
+    cview = ('<div class="cview" id="cview" role="group" aria-label="Представление списка">'
+             + "".join(f'<button type="button" class="cvb" data-view="{v}" aria-pressed="{"true" if not v else "false"}">{t}</button>' for v, t in (("", "Список"), ("sem", "По семестрам"), ("group", "По разделам"))) + '</div>')
     lst = (f'<section class="catlist" id="list" aria-labelledby="listh"><h2 class="vh" id="listh">Список дисциплин</h2>{tools}'
-           f'<p class="cntrow"><span id="count" class="muted" aria-live="polite"></span><a class="btn-o" href="plan.html">План таблицей и CSV</a><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p>'
+           f'{cview}<p class="cntrow"><button type="button" class="btn-o cfbtn" id="cfbtn" aria-controls="cfsheet" aria-expanded="false">Фильтры <b hidden></b></button><span id="count" class="muted" aria-live="polite">Показано: {len(items)} из {len(items)}</span><a class="btn-o" href="plan.html">План таблицей и CSV</a><a class="btn-o" id="jobmap" href="map.html" hidden>{ic("FaCompass")} Этот путь на карте связей</a></p>'
            '<p class="muted jobnote" id="jobnote" hidden>Показан путь к профессии: <b>ключевые</b> предметы и те, что <b>нужны для ключевых</b>. Это оценка команды проекта по задачам профессии, а не официальный перечень и не гарантия трудоустройства.</p>'
            f'<div class="grid clist" id="grid">{"".join(card_html(i, cards[i["slug"]], jk, ja) for i in order)}</div>'
            '<div id="empty" hidden><p class="muted">Ничего не нашлось. Попробуй другое слово или сбрось фильтры.</p><button type="button" class="btn-o" id="reset2">Сбросить поиск и фильтры</button></div></section>')
