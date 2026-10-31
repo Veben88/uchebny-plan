@@ -11,6 +11,17 @@
   function many(n) { return [].filter.call(form.querySelectorAll('input[name="' + n + '"]:checked'), vis).map(function (e) { return e.value; }); }
   function txt(n) { var e = form.querySelector('[name="' + n + '"]'); return e && vis(e) ? e.value.trim() : ''; }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  // Отправка с честным результатом: ответ сервиса читается (ok / bad:причина / busy). Если браузер не отдал ответ
+  // (сервис не прислал разрешение на чтение или нет сети), результат — «unconfirmed»: повторно не отправляем, чтобы не задвоить запись.
+  function send(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body, redirect: 'follow' })
+      .then(function (r) { return r.text(); })
+      .then(function (t) { t = String(t).trim(); return t === 'ok' ? { s: 'ok' } : t === 'busy' ? { s: 'busy' } : { s: 'bad', why: t.replace(/^bad:/, '') }; })
+      .catch(function () {                       // ответ не прочитан: сервис доступен (запрос дошёл) или сети нет (запрос не ушёл)
+        if (navigator.onLine === false) return { s: 'offline' };
+        return fetch(url, { mode: 'no-cors', cache: 'no-store' }).then(function () { return { s: 'unconfirmed' }; }, function () { return { s: 'offline' }; });
+      });
+  }
   function sync() {
     var r = val('role'); rest.hidden = !r;
     [].forEach.call(form.querySelectorAll('[data-roles]'), function (b) { b.hidden = !(r && b.getAttribute('data-roles').split(' ').indexOf(r) >= 0); });
@@ -45,15 +56,17 @@
     setTimeout(function () {
       P.dt = Date.now() - T0;
       if (!URL) { thanks(true, P); return; }
-      fetch(URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(P), keepalive: true })
-        .then(function () { thanks(false, P); })
-        .catch(function () { sendBtn.disabled = false; msg.textContent = 'Не получилось отправить. Проверьте интернет и попробуйте ещё раз.'; });
+      send(URL, JSON.stringify(P)).then(function (r) {
+        if (r.s === 'ok') thanks(false, P, 'ok');
+        else if (r.s === 'unconfirmed') thanks(false, P, 'unconfirmed');
+        else { sendBtn.disabled = false; msg.textContent = r.s === 'offline' ? 'Нет соединения: ответ не отправлен. Проверьте интернет и попробуйте ещё раз.' : r.s === 'busy' ? 'Сервис сейчас занят, ответ не сохранён. Попробуйте через минуту.' : 'Сервис не принял ответ' + (r.why ? ' (' + r.why + ')' : '') + ', ничего не сохранено. Проверьте поля и попробуйте ещё раз.'; }
+      });
     }, Math.max(0, 2600 - (Date.now() - T0)));   // защита от ботов: слишком быстрые отправки сервер отбрасывает
   });
-  function thanks(isDemo, P) {
+  function thanks(isDemo, P, how) {
     while (form.firstChild) form.removeChild(form.firstChild);
-    var h = el('h2', '', isDemo ? 'Демонстрация: ответ не отправлен' : 'Спасибо за ответ!'); h.tabIndex = -1; form.appendChild(h);
-    form.appendChild(el('p', '', isDemo ? 'Приём ответов ещё не подключён, поэтому данные остались только на вашем устройстве. Ниже то, что отправилось бы.' : 'Мы читаем каждый ответ и используем его, чтобы сделать описание специальности понятнее.'));
+    var h = el('h2', '', isDemo ? 'Демонстрация: ответ не отправлен' : how === 'unconfirmed' ? 'Ответ отправлен, приём не подтверждён' : 'Спасибо, ответ принят!'); h.tabIndex = -1; form.appendChild(h);
+    form.appendChild(el('p', '', isDemo ? 'Приём ответов ещё не подключён, поэтому данные остались только на вашем устройстве. Ниже то, что отправилось бы.' : how === 'unconfirmed' ? 'Мы отправили ответ, но сервис не передал браузеру подтверждение, поэтому мы не можем сказать наверняка, что он сохранился. Повторно отправлять не нужно, если не было ошибок сети.' : 'Сервис подтвердил, что ответ сохранён. Мы читаем каждый ответ и используем его, чтобы сделать описание специальности понятнее.'));
     if (isDemo) { var dt = el('details', 'ans'); dt.appendChild(el('summary', '', 'Показать данные ответа')); dt.appendChild(el('pre', 'fpre', JSON.stringify(P, null, 1))); form.appendChild(dt); }
     var a = el('a', 'btn', 'На главную'); a.href = 'index.html'; form.appendChild(a); h.focus(); window.scrollTo({ top: 0 });
   }
