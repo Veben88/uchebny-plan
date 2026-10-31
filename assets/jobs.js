@@ -77,6 +77,27 @@
     sum.textContent = 'Общих предметов в маршрутах: ' + common.length + ' (из них ключевых для обеих профессий: ' + ck.length + '). '
       + 'Только у первой: ' + onlyA.length + ', только у второй: ' + onlyB.length + '. Общих кодов компетенций: ' + both(A.c, B.c).length + '.';
     box.appendChild(sum);
+    // маршруты рядом по семестрам: общий предмет отмечен словом «общий», ключевой — жирным (и подписью для чтения с экрана)
+    var tb = el('div', 'cmpsem'); tb.setAttribute('role', 'table'); tb.setAttribute('aria-label', 'Маршруты по семестрам рядом');
+    var hr = el('div', 'cmprow cmphead'); hr.setAttribute('role', 'row'); ['Семестр', A.t, B.t].forEach(function (t) { var c = el('b', '', t); c.setAttribute('role', 'columnheader'); hr.appendChild(c); }); tb.appendChild(hr);
+    var st0 = function (x) { var m = /\d/.exec(D.n[x][1]); return m ? +m[0] : 0; };
+    for (var sm = 1; sm <= 8; sm++) {
+      var la = ra.filter(function (x) { return st0(x) === sm; }), lb = rb.filter(function (x) { return st0(x) === sm; });
+      if (!la.length && !lb.length) continue;
+      var row = el('div', 'cmprow'); row.setAttribute('role', 'row'); var h = el('b', 'cmpsn', sm + ' сем.'); h.setAttribute('role', 'rowheader'); row.appendChild(h);
+      [[la, A, rb], [lb, B, ra]].forEach(function (cx) {
+        var cell = el('div', 'cmpcell'); cell.setAttribute('role', 'cell');
+        cx[0].forEach(function (x) {
+          var key = cx[1].k.indexOf(x) >= 0, shared = cx[2].indexOf(x) >= 0, a = el('a', 'cmpsub' + (key ? ' key' : '') + (shared ? ' same' : ''), D.n[x][0]); a.href = 'd/' + x + '.html';
+          if (key || shared) a.appendChild(el('span', 'cmpt', (key ? ' · ключевой' : '') + (shared ? ' · общий' : '')));
+          cell.appendChild(a);
+        });
+        if (!cx[0].length) cell.appendChild(el('span', 'muted', '—'));
+        row.appendChild(cell);
+      });
+      tb.appendChild(row);
+    }
+    box.appendChild(tb);
     var g = el('div', 'cmpgrid');
     g.appendChild(col('Только «' + A.t + '»', 'cmpa', [['Предметы', subj(onlyA, [A])], ['Компетенции', codes(diff(A.c, B.c))]]));
     g.appendChild(col('Общее', 'cmpboth', [['Предметы', subj(common, [A, B])], ['Компетенции', codes(both(A.c, B.c))]]));
