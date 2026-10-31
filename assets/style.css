@@ -1604,7 +1604,7 @@ a.setrow{padding-right:50px}
    ===================================================================== */
 .grail,.glegd{display:none}
 @media(max-width:700px){.gcourse .gcb,.gcourse .gfl:first-child{display:none}.gcourse{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-bottom:8px}}
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  main:has(.gscreen) .heroblock{min-height:0!important}
  main:has(.gscreen) .heroblock .hero{padding:16px 0 18px!important}
  main:has(.gscreen) .heroblock .lead,main:has(.gscreen) .heroblock .gtabs,main:has(.gscreen) .hero3d{display:none!important}
@@ -1697,9 +1697,9 @@ a.setrow{padding-right:50px}
  .gscreen .gview .gzoom{right:10px}
 }
 .gscreen .gside{color:var(--ink)}
-@media(min-width:701px){.gscreen .gcount{flex-basis:100%;text-align:left}}
-@media(min-width:701px){.gscreen .grail{z-index:10}}   /* выпадающий список профессий — поверх строки инструментов */
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .gcount{flex-basis:100%;text-align:left}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .grail{z-index:10}}   /* выпадающий список профессий — поверх строки инструментов */
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  .gscreen .gtools{z-index:9}
  .gscreen .gcourse{display:contents}
  .gscreen .gfil{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
@@ -1708,15 +1708,15 @@ a.setrow{padding-right:50px}
  .gscreen .gfil>summary::before{content:"▾ "}
  .gscreen .gfil>summary:focus-visible{outline:2px solid #fff;outline-offset:2px}
 }
-@media(min-width:701px){.gscreen .gfrows .sortl,.gscreen #gmine{display:none!important}}   /* профессия и «Мой маршрут» — на панели режимов */
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .gfrows .sortl,.gscreen #gmine{display:none!important}}   /* профессия и «Мой маршрут» — на панели режимов */
 @media(max-width:700px){
  .gcourse{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;margin:0 0 6px!important;padding-bottom:2px}
  .gcourse::-webkit-scrollbar{display:none}
  .gsems{display:inline-flex;gap:6px;flex:none}
  .gview{height:calc(72vh - 52px)!important}   /* ряд семестров над картой: поле не уходит под нижние вкладки */
 }
-@media(min-width:701px){.gscreen .gfil>summary{background:#122F5C}}
-@media(min-width:701px){.gscreen .glegd summary{color:#DDEBFA}.gscreen .glegd summary:focus-visible{outline:2px solid #fff;outline-offset:-2px}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .gfil>summary{background:#122F5C}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .glegd summary{color:#DDEBFA}.gscreen .glegd summary:focus-visible{outline:2px solid #fff;outline-offset:-2px}}
 
 /* значки разделов плана в круглых узлах карты (один раз в стилях, а не в каждом из 74 узлов) */
 .gn.c-0 .gni::before,.cth.g-0::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M160 288h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56v-64h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56V96h-56c-4.42 0-8-3.58-8-8V72c0-4.42 3.58-8 8-8h56V32c0-17.67-14.33-32-32-32H32C14.33 0 0 14.33 0 32v448c0 2.77.91 5.24 1.57 7.8L160 329.38V288zm320 64h-32v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-41.37L24.2 510.43c2.56.66 5.04 1.57 7.8 1.57h448c17.67 0 32-14.33 32-32v-96c0-17.67-14.33-32-32-32z%22%3E%3C/path%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 512 512%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M160 288h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56v-64h-56c-4.42 0-8-3.58-8-8v-16c0-4.42 3.58-8 8-8h56V96h-56c-4.42 0-8-3.58-8-8V72c0-4.42 3.58-8 8-8h56V32c0-17.67-14.33-32-32-32H32C14.33 0 0 14.33 0 32v448c0 2.77.91 5.24 1.57 7.8L160 329.38V288zm320 64h-32v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-64v56c0 4.42-3.58 8-8 8h-16c-4.42 0-8-3.58-8-8v-56h-41.37L24.2 510.43c2.56.66 5.04 1.57 7.8 1.57h448c17.67 0 32-14.33 32-32v-96c0-17.67-14.33-32-32-32z%22%3E%3C/path%3E%3C/svg%3E")}
@@ -1729,7 +1729,7 @@ a.setrow{padding-right:50px}
    Узел — круг со значком раздела плана и подписью рядом; линии соединяют центры кругов.
    При выборе предмет переезжает в центр, связанные с ним — по дуге вокруг (graph.js: orbit).
    ===================================================================== */
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  .gscreen .gn{background:transparent!important;border:0!important;box-shadow:none!important;outline:0!important;padding:0 4px 0 54px!important;overflow:visible;gap:1px;transition:transform 380ms steps(12,end),opacity var(--m-fast) steps(5,end)}
  .gscreen .gn .gni,.gscreen .gn.gj .gji{position:absolute;left:0;top:50%;width:44px;height:44px;margin-top:-22px;border-radius:50%;background:#173B70;border:2px solid var(--gc,#8FC1F0);display:grid;place-items:center;font-size:16px;color:#DDEBFA;transition:box-shadow 140ms steps(5,end),background 140ms steps(5,end),border-color 140ms steps(5,end)}
  .gscreen .gn .gni::before{content:"";width:18px;height:18px;background:#DDEBFA;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
@@ -1773,13 +1773,13 @@ a.setrow{padding-right:50px}
  .gorbt{white-space:nowrap}
 }
 @media(prefers-reduced-motion:reduce){.gscreen .gn,.gscreen .gn .gni{transition:none!important}}
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  /* центр орбиты: название на плашке над кругом (сверху линий нет), подробности — в панели справа */
  .gscreen .gorb .gn.r-self{padding:0!important}
  .gscreen .gorb .gn.r-self small{display:none}
  .gscreen .gorb .gn.r-self b{position:absolute;left:22px;bottom:calc(50% + 34px);transform:translateX(-50%);width:max-content;max-width:240px;text-align:center;padding:6px 12px;background:#0E2550;border:1.5px solid #3478C8;box-shadow:4px 4px 0 #3478C8;font-size:14px;text-shadow:none;-webkit-line-clamp:3}
 }
-@media(min-width:701px){.gscreen .glsw{width:14px;height:14px;border-radius:50%}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .glsw{width:14px;height:14px;border-radius:50%}}
 
 /* =====================================================================
    КАРТА КАК В РЕФЕРЕНСЕ (компьютер): отдельный тёмный экран на всю высоту окна
@@ -1790,7 +1790,7 @@ a.setrow{padding-right:50px}
    Синяя обложка страницы на компьютере скрыта визуально (заголовок h1 остаётся для чтения с экрана).
    ===================================================================== */
 .gbg,.gbar{display:none}
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  main:has(.gscreen) .heroblock{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0!important;padding:0!important;min-height:0!important}
  main:has(.gscreen)>.wrap{max-width:none;padding-left:14px;padding-right:14px}
  .gscreen{--gsH:max(600px,calc(100vh - 112px));position:relative;isolation:isolate;display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;height:var(--gsH);min-height:0;margin-top:12px;background:linear-gradient(135deg,#0B1E45 0%,#132F63 45%,#1D4A8E 100%);clip-path:polygon(0 0,100% 0,100% calc(100% - 28px),calc(100% - 28px) 100%,0 100%);overflow:hidden}
@@ -1863,7 +1863,7 @@ a.setrow{padding-right:50px}
  .gscreen .gside{width:270px!important}
  .gscreen .glegd{width:270px}
 }
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  .gbl{display:none}
  .gbt{font-family:var(--hd);font-size:20px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;text-shadow:2px 2px 0 #0B1E45}
  .gbar::after{content:"граф связей между предметами";font-size:13px;color:#B9D1EE;margin-left:-8px}
@@ -1892,7 +1892,7 @@ a.setrow{padding-right:50px}
 .gzv{align-self:center;min-width:44px;text-align:center;font-family:var(--hd);font-size:13px;color:var(--mut)}
 .gcard[hidden]{display:none!important}
 @media print{.gcomp,.gcard,.gbar{display:none!important}}
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  body:has(.gscreen) .top{display:none!important}
  main:has(.gscreen)>.wrap{padding:0!important;max-width:none!important}
  main:has(.gscreen) .gnote{max-width:1100px;margin:18px auto 0;padding:0 24px}
@@ -1968,14 +1968,14 @@ a.setrow{padding-right:50px}
 }
 @media(min-width:701px) and (max-width:1100px){.gbl{display:none!important}}
 @media(prefers-reduced-motion:reduce){.tm-js .gscreen .gside,.gscreen .gcard.gcmove{transition:none!important}}
-@media(min-width:701px){.gscreen .glegd:not([open]){width:auto!important}.gscreen .glegd:not([open]) summary{padding:8px 14px}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .glegd:not([open]){width:auto!important}.gscreen .glegd:not([open]) summary{padding:8px 14px}}
 /* масштаб — вертикальной карточкой под панелью режимов: левая колонка экрана отдана управлению, схема правее */
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  .gscreen .gview .gzoom{left:16px!important;bottom:16px!important;width:66px;flex-direction:column-reverse;padding:6px 0!important;border-radius:14px!important;box-shadow:5px 5px 0 rgba(52,120,200,.45)}
  .gscreen .gzoom button{width:48px;min-width:0;height:40px;font-size:20px}
  .gscreen .gzv{min-width:0;font-size:13px;padding:4px 0}
 }
-@media(min-width:701px){.gscreen .glegd{padding:0!important}.gscreen .glegd[open]{padding-bottom:2px!important}.gscreen .glegd[open] summary{padding:10px 14px 8px}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .glegd{padding:0!important}.gscreen .glegd[open]{padding-bottom:2px!important}.gscreen .glegd[open] summary{padding:10px 14px 8px}}
 /* слой «орбиты» поверх схемы — только на компьютере; на телефоне не перехватывает нажатия */
 .gorbit{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 @media(max-width:700px){.gorbit{display:none}}
@@ -1983,7 +1983,7 @@ a.setrow{padding-right:50px}
 @media(max-width:700px){.gwrap>.gmain{align-self:stretch;min-width:0}.gtools{min-width:0}.gcourse .gfl{flex:none}}
 @media(max-width:700px){.gfrows>*{min-width:0}.gfrow .sortl{flex:1 1 100%;min-width:0;flex-wrap:wrap}.gfrow .sortl select{min-width:0;max-width:100%;flex:1 1 160px}}
 /* без скрипта (компьютер): простая прокручиваемая схема со ссылками на предметы, без неработающих панелей */
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  html:not(.tm-js) .gscreen .grail,html:not(.tm-js) .gscreen .gtools,html:not(.tm-js) .gscreen .gside{display:none!important}
  html:not(.tm-js) .gscreen .gview{overflow:auto}
  .gscreen .gview:not(.gjs) .ghint{display:none!important}
@@ -1995,7 +1995,7 @@ a.setrow{padding-right:50px}
    треугольные «кристаллические» грани и осколки света, созвездие из точек и тонких линий (SVG из build.py: map_bg),
    за выбранным предметом — сияние с лучами (graph.js: .gglow внутри схемы, движется и масштабируется вместе с ней).
    ===================================================================== */
-@media(min-width:701px){
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){
  .gscreen{background:radial-gradient(ellipse 48% 55% at 60% 80%,rgba(126,192,255,.34),transparent 70%),radial-gradient(ellipse 40% 50% at 96% 100%,rgba(150,205,255,.32),transparent 70%),linear-gradient(158deg,#0A1F5C 0%,#10357F 28%,#1A4FA6 55%,#2766C2 78%,#3478C8 100%)!important}
  .gscreen::before{display:none}
  .gbg svg{left:0;top:0;right:auto;bottom:auto}
@@ -2014,8 +2014,8 @@ a.setrow{padding-right:50px}
 }
 @keyframes tmGlow{from{opacity:0;scale:.45}to{opacity:1;scale:1}}
 .gglow{display:none}
-@media(min-width:701px){.gscreen .gglow{display:block}}
-@media(min-width:701px){.tm-lite .gscreen .gglow{background:radial-gradient(circle,rgba(206,234,255,.45) 0,rgba(126,192,255,.18) 18%,transparent 50%);-webkit-mask-image:none;mask-image:none}}   /* слабое устройство: сияние без лучей и маски */
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.gscreen .gglow{display:block}}
+@media(min-width:701px),(max-width:700px) and (scripting:enabled){.tm-lite .gscreen .gglow{background:radial-gradient(circle,rgba(206,234,255,.45) 0,rgba(126,192,255,.18) 18%,transparent 50%);-webkit-mask-image:none;mask-image:none}}   /* слабое устройство: сияние без лучей и маски */
 
 /* =====================================================================
    ДИСЦИПЛИНЫ (catalog.html) — ЭКРАН ВЫБОРА, КАК В ТРЕТЬЕМ ЭКРАНЕ РЕФЕРЕНСА
@@ -2567,3 +2567,76 @@ main{overflow-x:clip}
 @media(max-width:700px){html.access .dband .mybtn.my-fav{box-shadow:none}}
 @media print{.dfab{display:none!important}}
 @media(max-width:360px){.tabbar a{font-size:10px}}
+
+/* =====================================================================
+   МОБИЛЬНАЯ ВЕРСИЯ, ЭТАП 3: КАРТА (≤700 px, когда работают скрипты)
+   Тот же тёмный экран, что на компьютере (блоки выше включены и для телефона условием (scripting:enabled)),
+   но во всю высоту между верхней и нижней панелями: сверху значки режимов и кнопки «Найти», «Фильтры», «В избранное»;
+   выбранный предмет — карточка-шторка снизу; «Подробнее», поиск, фильтры и выбор профессии — шторки снизу.
+   Без скриптов (или в браузере без (scripting)) остаётся прежняя светлая схема со списком.
+   ===================================================================== */
+@media(max-width:700px) and (scripting:enabled){
+ body:has(.gscreen) footer{display:none}
+ main:has(.gscreen){padding-bottom:0!important}
+ body:has(.gscreen){padding-bottom:calc(var(--tb-h) + env(safe-area-inset-bottom,0px))!important}
+ /* выбран предмет: масштаб — щипком (кнопки «− +» закрывали бы подписи справа), «Вся карта» остаётся */
+ .gscreen.gcarded .gview .gzoom{display:none}
+ /* подписи в орбите крупнее: орбита на телефоне мельче по масштабу */
+ .gscreen .gorb .gn[class*=" r-"] b{font-size:15px}
+ .gscreen .gorb .gn[class*=" r-"] small{font-size:12.5px}
+ .gscreen{--gsH:calc(100vh - var(--ab-h) - var(--tb-h) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));height:var(--gsH);min-height:0!important;margin:0!important}
+ @supports(height:100dvh){.gscreen{--gsH:calc(100dvh - var(--ab-h) - var(--tb-h) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}}
+ .gscreen .gmain{display:flex!important;flex-direction:column;height:var(--gsH)}
+ /* шапка экрана: слева значки режимов (панель режимов), справа «Найти», «Фильтры», «В избранное» */
+ .gbar{height:52px;gap:6px;padding:0 8px;justify-content:flex-end}
+ .gbar .gback,.gbar .gbt,.gbar .gbl,.gbar .gbsp{display:none!important}
+ .gbar::after{display:none!important}
+ .gbi{width:44px!important;height:44px!important}
+ .gscreen .grail{left:8px!important;top:4px!important;flex-direction:row;padding:0!important;gap:6px;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0}
+ .gscreen .grm{width:44px;height:44px}
+ .gscreen .grm>span{left:0;top:calc(100% + 8px);transform:none}   /* подпись — для чтения с экрана и при фокусе с клавиатуры */
+ .gscreen .gjobfly{position:fixed;left:8px;right:8px;top:calc(var(--ab-h) + env(safe-area-inset-top,0px) + 56px);width:auto;max-height:calc(var(--gsH) - 70px);overflow:auto;z-index:60}
+ .gjp{min-height:46px}
+ /* поле */
+ .gscreen .gview{flex:1;min-height:0!important;height:auto!important}
+ .gscreen .gview .ghint{display:none!important}
+ /* выбранный предмет — карточка снизу во всю ширину */
+ .gscreen .gcard{left:0;right:0;top:auto;bottom:0;transform:none!important;width:auto;min-width:0;max-width:none;padding:12px 14px 12px;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -6px 0 rgba(52,120,200,.35);z-index:9}
+ .gscreen .gct{font-size:17px;padding-right:4px}
+ .gscreen .gcm{font-size:13.5px}
+ .gscreen .gseg{width:100%;margin-top:10px}
+ .gscreen .gsb{flex:1;min-height:42px;font-size:13.5px}
+ .gscreen .gcrow{flex-wrap:nowrap;gap:8px;margin-top:10px}
+ .gscreen .gcmore,.gscreen .gcgo{flex:1;min-height:46px;display:grid;place-items:center;font-size:14px;text-align:center}
+ /* масштаб и «Вся карта» — справа снизу, над карточкой */
+ .gscreen .gview .gzoom{left:auto!important;right:10px!important;bottom:calc(var(--gcH,0px) + 66px)!important;width:50px}
+ .gscreen .gzoom button{width:44px;height:44px}
+ .gscreen .gzv{font-size:12px}
+ .gscreen .gcomp{right:13px;bottom:calc(var(--gcH,0px) + 12px);width:46px;height:46px}
+ /* «Типы связей» — слева снизу, раскрываются вверх; внутри и «Как читать карту» */
+ .gscreen .glegd{left:8px!important;right:auto!important;top:auto!important;bottom:calc(var(--gcH,0px) + 12px)!important;width:auto!important;max-width:calc(100% - 84px)}
+ .gscreen .glegd[open]{width:calc(100% - 84px)!important;max-height:calc(100% - var(--gcH,0px) - 80px);overflow:auto}
+ .gscreen .glegd summary{min-height:44px;display:flex;align-items:center}
+ .gscreen .glegd ul{grid-template-columns:1fr}
+ .gnote-in{margin:6px 12px 12px!important;font-size:12px!important;line-height:1.5;color:#B9D1EE}
+ .gnote-in b{color:#fff}.gnote-in a{color:#fff}
+ /* шторки снизу: «Подробнее» и поиск, фильтры */
+ .tm-js .gscreen .gside{position:fixed!important;left:0!important;right:0!important;top:calc(var(--ab-h) + env(safe-area-inset-top,0px) + 54px)!important;bottom:calc(var(--tb-h) + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-height:none!important;padding:16px 16px 20px!important;border-left:0!important;border-top:4px solid #3478C8!important;box-shadow:0 -8px 0 rgba(52,120,200,.3)!important;transform:translateY(calc(100% + 12px));z-index:56;overflow:auto;overscroll-behavior:contain}
+ .tm-js .gscreen.gd-open .gside{transform:none}
+ .gscreen .gdx{width:44px;height:44px;right:8px;top:8px}
+ .gscreen .gside .btn-s,.gscreen .gside .btn-o,.gscreen .gside .mybtn{min-height:44px;font-size:13px}
+ .gscreen .gside .gnb{padding:6px 0}
+ .tm-js .gscreen .gtools{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:calc(var(--tb-h) + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-height:calc(var(--gsH) - 40px);overflow:auto;overscroll-behavior:contain;z-index:56;border-left:0;border-right:0}
+ .tm-js .gscreen .gcourse{flex-wrap:wrap!important;overflow:visible;margin:0!important}
+ .tm-js .gscreen .gcourse .gcb{display:inline-flex}
+ .tm-js .gscreen .gcourse .gfl:first-child{display:inline}
+ .tm-js .gscreen .gsems{flex-wrap:wrap}
+ .tm-js .gscreen .gcourse .pill,.tm-js .gscreen .gfrow .pill,.tm-js .gscreen .gfrow .gf,.tm-js .gscreen .gfrow .btn-o{min-height:42px}
+ .tm-js .gscreen .gcourse .gfp{min-width:42px}
+ .tm-motion .gscreen.gd-open .gside{animation:tmSheet 220ms steps(7,end)}
+ .tm-motion .gscreen.gf-open .gtools{animation:tmSheet 200ms steps(7,end)}
+ .tm-motion .gscreen .gcard.tm-gc{animation:tmSheet 200ms steps(7,end)}
+}
+@media(max-width:380px) and (scripting:enabled){.gscreen .gcmore,.gscreen .gcgo{font-size:13px}.gscreen .gct{font-size:16px}}
+@keyframes tmSheet{from{translate:0 40px;opacity:0}to{translate:0 0;opacity:1}}
+@media(max-width:700px) and (scripting:enabled) and (prefers-reduced-motion:reduce){.tm-js .gscreen .gside{transition:none!important}}

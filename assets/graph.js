@@ -17,9 +17,13 @@
   var W = parseFloat(cv.style.width), H = parseFloat(cv.style.height), TOTAL = Object.keys(N).length;
   // Компьютер (тёмный экран карты): круглые узлы, линии от центра круга к центру круга (вторая геометрия из build.py, data-dc)
   var dirMode = 'all';   // режим связей выбранного предмета: all / up (предшествующие) / down (последующие)
-  var ORB = !NARROW.matches && !!document.querySelector('.gscreen'), orbOn = true, orbSvg = cv.querySelector('.gorbit');
+  // телефон: тот же экран, если браузер понимает (scripting: enabled) — по этому же условию его включают стили
+  var SCRIPTED = !NARROW.matches || !!(window.matchMedia && matchMedia('(scripting: enabled)').matches);
+  var ORB = SCRIPTED && !!document.querySelector('.gscreen'), MS = ORB && NARROW.matches, orbOn = true, orbSvg = cv.querySelector('.gorbit');
   if (ORB) edges.forEach(function (p) { var d = p.getAttribute('data-dc'); if (d) p.setAttribute('d', d); });
   view.classList.add('gjs');
+  // поле двигается только через transform: прокрутку, которую браузер делает сам (фокус на узле за краем), сразу отменяем
+  view.addEventListener('scroll', function () { if (view.scrollTop || view.scrollLeft) { view.scrollTop = 0; view.scrollLeft = 0; } });
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function semText(id) { return N[id][1] + ' сем.'; }
@@ -31,6 +35,7 @@
   var PL = 0, PT = 0, railEl = document.querySelector('.gscreen .grail'), legS = view.querySelector('.glegd summary');
   function measurePL() {
     if (!ORB) return; var vr = view.getBoundingClientRect();
+    if (MS) { PL = 0; PT = railEl && railEl.offsetHeight ? Math.max(0, Math.round(railEl.getBoundingClientRect().bottom - vr.top + 6)) : 0; return; }
     PL = railEl && railEl.offsetWidth ? Math.max(0, Math.round(railEl.getBoundingClientRect().right - vr.left + 10)) : 0;
     PT = legS && legS.offsetHeight ? Math.max(0, Math.round(legS.getBoundingClientRect().bottom - vr.top + 4)) : 0;
   }
@@ -58,7 +63,7 @@
   function fit(anim) { T.s = fitS(); apply(anim); }
   function init() {                                      // первый показ: читаемый масштаб, начало плана слева сверху
     if (ready || !view.clientWidth) return;
-    ready = true; measurePL(); T.s = Math.min(1, Math.max(fitS(), 0.86)); T.x = PL; T.y = PT; apply(false);
+    ready = true; measurePL(); T.s = MS ? 0.72 : Math.min(1, Math.max(fitS(), 0.86)); T.x = PL; T.y = PT; apply(false);
   }
   function inView(a) {
     var x = T.x + a.offsetLeft * T.s, y = T.y + a.offsetTop * T.s;
@@ -229,7 +234,7 @@
     opt = opt || {}; filt();
     if (opt.pan && !cv.classList.contains('gorb')) panTo(sel.id, opt.anim);
     if (opt.focus) { var h = gp.querySelector('.gh3'); if (h) h.focus({ preventScroll: true }); }
-    if (opt.reveal && NARROW.matches) side.scrollIntoView({ block: 'start', behavior: RM ? 'auto' : 'smooth' });
+    if (opt.reveal && NARROW.matches && !ORB) side.scrollIntoView({ block: 'start', behavior: RM ? 'auto' : 'smooth' });
   }
   function selectId(id, opt) { if (/^job-/.test(id)) selectJob(+id.slice(4), opt); else selectNode(id, opt); }
   function clear() {
@@ -317,6 +322,7 @@
   function orbit(center, list) {
     if (!ORB || !ready || !nodes[center]) return;
     orbitClear();
+    if (MS) return orbitM(center, list);
     var vw = view.clientWidth, vh = view.clientHeight, LBL = 175;   // LBL — ширина подписи рядом с кругом
     var vr = view.getBoundingClientRect(), occ = 0;
     if (DESK && scr2.classList.contains('gd-open')) occ = side.offsetWidth + 12;   // панель «Подробнее» (по классу: она ещё может выезжать)
@@ -370,7 +376,10 @@
       if (pos[id][0] < cx - 20) a.classList.add('gl');          // слева от центра подпись — слева от круга
       var o = circleAt(a); a.style.transform = 'translate(' + (pos[id][0] - o[0]).toFixed(1) + 'px,' + (pos[id][1] - o[1]).toFixed(1) + 'px)';
     });
-    // линии орбиты: изогнутые, от круга к кругу; «нужен» дорисовывается, остальные проявляются (как на схеме)
+    orbLines(center, list, pos);
+  }
+  // линии орбиты: изогнутые, от круга к кругу; «нужен» дорисовывается, остальные проявляются (как на схеме)
+  function orbLines(center, list, pos) {
     var ns = 'http://www.w3.org/2000/svg', k = 0;
     list.forEach(function (x) {
       if (!pos[x.id]) return;
@@ -382,6 +391,34 @@
       p.setAttribute('marker-end', 'url(#ga-' + x.ty + ')'); orbSvg.appendChild(p);
       if (!RM) { p.style.setProperty('--len', Math.ceil(p.getTotalLength())); p.style.setProperty('--i', Math.min(k++, 14)); }
     });
+  }
+  function orbitM(center, list) {
+    var vw = view.clientWidth, vh = view.clientHeight, ch = card && !card.hidden ? card.offsetHeight : 0;
+    var vt = PT + 10, vb = vh - ch - 66, R = 64, LB = 116;   // снизу над карточкой — ряд «Типы связей» и «Вся карта»    // LB — ширина подписи рядом с кругом
+    var lc = list.filter(function (x) { return x.dir === 'up'; }), rc = list.filter(function (x) { return x.dir !== 'up'; }), n = Math.max(lc.length, rc.length, 1);
+    var s = Math.min(1, (vw / 2 - 6) / (R + CR + LB), (vb - vt) / ((n - 1) * 58 + NH + 8));
+    s = Math.max(0.62, s);
+    var mx = (vw / 2 - T.x) / T.s, my = ((vt + vb) / 2 - T.y) / T.s;
+    T.s = s; T.x = vw / 2 - mx * s; T.y = (vt + vb) / 2 - my * s; apply(false);
+    var cx = (vw / 2 - T.x) / T.s, cy = ((vt + vb) / 2 - T.y) / T.s, pos = {};   // после apply: центр мог сдвинуться у края карты
+    var room = (vb - vt) / s - NH;
+    // шаг не меньше 54: подписи не налезают; длинная колонка начинается сверху, остальное видно, если сдвинуть карту
+    var top0 = (vt - T.y) / T.s + NH / 2 - cy;
+    function col(arr, left) {
+      var k = arr.length; if (!k) return;
+      var sp = k > 1 ? Math.max(54, Math.min(78, room / (k - 1))) : 0, y0 = Math.max(top0, -sp * (k - 1) / 2);
+      if (sp * (k - 1) > room) y0 = top0;
+      arr.forEach(function (x, i) { pos[x.id] = [cx + (left ? -R : R), cy + y0 + sp * i]; });
+    }
+    col(lc, true); col(rc, false);
+    pos[center] = [cx, cy]; cardAt = [cx, cy];
+    cv.classList.add('gorb');
+    Object.keys(pos).forEach(function (id) {
+      var a = nodes[id]; if (!a) return;
+      if (pos[id][0] < cx - 20) a.classList.add('gl');
+      var o = circleAt(a); a.style.transform = 'translate(' + (pos[id][0] - o[0]).toFixed(1) + 'px,' + (pos[id][1] - o[1]).toFixed(1) + 'px)';
+    });
+    orbLines(center, list, pos);
   }
   function reorbit() { if (sel && sel.k === 'n' && cv.classList.contains('gorb')) selectNode(sel.id, {}); }
 
@@ -404,6 +441,7 @@
     }
     var back = card.contains(document.activeElement) && nodes[cardId];   // фокус был в карточке — возвращается на узел
     cardId = id; card.textContent = ''; card.hidden = !id; scr2.classList.toggle('gcarded', !!id);
+    if (MS && !id) scr2.style.setProperty('--gcH', '0px');
     if (!glow) { glow = el('span', 'gglow'); glow.setAttribute('aria-hidden', 'true'); cv.insertBefore(glow, cv.firstChild); }   // лучи света за выбранным
     glow.hidden = !id;
     if (id && !RM) { glow.classList.remove('tm-gl'); void glow.offsetWidth; glow.classList.add('tm-gl'); }
@@ -427,6 +465,7 @@
     var go = el('a', 'gcgo', job ? 'Маршрут по семестрам' : 'Открыть страницу'); go.href = job ? 'jobs.html#job-' + i : 'd/' + id + '.html';
     row.appendChild(more); row.appendChild(go); card.appendChild(row);
     if (!RM) { card.classList.remove('tm-gc'); void card.offsetWidth; card.classList.add('tm-gc'); }
+    if (MS) scr2.style.setProperty('--gcH', card.offsetHeight + 'px');
     updFav();
   }
   function placeCard(anim) {                                  // над узлом; координаты карты → экран, размер карточки не масштабируется
@@ -434,6 +473,7 @@
     var p = cardAt;                                            // в «орбите» — центр орбиты, иначе — круг узла на схеме
     if (!p) p = circleAt(nodes[cardId]);
     glow.style.left = p[0] + 'px'; glow.style.top = p[1] + 'px';
+    if (MS) return;
     card.classList.toggle('gcmove', !!anim);
     var x = T.x + p[0] * T.s, y = T.y + p[1] * T.s, w = card.offsetWidth, h = card.offsetHeight;
     x = Math.max(8, Math.min(view.clientWidth - w - 8, x - w / 2)); y = y - 30 * Math.max(T.s, .7) - h;
@@ -588,7 +628,8 @@
     scr.style.setProperty('--side-top', Math.round(l.bottom - g.top + 12) + 'px');
     scr.style.setProperty('--side-max', Math.max(140, Math.round(g.bottom - l.bottom - 84)) + 'px');
   }
-  if (ORB && leg) leg.open = false;   // «Типы связей» свёрнуты до заголовка: схема не закрыта, раскрываются по нажатию
+  if (ORB && leg) leg.open = false;
+  if (MS && leg) { var note = document.querySelector('.gnote'); if (note) { note.classList.add('gnote-in'); leg.appendChild(note); } }   // «Типы связей» свёрнуты до заголовка: схема не закрыта, раскрываются по нажатию
   placeSide(); if (leg) leg.addEventListener('toggle', function () { placeSide(); if (ORB) reorbit(); });   // раскрытые «Типы связей» — орбита левее
   window.addEventListener('resize', placeSide);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeSide);
@@ -641,7 +682,7 @@
   window.addEventListener('hashchange', function () { fromHash(false); });
 
   init(); filt();
-  if (!RM && !document.documentElement.classList.contains('tm-lite')) {   // карта собирается по семестрам слева направо
+  if (!RM && !MS && !document.documentElement.classList.contains('tm-lite')) {   // карта собирается по семестрам слева направо (на телефоне — сразу: дешевле для слабых устройств)
     cv.classList.add('tm-gin'); setTimeout(function () { cv.classList.remove('tm-gin'); }, 1600);
   }
   var restored = false;
