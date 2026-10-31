@@ -2640,3 +2640,44 @@ main{overflow-x:clip}
 @media(max-width:380px) and (scripting:enabled){.gscreen .gcmore,.gscreen .gcgo{font-size:13px}.gscreen .gct{font-size:16px}}
 @keyframes tmSheet{from{translate:0 40px;opacity:0}to{translate:0 0;opacity:1}}
 @media(max-width:700px) and (scripting:enabled) and (prefers-reduced-motion:reduce){.tm-js .gscreen .gside{transition:none!important}}
+
+/* =====================================================================
+   МОБИЛЬНАЯ ВЕРСИЯ, ЭТАП 4: ПРОФИЛЬ И ПРОФЕССИИ (≤700 px)
+   Профиль: под кольцом — счётчики «Пройдено · Изучаю · Не начато» (по личным отметкам), разделы — плитки 2 × N
+   вместо ленты; выбранный раздел открывается ниже, страница прокручивается к нему.
+   Профессии — по шагам: список профессий крупными строками → экран профессии («‹ Все профессии»,
+   ключевые предметы, компетенции, маршрут, закреплённая «На карте»). «Назад» в браузере возвращает к списку.
+   ===================================================================== */
+.pcnt,.jback{display:none}
+@media(max-width:700px){
+ /* профиль */
+ .pcnt{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;list-style:none;margin:0;padding:0}
+ .pcnt li{display:grid;gap:2px;padding:10px 8px;border-radius:10px;background:var(--ice-2);text-align:center}
+ .pcnt b{font-family:var(--hd);font-size:22px;line-height:1}
+ .pcnt span{font-size:12px;color:var(--mut)}
+ .pcnt .pc-done b{color:var(--ok)}.pcnt .pc-doing b{color:var(--btn)}
+ .pmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:visible;padding:10px}
+ .pm{flex-direction:column;align-items:flex-start;justify-content:space-between;gap:8px;min-height:86px;padding:10px 12px;white-space:normal;font-size:14.5px;line-height:1.2;background:rgba(221,235,250,.08)}
+ .pm .pmi{display:grid}
+ .pm .pmn{position:absolute;right:10px;top:12px}
+ .pm .pmt{flex:none;padding-right:2px}
+ .ppanels>.panel{scroll-margin-top:calc(var(--ab-h) + env(safe-area-inset-top,0px) + 10px)}
+ /* профессии: список крупными строками */
+ .jlist{display:block;overflow:visible;padding:8px}
+ .jlist ul{display:grid;gap:6px}
+ .jlist .jlx{border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+ .jli{white-space:normal;min-height:62px;padding:10px 12px;background:var(--ice-2)}
+ .jli small,.jli .jli-i{display:grid}
+ .jli small{display:block}
+ .jli::after{content:"›";margin-left:auto;padding-left:8px;font-size:26px;line-height:1;color:var(--mut)}
+ .jli[aria-current]::after{color:#fff}
+ html.jscreens:not(.jpick) .jlist{display:none}
+ html.jpick .jmain{display:none}
+ /* до запуска jobs.js: без адреса — список, с адресом экрана — экран (класс tm-jh ставит скрипт в <head>; :target на этот момент ещё не работает) */
+ .tm-js.tm-jh:not(.jscreens) .jlist{display:none}
+ .tm-js:not(.tm-jh):not(.jscreens) .jmain{display:none}
+ .jback{align-items:center;min-height:44px;margin:0 0 6px;font-weight:700;color:var(--link);text-decoration:none}
+ html.jscreens:not(.jpick) .jback,.tm-js.tm-jh:not(.jscreens) .jback{display:inline-flex}
+ .jobpage .jmain{padding-bottom:70px}
+ .dfab[hidden]{display:none!important}
+}

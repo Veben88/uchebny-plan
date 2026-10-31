@@ -370,6 +370,10 @@
       var facts = el('ul', 'pfacts'); facts.setAttribute('aria-label', 'Программа по учебному плану');
       [[prof.dataset.years, 'курса'], [prof.dataset.sems, 'семестров'], [prof.dataset.ze, 'з.е. в плане']].forEach(function (f) { if (!f[0]) return; var li = el('li'); li.appendChild(el('b', '', f[0])); li.appendChild(el('span', '', f[1])); facts.appendChild(li); });
       top.appendChild(facts);
+      // счётчики по личным отметкам (на телефоне — строкой под кольцом): «Не начато» — предметы без статуса
+      var pc = el('ul', 'pcnt'); pc.setAttribute('aria-label', 'Мои отметки');
+      [[done, 'Пройдено', 'pc-done'], [doing, 'Изучаю', 'pc-doing'], [Math.max(0, ptotal - done - doing), 'Не начато', 'pc-none']].forEach(function (f) { var li = el('li', f[2]); li.appendChild(el('b', '', String(f[0]))); li.appendChild(el('span', '', f[1])); pc.appendChild(li); });
+      top.appendChild(pc);
       var art = document.getElementById('part'); if (art) top.appendChild(art.content.cloneNode(true));
       prof.appendChild(top);
       // ---- разделы ----
@@ -506,6 +510,7 @@
         if (user) {
           try { history.replaceState(history.state, '', location.pathname + location.search + '#' + id); } catch (e) {}
           var sx = document.getElementById(id); if (!RMP) { sx.classList.remove('tm-scr'); void sx.offsetWidth; sx.classList.add('tm-scr'); }
+          if (NARROWP) sx.scrollIntoView({ block: 'start', behavior: RMP ? 'auto' : 'smooth' });   // телефон: плитки разделов над панелью — показываем выбранный раздел
         }
       }
       menu.addEventListener('keydown', function (e) {             // ↑ / ↓ — по разделам, как курсор в меню
@@ -520,6 +525,7 @@
       else if (had) { var act = document.getElementById(pActive), hh2 = act && act.querySelector('h2'); if (hh2) { hh2.setAttribute('tabindex', '-1'); hh2.focus({ preventScroll: true }); } }
     };
     var RMP = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('tm-still');
+    var NARROWP = !!(window.matchMedia && matchMedia('(max-width: 700px)').matches);
     window.addEventListener('hashchange', function () { var m = /^#(my-[a-z]+|mydata)$/.exec(location.hash); if (m && document.getElementById(m[1])) { pActive = m[1]; drawProfile(); } });
     drawProfile(); api.on(drawProfile);
   }

@@ -11,11 +11,30 @@
     var root = document.documentElement, RMs = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches || root.classList.contains('tm-still');
     var scr = [].filter.call(main.children, function (x) { return !!x.id; }), links = [].slice.call(list.querySelectorAll('.jli')), cur = null;
     function idOf(h) { var m = /^#(job-\d+|compare|basis)\b/.exec(h || ''); var id = m ? m[1] : ''; return document.getElementById(id) && main.contains(document.getElementById(id)) ? id : scr[0].id; }
+    // телефон — по шагам: сначала список профессий, по нажатию — экран профессии с «‹ Все профессии»; «Назад» возвращает к списку
+    var M = !!(window.matchMedia && matchMedia('(max-width: 700px)').matches), fab = null;
+    function picked(h) { return /^#(job-\d+|compare|basis)\b/.test(h || '') && main.contains(document.getElementById(idOf(h))); }
+    if (M) {
+      var back = document.querySelector('.jback');   // ссылка стоит в разметке (место занято до запуска скрипта)
+      if (back) back.addEventListener('click', function (e) { e.preventDefault(); if (history.state && history.state.tmJob) history.back(); else { try { history.replaceState(null, '', location.pathname + location.search); } catch (x) {} toList(true); } });
+      var mapA = document.querySelector('.tabbar a[href$="map.html"] svg');
+      fab = document.createElement('a'); fab.className = 'dfab jfab'; if (mapA) fab.appendChild(mapA.cloneNode(true)); var ft = document.createElement('span'); ft.textContent = 'На карте'; fab.appendChild(ft); document.body.appendChild(fab);
+    }
+    function toList(user) {
+      root.classList.add('jpick'); if (fab) fab.hidden = true;
+      if (!user) links.forEach(function (x) { x.removeAttribute('aria-current'); });   // свежий заход: ни одна профессия ещё не открыта
+      if (user) { window.scrollTo(0, 0); var a = list.querySelector('.jli[aria-current]') || links[0]; if (a) a.focus({ preventScroll: true }); }
+    }
     function show(id, user) {
       if (id === cur) return; cur = id;
       scr.forEach(function (x) { x.hidden = x.id !== id; });
       links.forEach(function (a) { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
       var el = document.getElementById(id);
+      if (M) {
+        root.classList.remove('jpick');
+        var jk = /^job-(\d+)$/.exec(id); if (fab) { fab.hidden = !jk; if (jk) { fab.href = 'map.html#job=' + jk[1]; fab.setAttribute('aria-label', 'Маршрут к профессии «' + el.querySelector('h2').textContent + '» на карте связей'); } }
+        if (user) window.scrollTo(0, 0);
+      }
       if (user) {
         if (!RMs) { el.classList.remove('tm-scr'); void el.offsetWidth; el.classList.add('tm-scr'); }
         var h = el.querySelector('h2'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
@@ -26,6 +45,7 @@
     list.addEventListener('click', function (e) {
       var a = e.target.closest('.jli'); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
       e.preventDefault(); var id = a.getAttribute('href').slice(1);
+      if (M) { try { history.pushState({ tmJob: 1 }, '', location.pathname + location.search + '#' + id); } catch (x) {} cur = null; show(id, true); return; }
       try { history.replaceState(history.state, '', location.pathname + location.search + '#' + id); } catch (x) {}
       show(id, true);
     });
@@ -35,7 +55,9 @@
       e.preventDefault(); links[j].focus();
     });
     show(idOf(location.hash), false);
-    window.addEventListener('hashchange', function () { show(idOf(location.hash), true); });
+    if (M && !picked(location.hash)) toList();
+    window.addEventListener('hashchange', function () { if (M && !picked(location.hash)) { toList(true); return; } cur = M ? null : cur; show(idOf(location.hash), true); });
+    if (M) window.addEventListener('popstate', function () { if (!picked(location.hash)) toList(true); else { cur = null; show(idOf(location.hash), true); } });
   })();
 
   var box = document.getElementById('cmpout'), dEl = document.getElementById('cmpd'), sa = document.getElementById('cmpa'), sb = document.getElementById('cmpb');
