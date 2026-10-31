@@ -791,9 +791,10 @@ def plan_page(cards):
         if not lst: continue
         rows += f'<tr class="psem"><th colspan="10" scope="colgroup" id="ps{s}">Начинаются в {s} семестре</th></tr>'
         for it in lst:
-            rows += (f'<tr><td>{E(it["idx"])}</td><th scope="row" headers="ps{s}"><a href="d/{it["slug"]}.html">{E(("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"]))}</a></th>'
-                     f'<td>{E(group_of(it["type"]))}</td><td class="pn">{E(str(it["sem"]))}</td><td class="pn">{ze_num(it)}</td><td class="pn">{n(it["hours"])}</td>'
-                     f'<td class="pn">{n(it["lec"]) or 0}</td><td class="pn">{n(it["lab"]) or 0}</td><td class="pn">{n(it["pr"]) or 0}</td><td>{E(it["controls"] or "—")}</td></tr>')
+            # data-l — подпись поля: на телефоне строка показывается карточкой «подпись: значение» (стили ≤700 px)
+            rows += (f'<tr><td data-l="Код">{E(it["idx"])}</td><th scope="row" headers="ps{s}"><a href="d/{it["slug"]}.html">{E(("По выбору: " if it["type"] == "По выбору" else "") + clean(it["name"]))}</a></th>'
+                     f'<td data-l="Раздел">{E(group_of(it["type"]))}</td><td class="pn" data-l="Семестры">{E(str(it["sem"]))}</td><td class="pn" data-l="З.е.">{ze_num(it)}</td><td class="pn" data-l="Часы">{n(it["hours"])}</td>'
+                     f'<td class="pn" data-l="Лекции">{n(it["lec"]) or 0}</td><td class="pn" data-l="Лаборат.">{n(it["lab"]) or 0}</td><td class="pn" data-l="Практика">{n(it["pr"]) or 0}</td><td class="pk" data-l="Контроль">{E(it["controls"] or "—")}</td></tr>')
     jobs_of = {}
     for k, j in enumerate(JOBS):
         for x in j[3]: jobs_of.setdefault(x, []).append(j[1])
@@ -810,7 +811,7 @@ def plan_page(cards):
 <p class="lead">Все {len(items)} позиций плана на одной странице: семестры, зачётные единицы, часы и формы контроля. Всего по плану {meta.get("total_ze", 240)} з.е.</p>
 <p class="hlinks"><a class="btn" href="plan.csv" download>Скачать таблицу (CSV) {ic("FaArrowRight")}</a><button type="button" class="btn-o" data-print hidden>Распечатать или сохранить в PDF</button><a class="btn-o" href="#cmp">Сравнить две дисциплины</a></p></section></div></div>
 <div class="wrap"><p class="muted pnote">Источник: {E(meta["plan"])}, {E(meta["approved"])}. Данные сверены {E(meta["checked"])}. Часы — всего за дисциплину по плану, у предметов на несколько семестров указан их диапазон. Таблица справочная и не заменяет официальный документ.</p>
-<div class="ptable"><table><caption class="vh">Учебный план по семестрам</caption><thead><tr><th scope="col">Код</th><th scope="col">Дисциплина</th><th scope="col">Раздел</th><th scope="col" class="pn">Семестры</th><th scope="col" class="pn">З.е.</th><th scope="col" class="pn">Часы</th><th scope="col" class="pn" title="Лекции">Лек.</th><th scope="col" class="pn" title="Лабораторные">Лаб.</th><th scope="col" class="pn" title="Практические">Пр.</th><th scope="col">Контроль</th></tr></thead><tbody>{rows}</tbody></table></div>
+<div class="ptable pmain"><table><caption class="vh">Учебный план по семестрам</caption><thead><tr><th scope="col">Код</th><th scope="col">Дисциплина</th><th scope="col">Раздел</th><th scope="col" class="pn">Семестры</th><th scope="col" class="pn">З.е.</th><th scope="col" class="pn">Часы</th><th scope="col" class="pn" title="Лекции">Лек.</th><th scope="col" class="pn" title="Лабораторные">Лаб.</th><th scope="col" class="pn" title="Практические">Пр.</th><th scope="col">Контроль</th></tr></thead><tbody>{rows}</tbody></table></div>
 <p class="muted">Формы контроля: Эк — экзамен, За — зачёт, ЗаО — зачёт с оценкой, КР — курсовая работа, КП — курсовой проект, К — контрольная, Оц — оценка, РГР — расчётно-графическая работа; число в скобках — сколько раз.</p>
 <section class="panel pcmp" id="cmp" aria-labelledby="cmph2"><h2 id="cmph2"><span class="ci">{ic("FaLayerGroup")}</span>Сравнить две дисциплины</h2>
 <div class="cmpsel"><label class="sortl">Первая <select id="pca">{opts(order[0]["slug"])}</select></label><label class="sortl">Вторая <select id="pcb">{opts(order[1]["slug"])}</select></label></div>
