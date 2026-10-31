@@ -366,6 +366,14 @@ STAGES = [
  ("3","2028","Вузы Владивостока","",[("plan","Поиск по всем программам вуза"),("plan","Сравнение двух направлений рядом"),("plan","Уроки для школ на базе карточек"),("plan","Сопоставление оценок с показателями дисциплин")]),
  ("4","2029–2031","Регион и Россия","",[("plan","Тест «подходит ли мне специальность»"),("plan","Поиск «от профессии к предметам»"),("plan","Версии на китайском и корейском"),("plan","Карта освоения компетенций"),("plan","Другие специальности и вузы")])]
 ICON_OF = {"done":"FaCheck","doing":"FaSyncAlt","plan":"FaRegClock"}
+def dark_head(body, crumb):
+    """Шапка раздела в системе экранов (как у «Дисциплин»): тёмная полоса, крошки, заголовок, пояснение и, если были, кнопки.
+    Заменяет прежнюю синюю обложку heroblock на служебных страницах; содержимое страницы не трогает."""
+    m = re.search(r'<div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>(.*?)</h1>\s*(<p class="lead">.*?</p>)?\s*(<p class="hlinks">.*?</p>)?\s*(?:<div class="dots"[^>]*>.*?</div>)?\s*</section></div></div>', body, re.S)
+    if not m: return body
+    h1, lead, links = m.group(1), m.group(2) or "", m.group(3) or ""
+    new = (f'<div class="cathead sechead"><div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="index.html">TeachMap</a> › {crumb}</nav><h1>{h1}</h1>{lead}{links}</div></div>')
+    return body[:m.start()] + new + body[m.end():]
 def road_page():
     pr = "".join(f'<div class="pr"><span class="ci">{ic(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i,t,d in (
         ("FaLightbulb","Понятно","Язык школьника вместо канцелярита: что изучают и зачем."),("FaClipboardCheck","Честно","У каждой карточки есть источник, дата и статус проверки. Оценки видны от 5 ответов."),
@@ -378,6 +386,7 @@ def road_page():
 <h2 style="color:var(--pri)">Концепция</h2><p class="muted" style="max-width:70ch">Сайт переводит официальный учебный план на язык абитуриента и добавляет то, чего нет в документе: оценки студентов и примеры заданий. Четыре принципа:</p><div class="principles">{pr}</div>
 <h2 style="color:var(--pri)">Для кого</h2><div class="principles">{who}</div>
 <h2 style="color:var(--pri)">Этапы развития</h2><div class="legend"><span>{ic("FaCheck")}сделано</span><span>{ic("FaSyncAlt")}в работе</span><span>{ic("FaRegClock")}планируется</span></div><div class="road">{st}</div></div></main>'''
+    body = dark_head(body, "Развитие сайта")
     return page("Развитие сайта · TeachMap","Концепция сайта и этапы развития: запуск, пилот в ДВФУ, вузы Владивостока, регион и Россия", body)
 
 ROLES = [("school89","Школьник 8–9 класса"),("school1011","Школьник 10–11 класса"),("graduate","Выпускник школы или колледжа"),("student","Студент"),("parent","Родитель"),("teacher","Учитель или педагог-профориентатор"),("uni","Преподаватель или сотрудник вуза"),("other","Другое")]
@@ -425,6 +434,7 @@ def feedback_page():
 {q[0]}<div id="rest" hidden>{"".join(inner)}
 <div class="ffsend"><button type="submit" class="btn" id="fbsend">Отправить</button><p id="fbmsg" class="tkmsg" role="alert" aria-live="assertive"></p></div></div>
 <input class="fbtrap" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true"></form></div></main>'''
+    body = dark_head(body, "Обратная связь")
     return page("Обратная связь · TeachMap", "Расскажите, что получилось, а что нет: короткая анонимная форма", body, 0, form=True)
 def about_page():
     survey = f'<p><a class="btn" href="{E(SURVEY_URL)}">Пройти опрос студентов</a></p>' if SURVEY_URL else ""
@@ -440,6 +450,7 @@ def about_page():
     body = head_nav(0, "about") + f'''<main id="main"><div class="heroblock"><div class="wrap"><section class="hero"><span class="line"></span><h1>О проекте TeachMap</h1><p class="lead">Официальный учебный план написан для проверяющих. TeachMap объясняет его абитуриентам простым языком: чем придётся заниматься и насколько будет трудно.</p></section></div></div><div class="wrap">
 <div class="doc"><h2>Что важно знать</h2><p>Сайт показывает данные плана 27.03.01 «Стандартизация и метрология» ДВФУ и оценки студентов. Мы не собираем имена и почту, цитаты публикуем только с согласия студента.</p>{survey}{contact}</div>
 <h2 style="color:var(--pri)">Частые вопросы</h2>{fq}</div></main>'''
+    body = dark_head(body, "О проекте")
     return page("О проекте · TeachMap","Что это за сайт, откуда данные и как считаются оценки студентов", body)
 
 def sem_list(s):
@@ -779,6 +790,7 @@ def plan_page(cards):
 <div id="pcout" aria-live="polite"><noscript><p class="muted">Для сравнения нужен включённый JavaScript.</p></noscript></div>
 <p class="muted cmpnote">Нагрузка и формы контроля — по учебному плану; связи — логические предположения команды проекта (не официальные пререквизиты); профессии — оценка команды; компетенции — коды из рабочих программ.</p></section></div></main>
 <script type="application/json" id="pcd">{cdata}</script>'''
+    body = dark_head(body, "План таблицей")
     return page("Учебный план 27.03.01 таблицей: часы, з.е., контроль · TeachMap", "Все позиции учебного плана 27.03.01 ДВФУ таблицей: семестры, зачётные единицы, часы и формы контроля; выгрузка CSV и сравнение дисциплин", body, plan=True)
 # ---- стартовый экран (index.html): игровое меню; дорога по семестрам — на path.html ----
 def start_art():
@@ -857,6 +869,7 @@ def settings_page():
 <section class="panel setsec" aria-labelledby="set3"><h2 id="set3"><span class="ci">{ic("FaLightbulb")}</span>О сайте</h2><ul class="setlist">
 {row("plan.html", "Учебный план таблицей", "Все позиции плана, печать в PDF и выгрузка CSV")}{row("about.html", "О проекте", "Откуда данные, кто пишет описания, как считаются оценки")}
 {row("roadmap.html", "Развитие сайта", "Концепция и этапы развития")}{row("feedback.html", "Обратная связь", "Расскажите, что получилось, а что нет") if FB_ON else ""}</ul></section></div></main>'''
+    body = dark_head(body, "Настройки")
     return page("Настройки · TeachMap", "Крупный шрифт и контраст, меньше анимаций, мои данные и сведения о проекте", body)
 def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)

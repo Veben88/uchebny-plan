@@ -211,6 +211,56 @@
   reset.addEventListener('click', clearAll);
   document.getElementById('reset2').addEventListener('click', clearAll);
 
+  // ---------- активные фильтры чипами; на телефоне — нижняя шторка фильтров; прокрутка при «Назад» ----------
+  var NARROWC = window.matchMedia ? matchMedia('(max-width: 700px)') : { matches: false, addEventListener: function () {} };
+  var chipsBox = document.createElement('div'); chipsBox.className = 'cchips'; chipsBox.id = 'cchips'; chipsBox.setAttribute('aria-label', 'Активные фильтры');
+  var cntrow = document.querySelector('.cntrow'); if (cntrow) cntrow.parentNode.insertBefore(chipsBox, cntrow.nextSibling);
+  var FNAME = { course: function (v) { return v + ' курс'; }, kind: function (v) { return { o: 'Обязательные', v: 'По выбору', f: 'Факультативы' }[v]; }, sem: function (v) { return v + ' семестр'; }, group: function (v) { return v; },
+    kr: function () { return 'Есть курсовая'; }, lab: function () { return 'С лабораторными'; }, fav: function () { return 'Избранное'; }, doing: function () { return 'Изучаю'; }, done: function () { return 'Пройдено'; },
+    job: function (v) { return 'Профессия: ' + (JOBN[+v] || v); } };
+  var JOBN = [].slice.call(jobSel.options, 1).map(function (o) { return o.textContent; });
+  function drawChips() {
+    chipsBox.textContent = ''; var n = 0;
+    KEYS.slice(1).forEach(function (k) {
+      if (!F[k]) return; n++;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'cchip'; b.textContent = (FNAME[k] ? FNAME[k](F[k]) : F[k]) + ' ×';
+      b.setAttribute('aria-label', 'Убрать фильтр: ' + (FNAME[k] ? FNAME[k](F[k]) : F[k]));
+      b.addEventListener('click', function () { delete F[k]; run(); });
+      chipsBox.appendChild(b);
+    });
+    chipsBox.hidden = !n;
+    var fb = document.getElementById('cfbtn'); if (fb) { var m = fb.querySelector('b'); m.textContent = n ? String(n) : ''; m.hidden = !n; }
+  }
+  var origRun = run; run = function () { origRun(); drawChips(); };
+  // шторка: на телефоне левая колонка и строка инструментов переезжают в неё
+  var side0 = document.getElementById('catside'), tools0 = document.querySelector('.ctools'), sheet = document.createElement('div');
+  sheet.className = 'cfsheet'; sheet.id = 'cfsheet'; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-modal', 'true'); sheet.setAttribute('aria-label', 'Фильтры'); sheet.hidden = true;
+  var shHead = document.createElement('div'); shHead.className = 'cfsh'; shHead.innerHTML = '<b>Фильтры</b>';
+  var shClose = document.createElement('button'); shClose.type = 'button'; shClose.className = 'btn-s cfdone'; shClose.textContent = 'Показать'; shHead.appendChild(shClose);
+  sheet.appendChild(shHead); var shBody = document.createElement('div'); shBody.className = 'cfsb'; sheet.appendChild(shBody); document.body.appendChild(sheet);
+  var back = document.createElement('div'); back.className = 'cfback'; back.hidden = true; document.body.appendChild(back);
+  var fbtn = document.createElement('button'); fbtn.type = 'button'; fbtn.className = 'btn-o cfbtn'; fbtn.id = 'cfbtn'; fbtn.setAttribute('aria-controls', 'cfsheet'); fbtn.setAttribute('aria-expanded', 'false'); fbtn.innerHTML = 'Фильтры <b hidden></b>';
+  if (cntrow) cntrow.insertBefore(fbtn, cntrow.firstChild);
+  var homeSide = side0.parentNode, homeSideNext = side0.nextSibling, homeTools = tools0.parentNode, homeToolsNext = tools0.nextSibling;
+  function place() {
+    if (NARROWC.matches) { shBody.appendChild(side0); shBody.appendChild(tools0); }
+    else { homeSide.insertBefore(side0, homeSideNext); homeTools.insertBefore(tools0, homeToolsNext); closeSheet(); }
+  }
+  function openSheet() { sheet.hidden = false; back.hidden = false; fbtn.setAttribute('aria-expanded', 'true'); document.documentElement.classList.add('cf-open'); var f = sheet.querySelector('button.cf'); if (f) f.focus(); }
+  function closeSheet() { if (sheet.hidden) return; sheet.hidden = true; back.hidden = true; fbtn.setAttribute('aria-expanded', 'false'); document.documentElement.classList.remove('cf-open'); fbtn.focus({ preventScroll: true }); }
+  fbtn.addEventListener('click', function () { sheet.hidden ? openSheet() : closeSheet(); });
+  shClose.addEventListener('click', closeSheet); back.addEventListener('click', closeSheet);
+  sheet.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.stopPropagation(); closeSheet(); } });
+  if (NARROWC.addEventListener) NARROWC.addEventListener('change', place); place();
+  // прокрутка: сохраняем при уходе и возвращаем при «Назад» (адрес уже хранит фильтры и порядок)
+  var SK = 'tm-cat-scroll';
+  window.addEventListener('pagehide', function () { try { sessionStorage.setItem(SK, JSON.stringify({ u: location.search, y: Math.round(window.scrollY) })); } catch (e) {} });
+  (function () {
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0], back_ = nav && nav.type === 'back_forward';
+    if (!back_) return; var d; try { d = JSON.parse(sessionStorage.getItem(SK) || 'null'); } catch (e) {}
+    if (d && d.u === location.search && d.y > 0) { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; requestAnimationFrame(function () { window.scrollTo(0, d.y); }); }
+  })();
+
   // ---------- предпросмотр: предмет под курсором ----------
   var prev = document.getElementById('cprev'), pv = document.getElementById('cpv'), PD = {}, cur = null;
   try { PD = JSON.parse(document.getElementById('cpd').textContent); } catch (e) {}

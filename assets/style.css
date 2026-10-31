@@ -2378,3 +2378,35 @@ a.setrow{padding-right:50px}
 /* анимации появления (въезд справа, диагональ) не должны на миг расширять страницу: на телефоне браузер
    из-за этого уменьшает масштаб и сдвигает нижнюю панель. clip, а не hidden: не создаёт прокрутки и не ломает position:sticky */
 main{overflow-x:clip}
+
+/* Служебные страницы (план таблицей, настройки, о проекте, развитие, обратная связь): та же шапка раздела, что у «Дисциплин» */
+.sechead{padding-bottom:30px}
+.sechead h1{font-size:clamp(28px,3.6vw,42px)}
+.sechead .hlinks{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0}
+.sechead .hlinks .btn,.sechead .hlinks .btn-o{font-size:13px}
+.sechead .hlinks .btn-o{color:#fff;border-color:rgba(221,235,250,.55)}
+.sechead .hlinks .btn-o:hover{background:rgba(221,235,250,.16)}
+.sechead+.wrap,.sechead+.setwrap{margin-top:22px}
+@media(max-width:700px){.sechead{padding:10px 0 16px}.sechead .crumbs,.sechead h1{display:none}.sechead .lead{margin-bottom:8px}}
+.sechead .hlinks .btn-o{background:transparent!important}
+.sechead .hlinks .btn-o:hover{background:rgba(221,235,250,.16)!important}
+
+/* каталог: активные фильтры чипами и шторка фильтров на телефоне */
+.cchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.cchips[hidden]{display:none}
+.cchip{font:inherit;font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;border:1.5px solid var(--acc);background:var(--ice);color:var(--pri);cursor:pointer}
+.cchip:hover{background:var(--card)}.cchip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.cfbtn{display:none}.cfsheet,.cfback{display:none}
+@media(max-width:700px){
+ .cfbtn{display:inline-flex;align-items:center;gap:8px}.cfbtn b{min-width:20px;padding:0 6px;border-radius:999px;background:var(--btn);color:#fff;font-size:12px;text-align:center}.cfbtn b[hidden]{display:none}
+ .cfback{position:fixed;inset:0;z-index:68;background:rgba(6,20,58,.55)}.cfback[hidden]{display:none}
+ .cfsheet{position:fixed;left:0;right:0;bottom:0;z-index:70;max-height:82vh;display:flex;flex-direction:column;background:var(--card);border-radius:16px 16px 0 0;box-shadow:0 -10px 0 rgba(52,120,200,.4);padding-bottom:env(safe-area-inset-bottom,0)}
+ .cfsheet[hidden]{display:none}
+ .cfsh{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}.cfsh b{font-family:var(--hd);font-size:18px;text-transform:uppercase}
+ .cfsb{overflow:auto;padding:10px 12px 16px}
+ .cfsb .catside{display:block!important;position:static;max-height:none;box-shadow:none;padding:0;margin:0 0 12px}
+ .cfsb .catside .cfl{display:grid;gap:2px;overflow:visible}.cfsb .catside .cfh{display:block}
+ .cfsb .catside .cf .cfi{display:grid}.cfsb .catside .cf{width:100%;background:transparent}
+ .cfsb .catside .cf[aria-pressed=true]{background:var(--btn)}
+ .cfsb .ctools{display:grid}
+}
+.cfsb .catside .cfh[hidden]{display:none!important}
