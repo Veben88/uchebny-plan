@@ -875,6 +875,7 @@ def profile_page():
     # для «Моего плана»: название, семестры, предметы «нужен» (для подсказок «что дальше»), код позиции плана (для CSV)
     names = json.dumps({i["slug"]: [clean(i["name"]), str(i["sem"]), [x for x, t, _ in links_of(i["slug"])[0] if t == "need"], i["idx"]] for i in items}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     jn = json.dumps([j[1] for j in JOBS], ensure_ascii=False).replace("</", "<\\/")
+    jk = json.dumps([list(j[3]) for j in JOBS], ensure_ascii=False).replace("</", "<\\/")   # ключевые предметы профессий (для «Моего маршрута»)
     icons = "".join(f'<span data-i="{k}">{ic(v)}</span>' for k, v in (("next", "FaMapMarkedAlt"), ("doing", "FaBookOpen"), ("done", "FaCheck"), ("fav", "FaStar"), ("jobs", "FaBriefcase"),
                                                                          ("notes", "FaCommentDots"), ("recent", "FaRegClock"), ("data", "FaUserLock"), ("start", "FaRocket")))
     head = ('<div class="cathead phead"><div class="wrap"><nav class="crumbs" aria-label="Путь"><a href="index.html">TeachMap</a> › Профиль</nav><h1>Мой план</h1>'
@@ -883,7 +884,7 @@ def profile_page():
 <noscript><p class="panel">Для личного плана нужен включённый JavaScript.</p></noscript>
 <div id="profile" data-total="{len(items)}" data-ze="{meta.get("total_ze") or ""}" data-years="{(max(x for i in items for x in sem_list(i["sem"])) + 1) // 2}" data-sems="{max(x for i in items for x in sem_list(i["sem"]))}"></div>
 <section class="panel mypriv"><h2><span class="ci">{ic("FaUserLock")}</span>Где хранятся данные</h2><p>Только в этом браузере на этом устройстве. Сами на другой телефон или компьютер они не переносятся и пропадут, если очистить данные сайта в браузере; перенести их можно файлом (раздел «Перенос и очистка»). На сервер ничего не отправляется. Статусы — личные пометки для планирования, а не оценки, зачёты или подтверждённая успеваемость.</p></section>
-</div></main><template id="part">{disc_art("my-profile", 1, "FaUserGraduate")}</template><template id="pico">{icons}</template><script type="application/json" id="pnames">{names}</script><script type="application/json" id="pjobs">{jn}</script>'''
+</div></main><template id="part">{disc_art("my-profile", 1, "FaUserGraduate")}</template><template id="pico">{icons}</template><script type="application/json" id="pnames">{names}</script><script type="application/json" id="pjobs">{jn}</script><script type="application/json" id="pjk">{jk}</script>'''
     return page("Мой план · TeachMap", "Статусы предметов, избранное, профессии и заметки: хранятся только в вашем браузере", body)
 def build():
     if OUT.exists(): shutil.rmtree(OUT)

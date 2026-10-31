@@ -312,6 +312,7 @@
   if (prof) {
     var names = {}, jobsAll = []; try { names = JSON.parse(document.getElementById('pnames').textContent); } catch (e) {}
     try { jobsAll = JSON.parse(document.getElementById('pjobs').textContent); } catch (e) {}
+    var jobKeys = []; try { jobKeys = JSON.parse(document.getElementById('pjk').textContent); } catch (e) {}
     var nm = function (s) { return (names[s] && names[s][0]) || P.titles[s] || s; };
     var sem = function (s) { return names[s] ? names[s][1] + ' сем.' : ''; };
     var ptotal = +prof.dataset.total || 74;
@@ -387,6 +388,31 @@
         sn.appendChild(el('p', 'muted', NEXTNOTE));
         var ma = el('p', 'hlinks2'), mal = el('a', 'btn-s', 'Мой маршрут на карте связей'); mal.href = base + 'map.html#mine'; ma.appendChild(mal); sn.appendChild(ma);
         add('my-next', 'Что дальше', 'next', NX.length || null, sn);
+        // «Мой маршрут»: предметы по семестрам с личными отметками (статус подписан словом, не только значком)
+        var RT = {}, put = function (s, tag) { if (!INFO[s]) return; (RT[s] = RT[s] || {})[tag] = 1; };
+        Object.keys(P.status).forEach(function (s) { put(s, P.status[s]); }); P.fav.forEach(function (s) { put(s, 'fav'); });
+        api.jobIndexes().forEach(function (k) { (jobKeys[k] || []).forEach(function (s) { put(s, 'job'); }); });
+        var rs = section('Мой маршрут'), semsR = {};
+        Object.keys(RT).forEach(function (s) { var f = semList(INFO[s].sem)[0] || 0; (semsR[f] = semsR[f] || []).push(s); });
+        var rkeys = Object.keys(semsR).map(Number).sort(function (a, b) { return a - b; }), TAGN = { done: 'пройдено', doing: 'изучаю', fav: 'избранное', job: 'путь к профессии' };
+        if (rkeys.length) {
+          var ol = el('ol', 'myroute');
+          rkeys.forEach(function (n) {
+            var li = el('li', 'myrs' + (P.sem === n ? ' now' : '')), hd = el('b', '', n + ' семестр' + (P.sem === n ? ' · сейчас' : '')); li.appendChild(hd);
+            var ul = el('ul', 'myrl');
+            semsR[n].sort(function (a, b) { return (INFO[a].idx || '').localeCompare(INFO[b].idx || ''); }).forEach(function (s) {
+              var it = el('li', 'myri'), a = el('a', '', nm(s)); a.href = base + 'd/' + s + '.html'; it.appendChild(a);
+              Object.keys(RT[s]).sort().forEach(function (t) { it.appendChild(el('span', 'myrt mt-' + t, TAGN[t] || t)); });
+              ul.appendChild(it);
+            });
+            li.appendChild(ul); ol.appendChild(li);
+          });
+          rs.appendChild(ol);
+          rs.appendChild(el('p', 'muted', 'Личные пометки и пути к выбранным профессиям: это план для себя, а не успеваемость и не требования программы.'));
+          var ml = el('p', 'hlinks2'), mla = el('a', 'btn-o', 'Показать на карте связей'); mla.href = base + 'map.html#mine'; ml.appendChild(mla); rs.appendChild(ml);
+        } else rs.appendChild(el('p', 'muted', 'Пока пусто: отметь предметы статусом или «Избранным», либо выбери интересную профессию — маршрут по семестрам появится здесь.'));
+        add('my-route', 'Мой маршрут', 'next', rkeys.length ? Object.keys(RT).length : null, rs);
+
         [['doing', 'Изучаю', 'Пока ничего. Статус «Изучаю» ставится на странице предмета.'], ['done', 'Пройдено', 'Пока ничего. Статус «Пройдено» ставится на странице предмета.']].forEach(function (d) {
           var L = listOf(d[0]), s = section(d[1], L.length);
           if (L.length) {
