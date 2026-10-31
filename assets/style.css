@@ -2513,3 +2513,57 @@ main{overflow-x:clip}
  .start .st-stat .st-note{font-size:11.5px}
 }
 @media(max-width:700px){.start .st-top{display:flex;align-items:center;justify-content:space-between;gap:10px}}
+
+/* =====================================================================
+   МОБИЛЬНАЯ ВЕРСИЯ, ЭТАП 2: КАТАЛОГ И СТРАНИЦА ПРЕДМЕТА (≤700 px)
+   Статус словом в строке каталога, звезда «Избранное» на шапке предмета, вкладки под верхней панелью
+   с подсказкой продолжения, закреплённая кнопка «На карте», цели касания не меньше 44 px.
+   ===================================================================== */
+.catpage .crow .chip.mkw,.dfab{display:none}
+@media(max-width:700px){
+ /* нижняя панель: «Дисциплины» помещается в плашку */
+ .tabbar{gap:0;padding-left:3px;padding-right:3px}
+ .tabbar a{letter-spacing:0;font-size:10.5px}
+ .tabbar a[aria-current]{clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+ /* каталог: статус словом первой меткой */
+ .catpage .crow .chip.mkw{display:inline-flex;align-items:center;font-weight:700}
+ .catpage .crow .chip.mkw-done{background:var(--ok-bg);color:var(--ok)}
+ .catpage .crow .chip.mkw-doing{background:var(--btn);color:#fff}
+ .catpage .crow .mymarks .mk-done,.catpage .crow .mymarks .mk-doing{display:none}
+ /* страница предмета: звезда — круглая кнопка на иллюстрации, значок раздела слева */
+ .dicon{left:18px;right:auto}
+ .dband .mybar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+ .dband .myst{display:grid;grid-template-columns:repeat(3,1fr);flex:1 1 100%}
+ .dband .myst .mybtn{min-height:46px;padding-left:4px;padding-right:4px;justify-content:center;text-align:center}
+ .dband .mybtn.my-fav{position:absolute;top:-104px;right:14px;width:48px;height:48px;min-height:0;padding:0!important;border-radius:50%;display:grid;place-items:center;font-size:0;
+  background:rgba(3,18,58,.55);border:1.5px solid rgba(221,235,250,.7);color:#fff;box-shadow:3px 3px 0 #3478C8}
+ .dband .mybtn.my-fav .myi{font-size:22px;line-height:1;margin:0}
+ .dband .mybtn.my-fav[aria-pressed=true]{background:#fff;border-color:#fff;color:#F2B01E}
+ .dband .mybtn.my-fav:focus-visible{outline:3px solid #fff;outline-offset:2px}
+ .dband .mylink{display:inline-flex;align-items:center;min-height:44px;margin-left:auto;font-weight:600}
+ .tm-js #mybar:empty{min-height:100px}
+ .tm-js:not(.dtabs-on) .dtabs[hidden]{min-height:54px}   /* место под кнопки статуса до запуска скрипта: без сдвига вёрстки */
+ /* вкладки: закреплены под верхней панелью; правый край гаснет, пока лента продолжается */
+ .dtabs{top:calc(var(--ab-h) + env(safe-area-inset-top,0px));margin-left:-14px;margin-right:-14px;padding:4px 10px 0;scroll-margin-top:calc(var(--ab-h) + env(safe-area-inset-top,0px))}
+ .dtabs.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+ .dtb{min-height:46px}
+ .dmain .dtab,.dmain [id]{scroll-margin-top:calc(var(--ab-h) + 58px + env(safe-area-inset-top,0px))}
+ /* крупнее мелкие ссылки */
+ .dsl li{align-items:center}
+ .dsl a{display:inline-block;padding:10px 0}
+ .dmore{display:inline-block;padding:12px 0}
+ .lk a{display:inline-block;padding:6px 0}
+ .pager a{display:inline-flex;align-items:center;min-height:44px}
+ footer a{display:inline-block;padding:8px 0}
+ /* закреплённая кнопка «На карте» над нижней панелью */
+ .dfab{display:inline-flex;align-items:center;gap:8px;position:fixed;right:14px;bottom:calc(var(--tb-h) + 16px + env(safe-area-inset-bottom,0px));z-index:50;min-height:48px;padding:0 18px;border-radius:24px;
+  background:#173B70;color:#fff;font-family:var(--hd);font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:4px 4px 0 #3478C8}
+ .dfab svg{width:17px;height:17px}
+ .dfab:active{background:#0E2550}
+ .dfab:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+ .dmain{padding-bottom:70px}
+ .tm-motion .dfab{animation:tmReveal 260ms steps(8,end) 200ms backwards}
+}
+@media(max-width:700px){html.access .dband .mybtn.my-fav{box-shadow:none}}
+@media print{.dfab{display:none!important}}
+@media(max-width:360px){.tabbar a{font-size:10px}}

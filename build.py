@@ -370,7 +370,7 @@ def disc_page(it, c, order, k):
 <p class="meta">{E(it["idx"])} · {E(it["type"])} · {n(it["ze"]) or "вне"} з.е. · {n(it["hours"])} ч · {E(str(it["sem"]))} семестр</p><span class="badge {STATUS[st][1]}">{STATUS[st][0]}</span><div class="mybar" id="mybar" data-slug="{s}"></div></div>{disc_art(s, g)}</div></div></div>
 <main id="main" class="wrap dmain"><div class="dtabs" id="dtabs" role="tablist" aria-label="Разделы страницы предмета" hidden></div>{tabs_html}
 {f'<p class="muted fberr">Нашли ошибку в описании? <a href="../feedback.html?d={s}">Сообщить об ошибке</a></p>' if FB_ON else ""}
-<nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav></main>'''
+<nav class="pager" aria-label="Соседние предметы">{prev}{nxt}</nav><a class="dfab" href="../map.html#node={s}">{ic("FaCompass")}<span>На карте</span></a></main>'''
     return page(f"{name}: что изучают и какая нагрузка · TeachMap", c["what"] or c["brief"] or name, body, 1, live=True)
 # числа берутся из данных при сборке, чтобы не расходиться с сайтом
 _N_TEXT = sum(1 for i in items if read_card(i["slug"])["what"])

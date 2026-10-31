@@ -68,15 +68,26 @@
     });
     bar.hidden = false; root.classList.add('dtabs-on');
     var cur = -1;
+    // подсказка, что лента вкладок продолжается: класс more гасит правый край
+    function edge() { bar.classList.toggle('more', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4); }
+    bar.addEventListener('scroll', edge, { passive: true }); window.addEventListener('resize', edge);
     function show(i, focus, user) {
       if (i === cur) return;
       secs.forEach(function (x, j) { x.hidden = j !== i; btns[j].setAttribute('aria-selected', j === i ? 'true' : 'false'); btns[j].tabIndex = j === i ? 0 : -1; });
       cur = i;
+      // выбранная вкладка в пределах ленты (на телефоне лента прокручивается вбок)
+      var b = btns[i]; if (b.offsetLeft < bar.scrollLeft || b.offsetLeft + b.offsetWidth > bar.scrollLeft + bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16;
+      edge();
       if (focus) btns[i].focus();
       if (user) {
         try { history.replaceState(history.state, '', location.pathname + location.search + (i ? '#' + secs[i].id : '')); } catch (e) {}
         if (!RMt) { secs[i].classList.remove('tm-tab'); void secs[i].offsetWidth; secs[i].classList.add('tm-tab'); }
-        var r = bar.getBoundingClientRect(); if (r.top < 0) bar.scrollIntoView({ block: 'start', behavior: RMt ? 'auto' : 'smooth' });
+        var r = bar.getBoundingClientRect(), st = parseFloat(getComputedStyle(bar).top) || 0;
+        if (r.top < 0) bar.scrollIntoView({ block: 'start', behavior: RMt ? 'auto' : 'smooth' });
+        else if (r.top <= st + 1) {   // лента прилипла к верху: новая вкладка должна начаться сразу под ней, а не с середины
+          var dy = secs[i].getBoundingClientRect().top - r.bottom - 10;
+          if (dy < 0) window.scrollBy({ top: dy, behavior: RMt ? 'auto' : 'smooth' });
+        }
       }
     }
     bar.addEventListener('keydown', function (e) {

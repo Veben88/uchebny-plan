@@ -188,6 +188,13 @@
       if (st) { var b = el('i', 'mk-' + st, st === 'done' ? '✓' : '•'); b.setAttribute('aria-hidden', 'true'); m.appendChild(b); }
       m.appendChild(el('span', 'vh', [f ? 'в избранном' : '', LBL[st] || ''].filter(Boolean).join(', ')));
     });
+    // строка каталога: статус ещё и словом среди меток (видно на телефоне; для скринридера уже есть текст выше)
+    [].forEach.call(document.querySelectorAll('.crow'), function (c) {
+      var st = api.status(c.dataset.slug), w = c.querySelector('.mkw'), ch = c.querySelector('.chips');
+      if (!st || !ch) { if (w) w.remove(); return; }
+      if (!w) { w = el('span', 'chip mkw'); w.setAttribute('aria-hidden', 'true'); ch.insertBefore(w, ch.firstChild); }
+      w.className = 'chip mkw mkw-' + st; w.textContent = st === 'done' ? '✓ Пройдено' : '• Изучаю';
+    });
     // фильтры «Избранное», «Изучаю» и «Пройдено» в каталоге видны, только если есть что показать
     [].forEach.call(document.querySelectorAll('.mypill'), function (b) {
       var n = b.dataset.f === 'fav' ? P.fav.length : count(b.dataset.f);
