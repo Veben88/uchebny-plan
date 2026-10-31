@@ -16,6 +16,7 @@
   edges.forEach(function (p) { p._f = p.getAttribute('data-f'); p._t = p.getAttribute('data-t'); p._ty = p.getAttribute('class').split(' ')[1]; });
   var W = parseFloat(cv.style.width), H = parseFloat(cv.style.height), TOTAL = Object.keys(N).length;
   // Компьютер (тёмный экран карты): круглые узлы, линии от центра круга к центру круга (вторая геометрия из build.py, data-dc)
+  var dirMode = 'all';   // режим связей выбранного предмета: all / up (предшествующие) / down (последующие)
   var ORB = !NARROW.matches && !!document.querySelector('.gscreen'), orbOn = true, orbSvg = cv.querySelector('.gorbit');
   if (ORB) edges.forEach(function (p) { var d = p.getAttribute('data-dc'); if (d) p.setAttribute('d', d); });
   view.classList.add('gjs');
@@ -173,13 +174,14 @@
   function selectNode(s, opt) {
     if (!N[s]) return;
     var upL = D.e.filter(function (e) { return e[1] === s; }), dnL = D.e.filter(function (e) { return e[0] === s; }), js = [], roles = {};
+    var upV = dirMode === 'down' ? [] : upL, dnV = dirMode === 'up' ? [] : dnL;   // режим «связи»: на карте только опоры или только продолжения (панель показывает всё)
     upL.sort(function (a, b) { return (a[2] !== 'need') - (b[2] !== 'need') || byPlan(a[0], b[0]); }); dnL.sort(function (a, b) { return byPlan(a[1], b[1]); });
     D.j.forEach(function (j, i) { if (j[2].indexOf(s) >= 0) js.push(i); });
-    upL.forEach(function (e) { roles[e[0]] = e[2] === 'need' ? 'need' : 'help'; });
-    dnL.forEach(function (e) { roles[e[1]] = 'down'; });
-    js.forEach(function (i) { roles['job-' + i] = 'job'; });
+    upV.forEach(function (e) { roles[e[0]] = e[2] === 'need' ? 'need' : 'help'; });
+    dnV.forEach(function (e) { roles[e[1]] = 'down'; });
+    if (dirMode !== 'up') js.forEach(function (i) { roles['job-' + i] = 'job'; });
     roles[s] = 'self'; sel = { k: 'n', id: s };
-    paint(roles, function (p) { return p._f === s || p._t === s; });
+    paint(roles, function (p) { return (p._f === s && dirMode !== 'up') || (p._t === s && dirMode !== 'down'); });
     var n = N[s], f = document.createDocumentFragment();
     f.appendChild(head(n[1] + ' семестр · ' + D.g[n[5]], n[0], [n[2] ? n[2] + ' з.е.' : '', n[3] ? n[3] + ' ч' : '', n[4]].filter(Boolean).join(' · ')));
     if (n[6]) f.appendChild(el('p', 'gwhat', n[6]));
@@ -199,7 +201,7 @@
     f.appendChild(ac2);
     f.appendChild(el('p', 'muted gtip', 'Повторное нажатие на выбранный узел тоже открывает страницу предмета.'));
     show(f); pick.value = s; jobSel.value = ''; setHash('node=' + s); cardAt = null; cardFor(s); after(opt); updRail();
-    if (ORB) { if (orbOn) orbit(s, upL.map(function (e) { return { id: e[0], ty: e[2], dir: 'up' }; }).concat(dnL.map(function (e) { return { id: e[1], ty: e[2], dir: 'down' }; }), js.map(function (i) { return { id: 'job-' + i, ty: 'job', dir: 'job' }; }))); else orbitClear(); placeCard(); }
+    if (ORB) { if (orbOn) orbit(s, upV.map(function (e) { return { id: e[0], ty: e[2], dir: 'up' }; }).concat(dnV.map(function (e) { return { id: e[1], ty: e[2], dir: 'down' }; }), (dirMode === 'up' ? [] : js).map(function (i) { return { id: 'job-' + i, ty: 'job', dir: 'job' }; }))); else orbitClear(); placeCard(); }
     say('Выбран предмет «' + n[0] + '»: опирается на ' + upL.length + ', ведёт к ' + dnL.length + (js.length ? ', ключевой для профессий: ' + js.length : '') + '.');
   }
   function selectJob(i, opt) {
@@ -411,6 +413,16 @@
     card.appendChild(el('b', 'gct', job ? D.j[i][0] : n[0]));
     card.appendChild(el('span', 'gcm', job ? 'Профессия · ключевых предметов: ' + D.j[i][2].length : semCourse(n[1])));
     if (!job) card.appendChild(el('span', 'gcm', [n[2] ? n[2] + ' з.е.' : '', n[3] ? n[3] + ' ч' : ''].filter(Boolean).join(' · ')));
+    if (!job) {                                                // режим связей: все · предшествующие · последующие
+      var seg = el('span', 'gseg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Какие связи показывать');
+      [['all', 'Все связи'], ['up', 'До'], ['down', 'После']].forEach(function (m) {
+        var b = el('button', 'gsb', m[1]); b.type = 'button'; b.setAttribute('aria-pressed', dirMode === m[0] ? 'true' : 'false');
+        b.title = { all: 'Опоры и продолжения', up: 'Только предшествующие предметы (на что опирается)', down: 'Только последующие предметы (к чему ведёт)' }[m[0]];
+        b.addEventListener('click', function (e) { e.stopPropagation(); if (dirMode === m[0]) return; dirMode = m[0]; selectNode(id, {}); var nb = card.querySelector('.gsb[aria-pressed="true"]'); if (nb) nb.focus({ preventScroll: true }); });
+        seg.appendChild(b);
+      });
+      card.appendChild(seg);
+    }
     var row = el('span', 'gcrow'), more = el('button', 'gcmore', 'Подробнее'); more.type = 'button'; more.setAttribute('aria-controls', 'gside');
     var go = el('a', 'gcgo', job ? 'Маршрут по семестрам' : 'Открыть страницу'); go.href = job ? 'jobs.html#job-' + i : 'd/' + id + '.html';
     row.appendChild(more); row.appendChild(go); card.appendChild(row);

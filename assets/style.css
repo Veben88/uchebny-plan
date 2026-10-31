@@ -2410,3 +2410,9 @@ main{overflow-x:clip}
  .cfsb .ctools{display:grid}
 }
 .cfsb .catside .cfh[hidden]{display:none!important}
+/* режим связей выбранного предмета (карта на компьютере) */
+.gseg{display:flex;gap:0;margin-top:8px;border:1.5px solid rgba(221,235,250,.4);border-radius:999px;overflow:hidden;width:max-content}
+.gsb{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;background:transparent;color:#DDEBFA;border:0;cursor:pointer;border-right:1px solid rgba(221,235,250,.3)}
+.gsb:last-child{border-right:0}.gsb:hover{background:rgba(221,235,250,.14)}
+.gsb[aria-pressed=true]{background:#fff;color:#173B70}
+.gsb:focus-visible{outline:2px solid #fff;outline-offset:-2px}
