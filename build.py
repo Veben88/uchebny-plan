@@ -122,6 +122,18 @@ APP = {  # раздел: (заголовок панели, куда ведёт �
  "fb": ("Обратная связь", "index.html#settings", ""), "settings": ("Настройки", "index.html", ""), "": ("TeachMap", "index.html", "")}
 TABS = (("start", "index.html", "Главная", "FaUniversity"), ("map", "map.html", "Карта", "FaCompass"), ("cat", "catalog.html", "Дисциплины", "FaBookOpen"),
         ("jobs", "jobs.html", "Профессии", "FaBriefcase"), ("profile", "profile.html", "Профиль", "FaUserGraduate"))
+MENU_X = (("path.html#journey", "Путь по семестрам", "FaMapMarkedAlt"), ("plan.html", "План таблицей и CSV", "FaChartBar"), ("settings.html", "Настройки", "FaCog"),
+          ("about.html", "О проекте", "FaLightbulb"), ("roadmap.html", "Развитие сайта", "FaRocket"), ("feedback.html", "Обратная связь", "FaCommentDots"))
+def app_menu(depth):
+    """Мобильное меню ☰ (полноэкранное, как пауза в игре): основные разделы и «Дополнительно». Разметка при сборке — без сдвига страницы."""
+    b = "../" * depth
+    main_ = "".join(f'<li><a class="am-i" href="{b}{h}"><span class="am-ic" aria-hidden="true">{ic(i)}</span>{t}</a></li>'
+                    for k, h, t, i in TABS)
+    extra = "".join(f'<li><a class="am-x" href="{b}{h}"><span class="am-ic" aria-hidden="true">{ic(i)}</span>{t}</a></li>' for h, t, i in MENU_X)
+    return (f'<div class="appmenu" id="appmenu" role="dialog" aria-modal="true" aria-label="Меню" hidden><div class="am-top"><span class="am-logo">{LOGO_SVG}<span>Teach<em>Map</em></span></span>'
+            '<button type="button" class="am-close" data-am-close aria-label="Закрыть меню"><span aria-hidden="true">×</span></button></div>'
+            f'<nav aria-label="Разделы"><ul class="am-l">{main_}</ul><p class="am-h">Дополнительно</p><ul class="am-l am-lx">{extra}</ul></nav>'
+            '<p class="am-note">Справочный студенческий проект, не официальный сайт ДВФУ.</p></div>')
 def tab_bar(depth, tab):
     b = "../" * depth
     return ('<nav class="tabbar" aria-label="Разделы приложения">' + "".join(
@@ -131,7 +143,7 @@ def app_bar(depth, active):
     if depth and active == "cat": title, up = "Дисциплина", "catalog.html"     # страница предмета: «назад» к списку
     search = "" if active == "cat" and not depth else f'<a class="ab-i" href="{b}catalog.html" aria-label="Найти предмет">{ic("FaSearch")}</a>'
     return (f'<header class="appbar"><a class="ab-back" href="{b}{up}" data-back aria-label="Назад"><span aria-hidden="true">‹</span></a>'
-            f'<p class="ab-t">{E(title)}</p>{search}<a class="ab-i" href="{b}index.html#settings" aria-label="Настройки">{ic("FaCog")}</a></header>' + tab_bar(depth, tab))
+            f'<p class="ab-t">{E(title)}</p>{search}<button type="button" class="ab-i ab-menu" data-am-open aria-controls="appmenu" aria-expanded="false" aria-label="Меню"><span class="am-burger" aria-hidden="true"><i></i><i></i><i></i></span></button></header>' + tab_bar(depth, tab))
 def footer_html(b=""):
     contact = f'<p>Контакты: {E(CONTACT)}</p>' if CONTACT else ""
     contact += (f'<p class="flinks"><a href="{b}plan.html">Учебный план таблицей и CSV</a> · <a href="{b}about.html">О проекте</a> · <a href="{b}roadmap.html">Развитие сайта</a>'
@@ -157,7 +169,7 @@ def page(title, desc, body, depth=0, live=False, path=False, form=False, graph=F
 <title>{E(title)}</title><meta name="description" content="{E(desc)}"><meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}"><meta name="theme-color" content="#173B70"><link rel="manifest" href="{b}manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="TeachMap"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="tm-jobs" content="{",".join(JOB_IDS)}">{lm}{fm}
 <link rel="icon" type="image/svg+xml" href="{b}assets/logo-icon.svg"><link rel="apple-touch-icon" href="{b}assets/apple-touch-icon.png"><meta property="og:site_name" content="TeachMap"><meta property="og:image" content="{SITE_URL}assets/og.png"><meta property="og:type" content="website">
 <link rel="preload" href="{b}assets/fonts/montserrat-core.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-cyrillic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="{b}assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="{b}assets/style.css?v={ASSET_V}"><script>document.documentElement.classList.add("tm-js");try{{if(localStorage.getItem("tm-motion")==="off")document.documentElement.classList.add("tm-still")}}catch(x){{}}try{{if(sessionStorage.getItem("tmFocus")){{sessionStorage.removeItem("tmFocus");document.documentElement.classList.add("tm-focus");addEventListener("load",function(){{setTimeout(function(){{document.documentElement.classList.remove("tm-focus")}},900)}})}}}}catch(x){{}}try{{var n=navigator,c=n.connection||{{}};if(c.saveData||n.deviceMemory&&n.deviceMemory<=2||n.hardwareConcurrency&&n.hardwareConcurrency<=2||/^(slow-2g|2g)$/.test(c.effectiveType||""))document.documentElement.classList.add("tm-lite")}}catch(x){{}}var tmS=document.documentElement.classList.contains("tm-still");try{{if(!tmS&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-pre")}}catch(x){{}}try{{if(!tmS&&sessionStorage.getItem("tmNav")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("tm-navwait")}}catch(x){{}}addEventListener("pagereveal",function(e){{var d;try{{d=sessionStorage.getItem("tmDir");sessionStorage.removeItem("tmDir")}}catch(x){{}}var a=window.navigation&&navigation.activation;if(a&&a.navigationType==="traverse"&&a.from&&a.entry)d=a.entry.index<a.from.index?"back":"fwd";if(e.viewTransition&&/tm-lite|tm-still/.test(document.documentElement.className)){{try{{e.viewTransition.skipTransition()}}catch(x){{}}return}}if(d&&e.viewTransition&&e.viewTransition.types)try{{e.viewTransition.types.add(d)}}catch(x){{}}}})</script></head><body>
-<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
+<a class="skip" href="#main">К содержимому</a>{body.replace('<div class="heroblock">', '<div class="heroblock">' + HERO3D)}{footer_html(b)}{app_menu(depth)}<script src="{b}assets/profile.js?v={ASSET_V}" defer></script><script src="{b}assets/app.js?v={ASSET_V}" defer></script>{lj}<script src="{b}assets/motion.js?v={ASSET_V}" defer></script></body></html>'''
 def job_roles():
     """для каталога: профессии, где предмет ключевой, и где он нужен для ключевых (те же данные, что на карте профессий)"""
     key, anc = {}, {}
@@ -858,9 +870,9 @@ def start_page():
     facts = (f'<ul class="st-facts"><li><b>4</b><span>года</span></li><li><b>8</b><span>семестров</span></li>'
              f'<li><b>{total_ze}</b><span>з.е.</span></li><li><b>{len(items)}</b><span>позиции плана</span></li></ul>')
     body = f'''<main id="main" class="start"><div class="st-bg" aria-hidden="true">{start_art()}</div>
-<div class="st-wrap"><div class="st-top"><a class="st-logo" href="index.html">{LOGO_SVG}<span class="st-lw">Teach<em>Map</em></span><span class="vh">: стартовый экран</span></a><p class="st-date" id="stdate" aria-hidden="true"></p></div>
+<div class="st-wrap"><div class="st-top"><a class="st-logo" href="index.html">{LOGO_SVG}<span class="st-lw">Teach<em>Map</em></span><span class="vh">: стартовый экран</span></a><p class="st-date" id="stdate" aria-hidden="true"></p><button type="button" class="st-menubtn" data-am-open aria-controls="appmenu" aria-expanded="false" aria-label="Меню"><span class="am-burger" aria-hidden="true"><i></i><i></i><i></i></span></button></div>
 <div class="st-left"><h1 class="st-h1"><span class="st-k">{E(meta.get("program", "27.03.01"))} · ДВФУ</span><span class="st-ht">Учебный план простым языком</span></h1>
-<p class="st-cta"><a class="st-go" id="stgo" href="path.html#journey"><span class="st-gi" aria-hidden="true"></span><span class="st-gt" id="stgot">Начать путь</span><span class="st-gd" id="stgod">от первого семестра до профессии</span></a></p>
+<p class="st-lead">От первого семестра до выбранной профессии: что изучают, как предметы связаны и куда ведут.</p><p class="st-mapgo"><a class="st-map" href="map.html">Открыть образовательную карту <span aria-hidden="true">→</span></a></p><p class="st-cta"><a class="st-go" id="stgo" href="path.html#journey"><span class="st-gi" aria-hidden="true"></span><span class="st-gt" id="stgot">Начать путь</span><span class="st-gd" id="stgod">от первого семестра до профессии</span></a></p>
 <nav class="st-menu" id="stnav" aria-label="Главное меню"><ol id="stmenu">{lis}</ol></nav>{settings}
 <form class="st-find" action="catalog.html" role="search"><label class="vh" for="stq">Найти предмет</label><input id="stq" name="q" type="search" placeholder="Найти предмет, например «метрология»"><button type="submit" aria-label="Найти">{ic("FaSearch")}</button></form></div>
 <aside class="st-stat" aria-labelledby="stath"><h2 class="vh" id="stath">Программа и мой прогресс</h2><p class="st-sk">Программа</p>{facts}

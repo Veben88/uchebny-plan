@@ -9,6 +9,29 @@
       try { localStorage.setItem('access', on ? '1' : '0'); } catch (e) {}
     });
   }
+  // ---------- мобильное меню ☰: полноэкранное, как пауза в игре; Esc и × закрывают, фокус возвращается на кнопку ----------
+  (function () {
+    var m = document.getElementById('appmenu'); if (!m) return;
+    var opener = null, cur = document.querySelector('.tabbar a[aria-current]');
+    if (cur) [].forEach.call(m.querySelectorAll('.am-i'), function (a) { if (a.getAttribute('href') === cur.getAttribute('href')) a.setAttribute('aria-current', 'page'); });
+    [].forEach.call(m.querySelectorAll('.am-x'), function (a) { var u = a.getAttribute('href').split('#')[0].split('/').pop(); if (u && location.pathname.split('/').pop() === u) a.setAttribute('aria-current', 'page'); });
+    function set(on) {
+      m.hidden = !on; root.classList.toggle('am-open', on);
+      [].forEach.call(document.querySelectorAll('[data-am-open]'), function (b) { b.setAttribute('aria-expanded', on ? 'true' : 'false'); });
+      if (on) { var f = m.querySelector('[aria-current]') || m.querySelector('a'); if (f) f.focus(); }
+      else if (opener) opener.focus();
+    }
+    [].forEach.call(document.querySelectorAll('[data-am-open]'), function (b) { b.addEventListener('click', function () { opener = b; set(true); }); });
+    m.querySelector('[data-am-close]').addEventListener('click', function () { set(false); });
+    m.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); set(false); return; }
+      if (e.key !== 'Tab') return;                                   // фокус не уходит за пределы меню
+      var f = [].slice.call(m.querySelectorAll('a,button')), i = f.indexOf(document.activeElement);
+      if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+    });
+    window.addEventListener('pageshow', function () { if (!m.hidden) set(false); });
+    if (window.matchMedia) matchMedia('(min-width: 701px)').addEventListener('change', function (q) { if (q.matches && !m.hidden) set(false); });
+  })();
   // мобильная панель: «назад» — по истории, если пришли с этого же сайта; иначе ссылка ведёт в родительский раздел
   [].forEach.call(document.querySelectorAll('[data-back]'), function (a) {
     a.addEventListener('click', function (e) {
